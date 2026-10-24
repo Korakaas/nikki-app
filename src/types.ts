@@ -31,7 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   model: 'claude-sonnet-5-5',
   targetLevel: 'N3',
   furiganaFrom: 'N2',
-  theme: 'auto',
+  theme: 'light',
 }
 
 export type ErrorKind =

@@ -8,13 +8,13 @@ interface Props {
   furigana: FuriganaFrom
   /** Le texte a changé depuis cette correction. */
   stale?: boolean
-  /** Replié au départ (par défaut : ouvert). */
-  startClosed?: boolean
+  /** Ouvert au départ (par défaut : replié, un tap sur le titre le déplie). */
+  startOpen?: boolean
 }
 
-export default function CorrectionView({ correction, furigana, stale, startClosed }: Props) {
+export default function CorrectionView({ correction, furigana, stale, startOpen }: Props) {
   const { summary, natural, errors, grammarGood, grammarReview } = correction
-  const [open, setOpen] = useState(!startClosed)
+  const [open, setOpen] = useState(Boolean(startOpen))
   const overview = `${errors.length === 0 ? 'aucune erreur' : errors.length === 1 ? '1 erreur' : `${errors.length} erreurs`}${
     grammarGood.length + grammarReview.length > 0
       ? ` · ${grammarGood.length} ○ ${grammarReview.length} △`

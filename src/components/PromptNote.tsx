@@ -13,7 +13,7 @@ interface Props {
 /** Petit mot collé en haut de la page : le sujet, un point de grammaire, trois mots. */
 export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Props) {
   const { topic, grammar, words } = prompt
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   return (
     <aside className="note-card" lang="ja" aria-label="Idée du jour">
       <span className="tape" aria-hidden="true" />

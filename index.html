@@ -10,9 +10,12 @@
     <meta name="theme-color" content="#211f1c" media="(prefers-color-scheme: dark)" />
     <script>
       try {
-        var t = localStorage.getItem('nikki-theme');
+        // Clair par défaut ; « auto » (suivre le téléphone) n'est appliqué que s'il est choisi.
+        var t = localStorage.getItem('nikki-theme') || 'light';
         if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-      } catch (e) {}
+      } catch (e) {
+        document.documentElement.dataset.theme = 'light';
+      }
     </script>
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
     <link rel="apple-touch-icon" href="icon-192.png" />

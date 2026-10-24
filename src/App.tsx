@@ -62,8 +62,7 @@ export default function App() {
     if (settings.theme === 'auto') delete root.dataset.theme
     else root.dataset.theme = settings.theme
     try {
-      if (settings.theme === 'auto') localStorage.removeItem('nikki-theme')
-      else localStorage.setItem('nikki-theme', settings.theme)
+      localStorage.setItem('nikki-theme', settings.theme)
     } catch {
       /* stockage indisponible : le thème reste appliqué pour cette session */
     }
