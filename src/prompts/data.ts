@@ -3,7 +3,7 @@
   {漢字|かんじ} (voir furigana.tsx) : l'affichage filtre les lectures selon le réglage.
 */
 
-export type PromptLevel = 'N4' | 'N3'
+export type PromptLevel = 'N4' | 'N3' | 'N2'
 
 export interface GrammarPoint {
   level: PromptLevel
@@ -395,6 +395,223 @@ export const GRAMMAR: GrammarPoint[] = [
     example:
       '{買|か}い{物|もの}のついでに、{本屋|ほんや}に{寄|よ}りました。',
     exampleFr: 'En faisant les courses, je suis passé(e) à la librairie.',
+  },
+  // ---- N2 ----
+  {
+    level: 'N2',
+    pattern: '〜にもかかわらず',
+    fr: 'malgré, en dépit de',
+    example:
+      '{雨|あめ}にもかかわらず、たくさんの{人|ひと}が{来|き}ました。',
+    exampleFr: 'Malgré la pluie, beaucoup de monde est venu.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜に対して',
+    fr: "envers, à l'égard de ; par contraste avec",
+    example:
+      '{私|わたし}は{姉|あね}に{対|たい}して、いつも{感謝|かんしゃ}しています。',
+    exampleFr: 'Je suis toujours reconnaissant(e) envers ma grande sœur.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜において',
+    fr: 'à, dans (lieu, domaine, circonstance)',
+    example:
+      '{大会|たいかい}は{体育館|たいいくかん}において{行|おこな}われました。',
+    exampleFr: 'Le tournoi a eu lieu au gymnase.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜をきっかけに',
+    fr: "à la suite de, à l'occasion de (déclic)",
+    example:
+      '{引|ひ}っ{越|こ}しをきっかけに、{自炊|じすい}を{始|はじ}めました。',
+    exampleFr: 'Depuis mon déménagement, je me suis mis(e) à cuisiner.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜わけにはいかない',
+    fr: 'on ne peut pas (pour une raison morale ou pratique)',
+    example:
+      '{明日|あした}は{試験|しけん}なので、{今夜|こんや}は{遊|あそ}ぶわけにはいきません。',
+    exampleFr: "Demain j'ai un examen, je ne peux pas me permettre de sortir ce soir.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜ざるを得ない',
+    fr: 'ne pas pouvoir faire autrement que de',
+    example:
+      '{台風|たいふう}で{電車|でんしゃ}が{止|と}まったので、{会社|かいしゃ}を{休|やす}まざるを{得|え}ませんでした。',
+    exampleFr: "Le typhon a arrêté les trains, j'ai dû rester chez moi.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜ものの',
+    fr: 'bien que, certes… mais',
+    example:
+      '{買|か}ったものの、まだ{一度|いちど}も{使|つか}っていません。',
+    exampleFr: "Je l'ai acheté, mais je ne m'en suis pas encore servi.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜からには',
+    fr: 'puisque, du moment que',
+    example:
+      'やると{決|き}めたからには、{最後|さいご}までがんばります。',
+    exampleFr: "Puisque j'ai décidé de le faire, je m'y tiens jusqu'au bout.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜次第',
+    fr: 'dès que',
+    example:
+      '{駅|えき}に{着|つ}き{次第|しだい}、{連絡|れんらく}します。',
+    exampleFr: 'Je vous contacte dès mon arrivée à la gare.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜つつある',
+    fr: 'être en train de (changement progressif)',
+    example:
+      '{町|まち}は{少|すこ}しずつ{変|か}わりつつあります。',
+    exampleFr: 'La ville est en train de changer peu à peu.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜かねない',
+    fr: 'risquer de (conséquence négative)',
+    example:
+      '{寝不足|ねぶそく}が{続|つづ}くと、{仕事|しごと}で{失敗|しっぱい}しかねません。',
+    exampleFr: 'Si le manque de sommeil continue, je risque de commettre une erreur au travail.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜に限る',
+    fr: "rien ne vaut, le mieux c'est",
+    example:
+      '{暑|あつ}い{日|ひ}は、{冷|つめ}たいアイスに{限|かぎ}ります。',
+    exampleFr: 'Quand il fait chaud, rien ne vaut une glace.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜ばかりか',
+    fr: 'non seulement… mais aussi',
+    example:
+      '{彼|かれ}は{英語|えいご}ばかりか、{中国語|ちゅうごくご}も{話|はな}せます。',
+    exampleFr: 'Il parle non seulement anglais, mais aussi chinois.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜わりに',
+    fr: "pour, compte tenu de (écart avec l'attente)",
+    example:
+      'この{店|みせ}は{安|やす}いわりに、とてもおいしいです。',
+    exampleFr: 'Ce restaurant est très bon pour son prix.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜通りに',
+    fr: 'comme, conformément à',
+    example:
+      '{先生|せんせい}に{言|い}われた{通|とお}りに、{書|か}き{直|なお}しました。',
+    exampleFr: "J'ai réécrit exactement comme le professeur me l'avait dit.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜ことに',
+    fr: "(sentiment) chose…, c'est que",
+    example:
+      '{残念|ざんねん}なことに、{旅行|りょこう}は{中止|ちゅうし}になりました。',
+    exampleFr: 'Malheureusement, le voyage a été annulé.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜に比べて',
+    fr: 'comparé à',
+    example:
+      '{去年|きょねん}に{比|くら}べて、{今年|ことし}は{雨|あめ}が{多|おお}いです。',
+    exampleFr: "Comparé à l'an dernier, il pleut plus cette année.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜（よ）うとする',
+    fr: 'essayer de, être sur le point de',
+    example:
+      '{家|いえ}を{出|で}ようとしたとき、{電話|でんわ}が{鳴|な}りました。',
+    exampleFr: "Au moment où j'allais sortir, le téléphone a sonné.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜ようがない',
+    fr: "il n'y a aucun moyen de",
+    example:
+      '{連絡先|れんらくさき}が{分|わ}からないので、{連絡|れんらく}しようがありません。',
+    exampleFr: "Je n'ai pas ses coordonnées, je n'ai aucun moyen de la contacter.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜上で',
+    fr: 'après avoir, en vue de (étape préalable)',
+    example:
+      '{内容|ないよう}をよく{確認|かくにん}した{上|うえ}で、サインしてください。',
+    exampleFr: 'Signez après avoir bien vérifié le contenu.',
+  },
+  {
+    level: 'N2',
+    pattern: '〜末に',
+    fr: 'au bout de (longue réflexion ou effort)',
+    example:
+      '{悩|なや}んだ{末|すえ}に、{仕事|しごと}を{変|か}えることにしました。',
+    exampleFr: "Après avoir longuement hésité, j'ai décidé de changer de travail.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜ものだ',
+    fr: "(souvenir, vérité générale) on avait l'habitude de, c'est normal de",
+    example:
+      '{子|こ}どものころは、よく{川|かわ}で{遊|あそ}んだものです。',
+    exampleFr: "Quand j'étais enfant, je jouais souvent à la rivière.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜に関して',
+    fr: 'au sujet de, à propos de',
+    example:
+      '{旅行|りょこう}に{関|かん}して、{質問|しつもん}があります。',
+    exampleFr: "J'ai une question au sujet du voyage.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜わけがない',
+    fr: 'il est impossible que',
+    example:
+      '{彼|かれ}がそんなことを{言|い}うわけがありません。',
+    exampleFr: "Il est impossible qu'il ait dit une chose pareille.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜というより',
+    fr: "plutôt que, ce n'est pas tant… que",
+    example:
+      'この{部屋|へや}は{広|ひろ}いというより、{何|なに}もないだけです。',
+    exampleFr: "Cette pièce n'est pas tant grande que vide.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜際に',
+    fr: "lors de, à l'occasion de",
+    example:
+      '{旅行|りょこう}の{際|さい}に、パスポートを{忘|わす}れないでください。',
+    exampleFr: "N'oubliez pas votre passeport lors du voyage.",
+  },
+  {
+    level: 'N2',
+    pattern: '〜だけあって',
+    fr: 'à la hauteur de sa réputation, logiquement',
+    example:
+      '{有名|ゆうめい}な{店|みせ}だけあって、{料理|りょうり}がおいしかったです。',
+    exampleFr: 'À la hauteur de sa réputation, la cuisine était délicieuse.',
   },
 ]
 

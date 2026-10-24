@@ -1,6 +1,6 @@
 import { activeLibrary, patternKey } from '../anki'
 import { timesUsed } from '../stats'
-import type { AnkiLibrary, DailyPrompt, Settings } from '../types'
+import type { AnkiLibrary, DailyPrompt, Settings, WeeklyReview } from '../types'
 import { GRAMMAR, TOPICS, VOCAB } from './data'
 
 /** Générateur pseudo-aléatoire déterministe : même date + même variante = même idée. */
@@ -51,6 +51,8 @@ interface PickOptions {
   library?: AnkiLibrary | null
   /** Points déjà bien employés (voir stats.goodPoints) : on préfère ceux qui ne le sont pas encore. */
   good?: string[][]
+  /** Point à viser choisi par le bilan de la semaine : proposé en première idée du jour. */
+  focus?: WeeklyReview['focus'] | null
 }
 
 export function pickPrompt(options: PickOptions): DailyPrompt {
@@ -61,7 +63,7 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
   const anki = activeLibrary(options.library)
   const fresh = (pattern: string) => !recentPatterns.includes(pattern)
   const ownKeys = new Set(anki.grammar.map((g) => patternKey(g.pattern)))
-  const builtin = (lvl: 'N4' | 'N3') =>
+  const builtin = (lvl: 'N4' | 'N3' | 'N2') =>
     GRAMMAR.filter(
       (g) =>
         g.level === lvl && fresh(g.pattern) && !ownKeys.has(patternKey(g.pattern)),
@@ -71,11 +73,17 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
   // N4 : points N4 seulement.
   // N3 : un point N4 sur quatre pour consolider ; avec un deck importé, la moitié des
   // points viennent du deck, sinon la liste intégrée N3.
-  let kind: 'n4' | 'n3' | 'deck' = 'n4'
+  // N2 : un point N3 sur cinq pour consolider, puis des points N2 ; avec un deck importé,
+  // 40 % viennent du deck.
+  let kind: 'n4' | 'n3' | 'n2' | 'deck' = 'n4'
   if (level === 'N3') {
     const roll = rand()
     if (anki.grammar.length > 0) kind = roll < 0.25 ? 'n4' : roll < 0.5 ? 'n3' : 'deck'
     else kind = roll < 1 / 3 ? 'n4' : 'n3'
+  } else if (level === 'N2') {
+    const roll = rand()
+    if (anki.grammar.length > 0) kind = roll < 0.2 ? 'n3' : roll < 0.6 ? 'n2' : 'deck'
+    else kind = roll < 0.25 ? 'n3' : 'n2'
   }
   const asPrompt = (
     g: { pattern: string; fr: string; level: 'N4' | 'N3' | 'N2'; example: string; exampleFr: string },
@@ -91,16 +99,37 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
   const pools: Record<typeof kind, DailyPrompt['grammar'][]> = {
     n4: builtin('N4').map((g) => asPrompt(g, false)),
     n3: builtin('N3').map((g) => asPrompt(g, false)),
+    n2: builtin('N2').map((g) => asPrompt(g, false)),
     deck: own.map((g) => asPrompt(g, true)),
   }
   let chosen = pools[kind]
-  if (chosen.length === 0) chosen = [...pools.deck, ...pools.n3, ...pools.n4]
+  if (chosen.length === 0) chosen = [...pools.deck, ...pools.n2, ...pools.n3, ...pools.n4]
   if (chosen.length === 0) chosen = GRAMMAR.filter((g) => g.level === 'N4').map((g) => asPrompt(g, false))
   // Un point jamais bien employé a trois fois plus de chances d'être proposé.
   const good = options.good ?? []
-  const grammar = chooseWeighted(rand, chosen, (g) =>
+  let grammar = chooseWeighted(rand, chosen, (g) =>
     timesUsed(g.pattern, good) === 0 ? 3 : 1,
   )
+  // Première idée du jour : le point à viser du bilan, si on en a un.
+  if (options.focus && variant === 0) {
+    const f = options.focus
+    const key = patternKey(f.pattern)
+    const fromDeck = anki.grammar.find((g) => patternKey(g.pattern) === key)
+    const fromBuiltin = GRAMMAR.find((g) => patternKey(g.pattern) === key)
+    const known = fromDeck ?? fromBuiltin
+    grammar = {
+      ...(known
+        ? asPrompt(known, Boolean(fromDeck))
+        : {
+            pattern: f.pattern,
+            fr: f.fr,
+            level: f.level,
+            example: f.example,
+            exampleFr: f.exampleFr,
+          }),
+      fromReview: true,
+    }
+  }
 
   let topics = TOPICS.filter((t) => t.ja !== currentTopic)
   if (topics.length === 0) topics = TOPICS

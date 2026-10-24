@@ -6,6 +6,7 @@ import WritePage from './pages/WritePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 import StatsPage from './pages/StatsPage'
+import BackupReminder from './components/BackupReminder'
 
 type Tab = 'write' | 'history' | 'stats' | 'settings'
 
@@ -86,6 +87,7 @@ export default function App() {
   return (
     <div className="app">
       <main className="content">
+        {tab === 'write' && <BackupReminder settings={settings} />}
         {tab === 'write' && (
           <WritePage
             key={day}
@@ -102,7 +104,7 @@ export default function App() {
               setTab('write')
             }}
           />}
-        {tab === 'stats' && <StatsPage />}
+        {tab === 'stats' && <StatsPage settings={settings} />}
         {tab === 'settings' && (
           <SettingsPage settings={settings} onChange={updateSettings} />
         )}

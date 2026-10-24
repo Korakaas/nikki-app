@@ -72,7 +72,7 @@ const TOOL = {
       grammar_good: {
         type: 'array',
         description:
-          'Points de grammaire N4/N3 bien utilisés dans le texte (0 à 3).',
+          'Points de grammaire JLPT bien utilisés dans le texte (0 à 3).',
         items: {
           type: 'object',
           properties: {
@@ -88,7 +88,7 @@ const TOOL = {
       grammar_review: {
         type: 'array',
         description:
-          'Points de grammaire N4/N3 à retravailler d’après les fautes (0 à 2).',
+          'Points de grammaire JLPT à retravailler d’après les fautes (0 à 2).',
         items: {
           type: 'object',
           properties: {
@@ -110,10 +110,16 @@ const TOOL = {
   },
 }
 
+function levelLine(level: string): string {
+  if (level === 'N2')
+    return "Niveau de l'apprenant(e) : JLPT N2 (a le N3 et prépare le N2). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3–N2, phrases claires, sans tournures N1."
+  return `Niveau de l'apprenant(e) : JLPT ${level} (prépare le N3 en partant du N4). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N4–N3, phrases courtes.`
+}
+
 function systemPrompt(level: string): string {
   return `Tu es un professeur de japonais qui corrige l'entrée de journal d'un(e) apprenant(e) francophone.
 
-Niveau de l'apprenant(e) : JLPT ${level} (prépare le N3 en partant du N4). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N4–N3, phrases courtes. Aucun français dans les champs.
+${levelLine(level)} Aucun français dans les champs.
 
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
@@ -134,15 +140,15 @@ Point de grammaire visé : quand le message indique un « point de grammaire vis
 Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 }
 
-function str(v: unknown): string {
+export function str(v: unknown): string {
   return typeof v === 'string' ? v.trim() : ''
 }
 
-function arr(v: unknown): unknown[] {
+export function arr(v: unknown): unknown[] {
   return Array.isArray(v) ? v : []
 }
 
-function obj(v: unknown): Record<string, unknown> {
+export function obj(v: unknown): Record<string, unknown> {
   return v && typeof v === 'object' ? (v as Record<string, unknown>) : {}
 }
 
@@ -199,7 +205,7 @@ async function readApiMessage(res: Response): Promise<string> {
   }
 }
 
-interface ApiResponse {
+export interface ApiResponse {
   content?: { type: string; name?: string; input?: unknown }[]
 }
 
@@ -223,6 +229,28 @@ async function callApi(
   prompt?: DailyPrompt | null,
   extraHint?: string,
 ): Promise<ApiResponse> {
+  return postApi(settings, {
+    model: settings.model,
+    max_tokens: 4096,
+    system:
+      systemPrompt(settings.targetLevel) +
+      (retry
+        ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant l'outil ${TOOL_NAME}, sans autre texte.`
+        : '') +
+      (extraHint ? `\n\nIMPORTANT : ${extraHint}` : ''),
+    tools: [TOOL],
+    // Certains modèles refusent qu'on impose l'outil : on laisse le choix
+    // au modèle et on relance une fois s'il répond par du texte.
+    tool_choice: { type: 'auto' },
+    messages: [{ role: 'user', content: userMessage(text, prompt) }],
+  })
+}
+
+/** Appel brut à l'API Claude depuis le téléphone ; les échecs deviennent des messages lisibles. */
+export async function postApi(
+  settings: Settings,
+  body: Record<string, unknown>,
+): Promise<ApiResponse> {
   if (!settings.apiKey) {
     throw new CorrectionFailure(
       'no-key',
@@ -245,29 +273,13 @@ async function callApi(
         // Obligatoire pour appeler l'API depuis un navigateur.
         'anthropic-dangerous-direct-browser-access': 'true',
       },
-      body: JSON.stringify({
-        model: settings.model,
-        max_tokens: 4096,
-        system:
-          systemPrompt(settings.targetLevel) +
-          (retry
-            ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant l'outil ${TOOL_NAME}, sans autre texte.`
-            : '') +
-          (extraHint ? `\n\nIMPORTANT : ${extraHint}` : ''),
-        tools: [TOOL],
-        // Certains modèles refusent qu'on impose l'outil : on laisse le choix
-        // au modèle et on relance une fois s'il répond par du texte.
-        tool_choice: { type: 'auto' },
-        messages: [
-          { role: 'user', content: userMessage(text, prompt) },
-        ],
-      }),
+      body: JSON.stringify(body),
     })
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') {
       throw new CorrectionFailure(
         'network',
-        'La correction a pris trop de temps. Réessaie.',
+        'La requête a pris trop de temps. Réessaie.',
       )
     }
     throw new CorrectionFailure(

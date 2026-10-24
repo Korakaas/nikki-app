@@ -1,14 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
+import Decor from '../components/Decor'
 import Chevron from '../components/Chevron'
 import PromptNote from '../components/PromptNote'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
-import { getEntry, listEntries, loadAnki, saveEntry, todayId } from '../db'
+import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { pickPrompt } from '../prompts/pick'
-import { goodPoints, streakInfo, writtenDays } from '../stats'
-import type { Correction, DailyPrompt, Entry, Settings } from '../types'
+import { goodPoints, streakInfo, timesUsed, writtenDays } from '../stats'
+import type { Correction, DailyPrompt, Entry, EntryPhoto, EntrySticker, Settings } from '../types'
 
 interface Props {
   /** Jour affiché (YYYY-MM-DD) : aujourd'hui ou une page passée. */
@@ -45,6 +46,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const [missingKey, setMissingKey] = useState(false)
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
   const [days, setDays] = useState<Set<string>>(() => new Set())
+  const [photos, setPhotos] = useState<EntryPhoto[]>([])
+  const [stickers, setStickers] = useState<EntrySticker[]>([])
   const entryRef = useRef<Entry | undefined>(undefined)
   const timer = useRef<number | undefined>(undefined)
   const textRef = useRef(text)
@@ -70,6 +73,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       setText(entry?.text ?? '')
       setMeta(metaOf(entry))
       setPrompt(entry?.prompt ?? null)
+      setPhotos(entry?.photos ?? [])
+      setStickers(entry?.stickers ?? [])
       setLoaded(true)
     })
   }, [id])
@@ -126,6 +131,13 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       .filter((p): p is string => Boolean(p))
     const recentWords = recentEntries.flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
     const library = await loadAnki().catch(() => null)
+    // Le point à viser du dernier bilan reste proposé pendant dix jours,
+    // jusqu'à ce qu'il ait été bien employé deux fois depuis.
+    const review = (await loadReviews().catch(() => []))[0]
+    const fresh = review && Date.now() - review.createdAt < 10 * 86_400_000
+    const since = review ? goodPoints(all.filter((e) => e.id > review.to)) : []
+    const focus =
+      review && fresh && timesUsed(review.focus.pattern, since) < 2 ? review.focus : null
     const idea = pickPrompt({
       level: settings.targetLevel,
       dateId: id,
@@ -135,6 +147,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       currentTopic: prompt?.topic.ja,
       library,
       good: goodPoints(all),
+      focus,
     })
     setPrompt(idea)
     await savePrompt(idea)
@@ -156,6 +169,29 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       updatedAt: now,
     }
     if (!idea) delete entry.prompt
+    await saveEntry(entry)
+    entryRef.current = entry
+  }
+
+  /** Photos et autocollants : enregistrés tout de suite, avec le texte en cours. */
+  async function saveDecor(nextPhotos: EntryPhoto[], nextStickers: EntrySticker[]) {
+    setPhotos(nextPhotos)
+    setStickers(nextStickers)
+    window.clearTimeout(timer.current)
+    timer.current = undefined
+    const now = Date.now()
+    const previous = entryRef.current
+    const entry: Entry = {
+      ...previous,
+      id,
+      text: textRef.current,
+      photos: nextPhotos,
+      stickers: nextStickers,
+      createdAt: previous?.createdAt ?? now,
+      updatedAt: now,
+    }
+    if (nextPhotos.length === 0) delete entry.photos
+    if (nextStickers.length === 0) delete entry.stickers
     await saveEntry(entry)
     entryRef.current = entry
   }
@@ -347,6 +383,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
               : 'Corriger'}
         </button>
       </div>
+
+      <Decor photos={photos} stickers={stickers} onChange={(p, s) => void saveDecor(p, s)} />
 
       {missingKey && (
         <p className="problem" role="alert">

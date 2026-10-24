@@ -1,4 +1,11 @@
-import { DEFAULT_SETTINGS, type AnkiLibrary, type Entry, type Settings } from './types'
+import {
+  DEFAULT_SETTINGS,
+  type AnkiLibrary,
+  type Entry,
+  type Settings,
+  type WeeklyReview,
+} from './types'
+import type { QuizHistory } from './quiz'
 
 const DB_NAME = 'nikki'
 const DB_VERSION = 1
@@ -113,4 +120,60 @@ export async function requestPersistence(): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+/** Dernière sauvegarde exportée, et rappel repoussé (rangés dans le magasin des réglages). */
+export interface BackupInfo {
+  lastAt?: number
+  snoozedUntil?: number
+}
+
+const BACKUP_KEY = 'backup'
+
+export async function loadBackupInfo(): Promise<BackupInfo> {
+  const row = await run<(BackupInfo & { key: string }) | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(BACKUP_KEY),
+  )
+  return { lastAt: row?.lastAt, snoozedUntil: row?.snoozedUntil }
+}
+
+export async function saveBackupInfo(info: BackupInfo): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: BACKUP_KEY, ...info }))
+}
+
+const REVIEWS_KEY = 'reviews'
+const MAX_REVIEWS = 12
+
+/** Bilans de la semaine, du plus récent au plus ancien. */
+export async function loadReviews(): Promise<WeeklyReview[]> {
+  const row = await run<{ key: string; list?: WeeklyReview[] } | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(REVIEWS_KEY),
+  )
+  return row?.list ?? []
+}
+
+export async function addReview(review: WeeklyReview): Promise<WeeklyReview[]> {
+  const list = [review, ...(await loadReviews())].slice(0, MAX_REVIEWS)
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: REVIEWS_KEY, list }))
+  return list
+}
+
+const QUIZ_KEY = 'quiz'
+
+/** Résultats du mini-quiz d'erreurs : combien de fois chaque erreur a été réussie / ratée. */
+export async function loadQuizHistory(): Promise<QuizHistory> {
+  const row = await run<{ key: string; results?: QuizHistory } | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(QUIZ_KEY),
+  )
+  return row?.results ?? {}
+}
+
+export async function saveQuizHistory(results: QuizHistory): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: QUIZ_KEY, results }))
 }

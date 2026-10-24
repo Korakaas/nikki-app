@@ -1035,3 +1035,268 @@ button.muted-link {
 .tensaku-overview {
   margin: 0;
 }
+
+/* Rappel de sauvegarde */
+.backup-reminder {
+  margin: 14px 16px 0;
+  padding: 10px 14px 12px;
+  border: 1.5px dashed var(--blue);
+  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
+  color: var(--ink);
+}
+
+.backup-reminder p {
+  margin: 0 0 8px;
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.backup-reminder .row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Bilan de la semaine */
+.review {
+  margin-top: 6px;
+  padding: 4px 0 10px;
+}
+
+.review + .review {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.5px dashed var(--rule);
+}
+
+.review-range {
+  margin: 0 0 2px;
+}
+
+.review-text {
+  margin: 0 0 4px;
+  font-family: var(--hand);
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.review-point {
+  font-size: 1.3rem;
+}
+
+.review-why {
+  color: var(--pencil);
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-focus {
+  margin-top: 6px;
+  padding: 8px 14px 10px;
+  border-left: 3px solid var(--green);
+}
+
+.review-pattern {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
+.review-actions {
+  margin-top: 12px;
+}
+
+.review-older {
+  margin-top: 14px;
+}
+
+/* Mini-quiz d'erreurs */
+.quiz {
+  margin-top: 4px;
+}
+
+.quiz-count,
+.quiz-prompt {
+  margin: 0;
+}
+
+.quiz-sentence {
+  margin: 4px 0 10px;
+  font-size: 1.35rem;
+  line-height: 1.6;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button.quiz-option {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 14px 4px 16px 5px / 5px 16px 4px 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.quiz-option.right {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+button.quiz-option.wrong {
+  border-color: var(--red);
+  color: var(--red);
+  text-decoration: line-through;
+}
+
+button.quiz-option.dim {
+  opacity: 0.5;
+}
+
+.quiz-result {
+  margin-top: 12px;
+}
+
+.quiz-result p {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+.quiz-score {
+  margin: 0;
+  font-size: 2.2rem;
+  line-height: 1.3;
+}
+
+.quiz-actions {
+  gap: 10px;
+}
+
+/* Photos et autocollants */
+.decor {
+  margin-top: 18px;
+}
+
+.decor-board {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 14px 12px;
+  margin: 0 0 8px;
+}
+
+.polaroid {
+  position: relative;
+  width: 148px;
+  margin: 8px 4px 0;
+  padding: 8px 8px 22px;
+  background: #fffdf8;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+
+.polaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.washi {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 54px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: var(--tape);
+  opacity: 0.85;
+}
+
+.sticker {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  margin: 2px;
+}
+
+.decor-board.small {
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.decor-board.small .polaroid {
+  width: 72px;
+  padding: 4px 4px 10px;
+}
+
+.decor-board.small .washi {
+  width: 28px;
+  height: 10px;
+  top: -5px;
+}
+
+.decor-x {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--red);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.decor-tray {
+  margin-top: 10px;
+}
+
+.sticker-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sticker-palette button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 4px;
+  border: 1.5px dashed var(--rule);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.decor-toggle {
+  display: block;
+  color: var(--pencil);
+  font-family: var(--hand);
+  font-size: 1.15rem;
+}

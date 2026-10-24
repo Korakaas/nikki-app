@@ -13,7 +13,9 @@ import {
   writingTotals,
   writtenDays,
 } from '../stats'
-import type { AnkiLibrary, Entry } from '../types'
+import ErrorQuiz from '../components/ErrorQuiz'
+import ReviewSection from '../components/ReviewSection'
+import type { AnkiLibrary, Entry, Settings } from '../types'
 
 const KIND_LABEL: Record<string, string> = {
   particule: 'particules',
@@ -47,7 +49,7 @@ function plural(n: number, one: string, many: string) {
   return `${n} ${n > 1 ? many : one}`
 }
 
-export default function StatsPage() {
+export default function StatsPage({ settings }: { settings: Settings }) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
 
@@ -92,6 +94,10 @@ export default function StatsPage() {
       <header className="page-header">
         <h1>Statistiques</h1>
       </header>
+
+      <ReviewSection entries={entries} library={library} settings={settings} today={today} />
+
+      <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
 
       <Heading ja="書いた日" fr="Écriture" />
       <div className="figures">

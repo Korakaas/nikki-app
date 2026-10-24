@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
-import { clearAnki, listEntries, loadAnki, saveAnki, saveEntry, todayId } from '../db'
-import type { AnkiLibrary, Entry, FuriganaFrom, Settings, Theme } from '../types'
+import { backupStatus, canShareFile, exportBackup, importBackup } from '../backup'
+import { clearAnki, listEntries, loadAnki, saveAnki } from '../db'
+import type { AnkiLibrary, FuriganaFrom, Settings, Theme } from '../types'
 
 interface Props {
   settings: Settings
@@ -35,6 +36,24 @@ export default function SettingsPage({ settings, onChange }: Props) {
     setAnki(lib)
   }
   const [ankiMessage, setAnkiMessage] = useState('')
+  const [lastBackup, setLastBackup] = useState('')
+  const refreshStatus = async () => {
+    const s = await backupStatus()
+    setLastBackup(
+      s.days === null
+        ? ''
+        : s.never
+          ? 'Jamais sauvegardé.'
+          : s.days === 0
+            ? "Dernière sauvegarde : aujourd'hui."
+            : `Dernière sauvegarde : il y a ${s.days} jour(s).`,
+    )
+  }
+
+  useEffect(() => {
+    void refreshStatus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     void loadAnki()
@@ -92,35 +111,30 @@ export default function SettingsPage({ settings, onChange }: Props) {
     onChange({ ...settings, ...partial })
   }
 
-  async function exportBackup() {
-    const entries = await listEntries()
-    const blob = new Blob([JSON.stringify({ version: 1, entries }, null, 2)], {
-      type: 'application/json',
-    })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `nikki-sauvegarde-${todayId()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-    setMessage(`${entries.length} entrée(s) exportée(s).`)
+  async function doExport(share: boolean) {
+    const count = (await listEntries()).filter((e) => e.text.trim() !== '').length
+    const result = await exportBackup(settings, share)
+    if (result === 'cancelled') setMessage('Partage annulé.')
+    else if (result === 'shared') setMessage(`${count} entrée(s) sauvegardée(s).`)
+    else setMessage(`${count} entrée(s) exportée(s) dans un fichier (dossier Téléchargements).`)
+    void refreshStatus()
   }
 
-  async function importBackup(file: File) {
+  async function doImport(file: File) {
     try {
-      const data = JSON.parse(await file.text()) as { entries?: Entry[] }
-      if (!Array.isArray(data.entries)) throw new Error('format')
-      const existing = new Map((await listEntries()).map((e) => [e.id, e]))
-      let imported = 0
-      for (const entry of data.entries) {
-        if (typeof entry?.id !== 'string' || typeof entry.text !== 'string') continue
-        const current = existing.get(entry.id)
-        if (!current || current.updatedAt < entry.updatedAt) {
-          await saveEntry(entry)
-          imported++
-        }
+      const hadAnki = (await loadAnki().catch(() => null)) !== null
+      const result = await importBackup(await file.text(), !hadAnki)
+      const parts = [`${result.imported} entrée(s) importée(s).`]
+      if (result.anki) {
+        setLibrary(await loadAnki())
+        parts.push('Cartes Anki restaurées.')
       }
-      setMessage(`${imported} entrée(s) importée(s).`)
+      // Téléphone neuf (pas encore de clé API) : on reprend aussi les réglages de la sauvegarde.
+      if (result.settings && !settings.apiKey) {
+        onChange({ ...settings, ...result.settings, apiKey: '' })
+        parts.push('Réglages restaurés (remets ta clé API).')
+      }
+      setMessage(parts.join(' '))
     } catch {
       setMessage('Fichier de sauvegarde invalide.')
     }
@@ -143,6 +157,7 @@ export default function SettingsPage({ settings, onChange }: Props) {
         >
           <option value="N4">N4</option>
           <option value="N3">N3</option>
+          <option value="N2">N2</option>
         </select>
         <p className="hint">
           Utilisé pour les prompts du jour et la difficulté des explications.
@@ -275,8 +290,13 @@ export default function SettingsPage({ settings, onChange }: Props) {
       <div className="field">
         <span className="label">Sauvegarde</span>
         <div className="row">
-          <button type="button" onClick={() => void exportBackup()}>
-            Exporter
+          {canShareFile() && (
+            <button type="button" className="primary" onClick={() => void doExport(true)}>
+              Sauvegarder…
+            </button>
+          )}
+          <button type="button" onClick={() => void doExport(false)}>
+            Télécharger
           </button>
           <button type="button" onClick={() => fileInput.current?.click()}>
             Importer
@@ -288,15 +308,18 @@ export default function SettingsPage({ settings, onChange }: Props) {
             hidden
             onChange={(e) => {
               const file = e.target.files?.[0]
-              if (file) void importBackup(file)
+              if (file) void doImport(file)
               e.target.value = ''
             }}
           />
         </div>
         <p className="hint">
-          Tes entrées ne vivent que sur ce téléphone : exporte-les de temps en
-          temps pour ne rien perdre.
+          Tes entrées ne vivent que sur ce téléphone. « Sauvegarder… » ouvre le
+          menu de partage : choisis Drive (ou ton e-mail) et c'est en sécurité.
+          Le fichier contient tes entrées, tes cartes Anki et tes réglages, pas ta
+          clé API. L'appli te le rappelle chaque semaine.
         </p>
+        {lastBackup && <p className="hint">{lastBackup}</p>}
         {message && <p className="notice">{message}</p>}
       </div>
     </section>

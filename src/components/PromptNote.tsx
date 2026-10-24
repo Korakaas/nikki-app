@@ -35,7 +35,7 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
       {!open && (
         <p className="note-summary blue-ink">
           <Jp text={topic.ja} furigana={furigana} />
-          <span className="fr"> · {grammar.pattern}</span>
+          <span className="fr"> · {grammar.pattern}{grammar.fromReview ? ' ★' : ''}</span>
         </p>
       )}
       {open && (
@@ -50,6 +50,7 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
         <span className="fr">
           Grammaire {grammar.level}
           {grammar.fromAnki ? ' · ton deck' : ''}
+          {grammar.fromReview ? ' · visé par ton bilan' : ''}
         </span>
       </h3>
       <p className="note-pattern green-ink">{grammar.pattern}</p>

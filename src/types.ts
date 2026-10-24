@@ -20,7 +20,7 @@ export interface Settings {
   /** Identifiant du modèle utilisé pour la correction. */
   model: string
   /** Niveau visé pour les prompts et les explications. */
-  targetLevel: 'N4' | 'N3'
+  targetLevel: 'N4' | 'N3' | 'N2'
   furiganaFrom: FuriganaFrom
   /** Apparence : suit le téléphone, ou clair / sombre imposé. */
   theme: Theme
@@ -101,9 +101,23 @@ export interface DailyPrompt {
     exampleFr: string
     /** Point tiré de ton deck Anki plutôt que de la liste intégrée. */
     fromAnki?: boolean
+    /** Point à viser choisi par le bilan de la semaine. */
+    fromReview?: boolean
   }
   /** `reading` est vide quand le mot n'a pas de kanji. */
   words: { ja: string; reading: string; fr: string }[]
+}
+
+/** Photo collée dans une entrée, réduite et stockée en JPEG (data URL). */
+export interface EntryPhoto {
+  id: string
+  src: string
+}
+
+/** Autocollant posé sur la page (voir components/stickers.tsx). */
+export interface EntrySticker {
+  id: string
+  kind: string
 }
 
 export interface Entry {
@@ -115,6 +129,8 @@ export interface Entry {
   correction?: Correction | null
   /** Idée du jour choisie pour cette entrée (absente si aucune). */
   prompt?: DailyPrompt | null
+  photos?: EntryPhoto[]
+  stickers?: EntrySticker[]
   /** Correction demandée sans réseau : elle part à la prochaine ouverture connectée. */
   pendingCorrection?: boolean
   /** Dernier échec de correction, à afficher sous le texte. */
@@ -151,4 +167,30 @@ export interface AnkiLibrary {
   decks: AnkiDeckInfo[]
   grammar: AnkiGrammar[]
   words: AnkiWord[]
+}
+
+/** Bilan de la semaine rédigé par Claude. Les textes japonais sont balisés en furigana. */
+export interface WeeklyReview {
+  createdAt: number
+  /** Période couverte (YYYY-MM-DD, bornes comprises). */
+  from: string
+  to: string
+  /** Nombre d'entrées lues. */
+  entryCount: number
+  model: string
+  /** Bilan général, en français. */
+  summary: string
+  /** Erreurs qui reviennent. */
+  recurring: { point: string; explanation: string; wrong: string; right: string }[]
+  /** Ce qui progresse. */
+  progress: string[]
+  /** Point de grammaire à viser la semaine suivante. */
+  focus: {
+    pattern: string
+    fr: string
+    level: 'N4' | 'N3' | 'N2'
+    why: string
+    example: string
+    exampleFr: string
+  }
 }

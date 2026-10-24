@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
+import { DecorBoard } from '../components/Decor'
 import { ENTRY_UPDATED } from '../corrector'
 import { activeLibrary } from '../anki'
 import { deleteEntry, listEntries, loadAnki, todayId } from '../db'
@@ -28,7 +29,7 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
 
   useEffect(() => {
     const load = () =>
-      void listEntries().then((all) => setEntries(all.filter((e) => e.text.trim() !== '')))
+      void listEntries().then((all) => setEntries(all.filter((e) => e.text.trim() !== '' || e.photos?.length || e.stickers?.length)))
     load()
     window.addEventListener(ENTRY_UPDATED, load)
     return () => window.removeEventListener(ENTRY_UPDATED, load)
@@ -95,9 +96,12 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                 </span>
               </button>
               {!open && (
-                <p lang="ja" className="entry-preview">
-                  {entry.text}
-                </p>
+                <>
+                  <p lang="ja" className="entry-preview">
+                    {entry.text}
+                  </p>
+                  <DecorBoard small photos={entry.photos ?? []} stickers={entry.stickers ?? []} />
+                </>
               )}
               {open && (
                 <div className="entry-body">
@@ -110,6 +114,7 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                   <p lang="ja" className="sheet entry-text">
                     {entry.text}
                   </p>
+                  <DecorBoard photos={entry.photos ?? []} stickers={entry.stickers ?? []} />
                   {entry.correction && (
                     <CorrectionView
                       correction={entry.correction}
