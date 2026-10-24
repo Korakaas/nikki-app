@@ -20,7 +20,7 @@ furigana selon le réglage.
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
 N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. « Autre idée » en tire une
-nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/data.ts`
+nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.

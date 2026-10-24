@@ -3,6 +3,8 @@
   {漢字|かんじ} (voir furigana.tsx) : l'affichage filtre les lectures selon le réglage.
 */
 
+import { MORE_GRAMMAR } from './more'
+
 export type PromptLevel = 'N4' | 'N3' | 'N2'
 
 export interface GrammarPoint {
@@ -37,7 +39,7 @@ export type ThemeId =
   | 'maison'
   | 'loisirs'
 
-export const GRAMMAR: GrammarPoint[] = [
+const BASE_GRAMMAR: GrammarPoint[] = [
   // ---- N4 ----
   {
     level: 'N4',
@@ -614,6 +616,9 @@ export const GRAMMAR: GrammarPoint[] = [
     exampleFr: 'À la hauteur de sa réputation, la cuisine était délicieuse.',
   },
 ]
+
+/** Liste complète : points de base + points supplémentaires (more.ts). */
+export const GRAMMAR: GrammarPoint[] = [...BASE_GRAMMAR, ...MORE_GRAMMAR]
 
 export const TOPICS: Topic[] = [
   // repas
