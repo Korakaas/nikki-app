@@ -55,6 +55,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const textRef = useRef(text)
   textRef.current = text
   const areaRef = useRef<HTMLTextAreaElement>(null)
+  const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
 
   // La feuille grandit avec le texte : la page défile, pas le champ.
   useLayoutEffect(() => {
@@ -201,13 +202,44 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     setBusy(false)
   }
 
+  // Balayage horizontal : vers la droite = jour précédent, vers la gauche = jour suivant.
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0]
+    const area = areaRef.current
+    // Pas de balayage depuis le bord (geste « retour » d'Android) ni pendant une sélection de texte.
+    const selecting = !!area && area.selectionStart !== area.selectionEnd
+    const edge = t.clientX < 24 || t.clientX > window.innerWidth - 24
+    swipe.current =
+      e.touches.length === 1 && !selecting && !edge
+        ? { x: t.clientX, y: t.clientY, t: Date.now() }
+        : null
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = swipe.current
+    swipe.current = null
+    if (!start) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    if (Date.now() - start.t > 700) return
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 2) return
+    if (dx > 0) onChangeDay(addDays(id, -1))
+    else if (!isToday) onChangeDay(addDays(id, 1))
+  }
+
   if (!loaded) return null
 
   const hasText = text.trim() !== ''
   const stale = meta.correction ? meta.correction.sourceText !== text : false
 
   return (
-    <section className="page write">
+    <section
+      className="page write"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => (swipe.current = null)}
+    >
       <header className="page-header">
         <div className="day-nav">
           <button

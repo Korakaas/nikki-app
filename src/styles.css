@@ -670,3 +670,21 @@ button.muted-link {
   font-family: var(--hand);
   font-size: 1.1rem;
 }
+
+/* Le balayage horizontal change de jour ; le défilement vertical reste normal */
+.page.write {
+  touch-action: pan-y;
+  animation: page-in 0.18s ease-out;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page.write {
+    animation: none;
+  }
+}
