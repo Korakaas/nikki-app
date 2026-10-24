@@ -29,6 +29,10 @@ Le point visé est transmis à la correction, qui dit s'il a été bien employé
 
 L'écran Écrire montre les sept derniers jours en ronds (plein = une entrée écrite ; toucher un rond ouvre ce jour) et la série en cours. L'Historique ajoute le record et le nombre de points de grammaire jugés « bien employés » par les corrections (`src/stats.ts`). Les idées du jour proposent trois fois plus souvent un point jamais bien employé.
 
+### Statistiques
+
+L'onglet Stats (`src/pages/StatsPage.tsx`) résume l'écriture (jours, série, caractères), les caractères par mois, les erreurs par type avec leur évolution pour 100 caractères, et la grammaire bien placée ou à revoir. Tout est calculé sur le téléphone à partir des entrées et des corrections.
+
 ### Cartes Anki
 
 Réglages → Cartes Anki → Importer un export. L'appli lit les exports « Notes en texte brut »
@@ -76,7 +80,7 @@ src/
   prompts/           contenu et tirage des idées du jour
   components/        vue de la correction, note d'idée
   types.ts           types, réglages par défaut (seuil furigana, niveau)
-  pages/             Écrire, Historique, Réglages
+  pages/             Écrire, Historique, Stats, Réglages
 public/              icônes PWA
 vite.config.ts       manifest PWA + service worker
 ```

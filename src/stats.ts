@@ -1,7 +1,7 @@
-import { addDays } from './format'
+import { addDays, countChars } from './format'
 import { plainText } from './furigana'
 import { patternKey } from './anki'
-import type { Entry } from './types'
+import type { Entry, ErrorKind } from './types'
 
 /** Jours où quelque chose a été écrit. */
 export function writtenDays(entries: Entry[]): Set<string> {
@@ -63,4 +63,109 @@ export function goodPoints(entries: Entry[]): string[][] {
 export function timesUsed(pattern: string, good: string[][]): number {
   const mine = variants(pattern)
   return good.filter((g) => g.some((k) => mine.some((m) => same(m, k)))).length
+}
+
+// ------------------------------------------------ statistiques
+
+export interface WritingTotals {
+  days: number
+  chars: number
+  average: number
+  corrected: number
+}
+
+export function writingTotals(entries: Entry[]): WritingTotals {
+  const written = entries.filter((e) => e.text.trim() !== '')
+  const chars = written.reduce((sum, e) => sum + countChars(e.text), 0)
+  return {
+    days: written.length,
+    chars,
+    average: written.length ? Math.round(chars / written.length) : 0,
+    corrected: written.filter((e) => e.correction).length,
+  }
+}
+
+export interface MonthStat {
+  key: string
+  month: number
+  chars: number
+  days: number
+}
+
+/** Les `count` derniers mois (le mois en cours inclus), même vides. */
+export function monthStats(entries: Entry[], today: string, count = 6): MonthStat[] {
+  const [y, m] = today.split('-').map(Number)
+  const months: MonthStat[] = []
+  for (let i = count - 1; i >= 0; i--) {
+    const d = new Date(y, m - 1 - i, 1)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    months.push({ key, month: d.getMonth() + 1, chars: 0, days: 0 })
+  }
+  for (const e of entries) {
+    if (e.text.trim() === '') continue
+    const month = months.find((x) => x.key === e.id.slice(0, 7))
+    if (!month) continue
+    month.chars += countChars(e.text)
+    month.days++
+  }
+  return months
+}
+
+export function errorKinds(entries: Entry[]): { kind: ErrorKind; count: number }[] {
+  const counts = new Map<ErrorKind, number>()
+  for (const e of entries) {
+    for (const item of e.correction?.errors ?? []) {
+      counts.set(item.kind, (counts.get(item.kind) ?? 0) + 1)
+    }
+  }
+  return [...counts]
+    .map(([kind, count]) => ({ kind, count }))
+    .sort((a, b) => b.count - a.count)
+}
+
+export interface TrendPoint {
+  id: string
+  errors: number
+  chars: number
+  /** Fautes relevées pour 100 caractères écrits. */
+  per100: number
+}
+
+/** Les `count` dernières entrées corrigées, de la plus ancienne à la plus récente. */
+export function errorTrend(entries: Entry[], count = 12): TrendPoint[] {
+  return entries
+    .filter((e) => e.correction && countChars(e.correction.sourceText) >= 10)
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .slice(-count)
+    .map((e) => {
+      const chars = countChars(e.correction!.sourceText)
+      const errors = e.correction!.errors.length
+      return { id: e.id, errors, chars, per100: (errors / chars) * 100 }
+    })
+}
+
+export interface PointCount {
+  point: string
+  count: number
+}
+
+function tally(points: string[]): PointCount[] {
+  const groups = new Map<string, PointCount>()
+  for (const raw of points) {
+    const point = plainText(raw).trim()
+    const key = patternKey(point)
+    if (!key) continue
+    const group = groups.get(key)
+    if (group) group.count++
+    else groups.set(key, { point, count: 1 })
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count)
+}
+
+/** Points de grammaire les plus souvent bien employés / à revoir. */
+export function topPoints(entries: Entry[]): { good: PointCount[]; review: PointCount[] } {
+  return {
+    good: tally(entries.flatMap((e) => e.correction?.grammarGood.map((g) => g.point) ?? [])),
+    review: tally(entries.flatMap((e) => e.correction?.grammarReview.map((g) => g.point) ?? [])),
+  }
 }

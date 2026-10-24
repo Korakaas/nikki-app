@@ -5,12 +5,14 @@ import { DEFAULT_SETTINGS, type Settings } from './types'
 import WritePage from './pages/WritePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
+import StatsPage from './pages/StatsPage'
 
-type Tab = 'write' | 'history' | 'settings'
+type Tab = 'write' | 'history' | 'stats' | 'settings'
 
 const TABS: { id: Tab; ja: string; fr: string }[] = [
   { id: 'write', ja: '書く', fr: 'Écrire' },
   { id: 'history', ja: '記録', fr: 'Historique' },
+  { id: 'stats', ja: '統計', fr: 'Stats' },
   { id: 'settings', ja: '設定', fr: 'Réglages' },
 ]
 
@@ -79,6 +81,7 @@ export default function App() {
               setTab('write')
             }}
           />}
+        {tab === 'stats' && <StatsPage />}
         {tab === 'settings' && (
           <SettingsPage settings={settings} onChange={updateSettings} />
         )}
