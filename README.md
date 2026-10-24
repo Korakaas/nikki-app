@@ -25,6 +25,10 @@ nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/da
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
 
+### Série et grammaire placée
+
+L'écran Écrire montre les sept derniers jours en ronds (plein = une entrée écrite ; toucher un rond ouvre ce jour) et la série en cours. L'Historique ajoute le record et le nombre de points de grammaire jugés « bien employés » par les corrections (`src/stats.ts`). Les idées du jour proposent trois fois plus souvent un point jamais bien employé.
+
 ### Cartes Anki
 
 Réglages → Cartes Anki → Importer un export. L'appli lit les exports « Notes en texte brut »
@@ -67,6 +71,7 @@ src/
   api.ts             appel à l'API Claude, consigne de correction, schéma de la réponse
   corrector.ts       lance une correction, file d'attente hors-ligne
   furigana.tsx       balisage {kanji|lecture|niveau} et affichage filtré
+  stats.ts           séries de jours, grammaire déjà bien employée
   anki.ts            lecture des exports Anki (.txt) et fusion
   prompts/           contenu et tirage des idées du jour
   components/        vue de la correction, note d'idée

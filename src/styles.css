@@ -659,7 +659,7 @@ rt {
   cursor: default;
 }
 
-.page-header .muted {
+.write .page-header .muted {
   text-align: center;
 }
 
@@ -725,4 +725,69 @@ button.muted-link {
 .row button.danger {
   color: var(--red);
   border-color: var(--red);
+}
+
+/* Semaine en cours : sept ronds, un par jour */
+.week-wrap {
+  margin-top: 12px;
+}
+
+.week {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 40px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--pencil);
+  font: inherit;
+  cursor: pointer;
+}
+
+.day-kanji {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.day.today .day-kanji {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.day-dot {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--pencil);
+  border-radius: 55% 45% 50% 50% / 50% 55% 45% 50%;
+}
+
+.day.done .day-dot {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.day.selected .day-dot {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px var(--blue);
+}
+
+.streak {
+  margin: 6px 0 0;
+  text-align: center;
+  font-family: var(--hand);
+  font-size: 1.1rem;
+}
+
+.stats-line {
+  margin-top: 2px;
 }

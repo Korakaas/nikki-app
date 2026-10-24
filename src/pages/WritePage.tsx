@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
 import PromptNote from '../components/PromptNote'
+import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, loadAnki, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { pickPrompt } from '../prompts/pick'
+import { goodPoints, streakInfo, writtenDays } from '../stats'
 import type { Correction, DailyPrompt, Entry, Settings } from '../types'
 
 interface Props {
@@ -50,6 +52,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const [busy, setBusy] = useState(() => isRunning(id))
   const [missingKey, setMissingKey] = useState(false)
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
+  const [days, setDays] = useState<Set<string>>(() => new Set())
   const entryRef = useRef<Entry | undefined>(undefined)
   const timer = useRef<number | undefined>(undefined)
   const textRef = useRef(text)
@@ -64,6 +67,10 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
   }, [text, loaded])
+
+  useEffect(() => {
+    void listEntries().then((all) => setDays(writtenDays(all)))
+  }, [])
 
   useEffect(() => {
     getEntry(id).then((entry) => {
@@ -107,11 +114,21 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     await saveEntry(entry)
     entryRef.current = entry
     setState('saved')
+    setDays((prev) => {
+      const has = prev.has(id)
+      const wants = value.trim() !== ''
+      if (has === wants) return prev
+      const next = new Set(prev)
+      if (wants) next.add(id)
+      else next.delete(id)
+      return next
+    })
   }
 
   /** Propose une idée (ou une autre) et la range dans l'entrée du jour. */
   async function suggest(next: number) {
-    const recentEntries = (await listEntries()).slice(0, 14)
+    const all = await listEntries()
+    const recentEntries = all.slice(0, 14)
     const recent = recentEntries
       .map((e) => e.prompt?.grammar.pattern)
       .filter((p): p is string => Boolean(p))
@@ -125,6 +142,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       recentWords,
       currentTopic: prompt?.topic.ja,
       library,
+      good: goodPoints(all),
     })
     setPrompt(idea)
     await savePrompt(idea)
@@ -274,6 +292,13 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           {state === 'saved' && 'Enregistré sur ce téléphone'}
           {state === 'idle' && ' '}
         </p>
+        <WeekStrip
+          today={today}
+          selected={id}
+          written={days}
+          streak={streakInfo(days, today).current}
+          onSelect={onChangeDay}
+        />
         {!isToday && (
           <button type="button" className="link muted-link" onClick={() => onChangeDay(today)}>
             Revenir à aujourd'hui

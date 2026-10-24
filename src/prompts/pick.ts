@@ -1,4 +1,5 @@
 import { activeLibrary, patternKey } from '../anki'
+import { timesUsed } from '../stats'
 import type { AnkiLibrary, DailyPrompt, Settings } from '../types'
 import { GRAMMAR, TOPICS, VOCAB } from './data'
 
@@ -26,6 +27,16 @@ function choose<T>(rand: () => number, items: T[]): T {
   return items[Math.floor(rand() * items.length)]
 }
 
+function chooseWeighted<T>(rand: () => number, items: T[], weight: (item: T) => number): T {
+  const weights = items.map(weight)
+  let roll = rand() * weights.reduce((a, b) => a + b, 0)
+  for (let i = 0; i < items.length; i++) {
+    roll -= weights[i]
+    if (roll < 0) return items[i]
+  }
+  return items[items.length - 1]
+}
+
 interface PickOptions {
   level: Settings['targetLevel']
   dateId: string
@@ -38,6 +49,8 @@ interface PickOptions {
   currentTopic?: string
   /** Cartes importées depuis Anki (facultatif). */
   library?: AnkiLibrary | null
+  /** Points déjà bien employés (voir stats.goodPoints) : on préfère ceux qui ne le sont pas encore. */
+  good?: string[][]
 }
 
 export function pickPrompt(options: PickOptions): DailyPrompt {
@@ -83,7 +96,11 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
   let chosen = pools[kind]
   if (chosen.length === 0) chosen = [...pools.deck, ...pools.n3, ...pools.n4]
   if (chosen.length === 0) chosen = GRAMMAR.filter((g) => g.level === 'N4').map((g) => asPrompt(g, false))
-  const grammar = choose(rand, chosen)
+  // Un point jamais bien employé a trois fois plus de chances d'être proposé.
+  const good = options.good ?? []
+  const grammar = chooseWeighted(rand, chosen, (g) =>
+    timesUsed(g.pattern, good) === 0 ? 3 : 1,
+  )
 
   let topics = TOPICS.filter((t) => t.ja !== currentTopic)
   if (topics.length === 0) topics = TOPICS

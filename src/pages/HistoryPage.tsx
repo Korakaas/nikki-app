@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
 import { ENTRY_UPDATED } from '../corrector'
-import { deleteEntry, listEntries } from '../db'
+import { activeLibrary } from '../anki'
+import { deleteEntry, listEntries, loadAnki, todayId } from '../db'
 import { countChars, formatDateJa } from '../format'
 import { Jp } from '../furigana'
-import type { Entry, Settings } from '../types'
+import { GRAMMAR } from '../prompts/data'
+import { goodPoints, streakInfo, timesUsed, writtenDays } from '../stats'
+import type { AnkiLibrary, Entry, Settings } from '../types'
 
 interface Props {
   settings: Settings
@@ -15,6 +18,13 @@ interface Props {
 export default function HistoryPage({ settings, onOpenDay }: Props) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [library, setLibrary] = useState<AnkiLibrary | null>(null)
+
+  useEffect(() => {
+    void loadAnki()
+      .then(setLibrary)
+      .catch(() => setLibrary(null))
+  }, [])
 
   useEffect(() => {
     const load = () =>
@@ -36,6 +46,13 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
   if (!entries) return null
 
   const thisYear = String(new Date().getFullYear())
+  const today = todayId()
+  const streak = streakInfo(writtenDays(entries), today)
+  // Points de la liste (intégrée + deck) déjà bien employés d'après les corrections.
+  const good = goodPoints(entries)
+  const own = activeLibrary(library).grammar
+  const candidates = [...own, ...GRAMMAR]
+  const placed = candidates.filter((g) => timesUsed(g.pattern, good) > 0).length
 
   return (
     <section className="page">
@@ -46,6 +63,13 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
             ? 'Aucune entrée pour le moment. Écris la première dans l’onglet Écrire.'
             : `${entries.length} entrée${entries.length > 1 ? 's' : ''}`}
         </p>
+        {entries.length > 0 && (
+          <p className="muted stats-line">
+            Série : {streak.current} jour{streak.current > 1 ? 's' : ''} · record :{' '}
+            {streak.best}
+            {good.length > 0 && ` · grammaire bien placée : ${placed} point${placed > 1 ? 's' : ''}`}
+          </p>
+        )}
       </header>
 
       <ul className="entry-list">

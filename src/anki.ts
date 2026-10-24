@@ -321,5 +321,5 @@ export function activeLibrary(lib: AnkiLibrary | null | undefined) {
 
 /** Clé de comparaison de deux points de grammaire (« 〜うちに » = « うちに »). */
 export function patternKey(pattern: string): string {
-  return pattern.replace(/[～〜~\s()（）・／/…\[\]]/g, '')
+  return pattern.replace(/[～〜~\s()（）・／/…\[\]「」『』、。]/g, '')
 }
