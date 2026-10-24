@@ -627,3 +627,46 @@ rt {
   font-size: 1.1rem;
   line-height: 1.8;
 }
+
+/* Navigation d'un jour à l'autre */
+.day-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 -10px;
+}
+
+.day-nav h1 {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.day-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--green);
+  cursor: pointer;
+}
+
+.day-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.page-header .muted {
+  text-align: center;
+}
+
+button.muted-link {
+  display: block;
+  margin: 6px auto 0;
+  color: var(--blue);
+  font-family: var(--hand);
+  font-size: 1.1rem;
+}

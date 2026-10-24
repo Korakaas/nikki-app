@@ -22,3 +22,12 @@ export function formatDateJa(id: string, withYear = false): string {
 export function countChars(text: string): number {
   return Array.from(text.replace(/\s/g, '')).length
 }
+
+/** Identifiant du jour décalé de `delta` jours (YYYY-MM-DD, heure locale). */
+export function addDays(id: string, delta: number): string {
+  const [y, m, d] = id.split('-').map(Number)
+  const date = new Date(y, m - 1, d + delta)
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${mm}-${dd}`
+}

@@ -3,11 +3,14 @@ import CorrectionView from '../components/CorrectionView'
 import PromptNote from '../components/PromptNote'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, saveEntry, todayId } from '../db'
-import { countChars, formatDateJa } from '../format'
+import { addDays, countChars, formatDateJa } from '../format'
 import { pickPrompt } from '../prompts/pick'
 import type { Correction, DailyPrompt, Entry, Settings } from '../types'
 
 interface Props {
+  /** Jour affiché (YYYY-MM-DD) : aujourd'hui ou une page passée. */
+  id: string
+  onChangeDay: (id: string) => void
   settings: Settings
   onOpenSettings: () => void
 }
@@ -28,8 +31,18 @@ function metaOf(entry?: Entry): Meta {
   }
 }
 
-export default function WritePage({ settings, onOpenSettings }: Props) {
-  const [id] = useState(() => todayId())
+function Chevron({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d={dir === 'left' ? 'M15 4.5 8 12l7.2 7.4' : 'M9 4.5 16 12l-7.2 7.4'} />
+    </svg>
+  )
+}
+
+export default function WritePage({ id, onChangeDay, settings, onOpenSettings }: Props) {
+  const today = todayId()
+  const isToday = id === today
   const [text, setText] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [state, setState] = useState<SaveState>('idle')
@@ -196,14 +209,40 @@ export default function WritePage({ settings, onOpenSettings }: Props) {
   return (
     <section className="page write">
       <header className="page-header">
-        <h1 lang="ja">
-          <span className="date-ink">{formatDateJa(id)}</span>
-        </h1>
+        <div className="day-nav">
+          <button
+            type="button"
+            className="day-arrow"
+            aria-label="Jour précédent"
+            onClick={() => onChangeDay(addDays(id, -1))}
+          >
+            <Chevron dir="left" />
+          </button>
+          <h1 lang="ja">
+            <span className="date-ink">
+              {formatDateJa(id, id.slice(0, 4) !== today.slice(0, 4))}
+            </span>
+          </h1>
+          <button
+            type="button"
+            className="day-arrow"
+            aria-label="Jour suivant"
+            disabled={isToday}
+            onClick={() => onChangeDay(addDays(id, 1))}
+          >
+            <Chevron dir="right" />
+          </button>
+        </div>
         <p className="muted">
           {state === 'saving' && 'Enregistrement…'}
           {state === 'saved' && 'Enregistré sur ce téléphone'}
           {state === 'idle' && ' '}
         </p>
+        {!isToday && (
+          <button type="button" className="link muted-link" onClick={() => onChangeDay(today)}>
+            Revenir à aujourd'hui
+          </button>
+        )}
       </header>
 
       {prompt ? (
@@ -232,9 +271,9 @@ export default function WritePage({ settings, onOpenSettings }: Props) {
         lang="ja"
         value={text}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="今日はどんな一日でしたか？"
+        placeholder={isToday ? '今日はどんな一日でしたか？' : 'この日はどんな一日でしたか？'}
         aria-label="Entrée du journal du jour"
-        autoFocus
+        autoFocus={isToday}
         spellCheck={false}
         autoCapitalize="off"
         autoCorrect="off"

@@ -8,9 +8,11 @@ import type { Entry, Settings } from '../types'
 
 interface Props {
   settings: Settings
+  /** Ouvre ce jour dans l'écran d'écriture. */
+  onOpenDay: (id: string) => void
 }
 
-export default function HistoryPage({ settings }: Props) {
+export default function HistoryPage({ settings, onOpenDay }: Props) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
 
@@ -91,6 +93,9 @@ export default function HistoryPage({ settings }: Props) {
                       stale={entry.correction.sourceText !== entry.text}
                     />
                   )}
+                  <button className="sketch" onClick={() => onOpenDay(entry.id)}>
+                    Modifier
+                  </button>{' '}
                   <button
                     className="sketch danger"
                     onClick={() => void remove(entry.id)}
