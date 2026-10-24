@@ -688,3 +688,41 @@ button.muted-link {
     animation: none;
   }
 }
+
+/* Cartes Anki importées */
+.deck-list {
+  margin: 4px 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.field .deck-list label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 3px 0;
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.deck-list input[type='checkbox'] {
+  width: 1.2em;
+  height: 1.2em;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  accent-color: var(--green);
+  flex: none;
+}
+
+.hint code {
+  font-family: inherit;
+  color: var(--blue);
+}
+
+.row button.danger {
+  color: var(--red);
+  border-color: var(--red);
+}

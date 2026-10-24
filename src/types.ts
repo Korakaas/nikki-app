@@ -91,10 +91,13 @@ export interface DailyPrompt {
   grammar: {
     pattern: string
     fr: string
-    level: 'N4' | 'N3'
+    level: 'N4' | 'N3' | 'N2'
     example: string
     exampleFr: string
+    /** Point tiré de ton deck Anki plutôt que de la liste intégrée. */
+    fromAnki?: boolean
   }
+  /** `reading` est vide quand le mot n'a pas de kanji. */
   words: { ja: string; reading: string; fr: string }[]
 }
 
@@ -111,4 +114,36 @@ export interface Entry {
   pendingCorrection?: boolean
   /** Dernier échec de correction, à afficher sous le texte. */
   correctionError?: string
+}
+
+/** Notes importées depuis Anki (export texte), utilisées pour enrichir les idées du jour. */
+export interface AnkiGrammar {
+  deck: string
+  pattern: string
+  fr: string
+  level: 'N4' | 'N3' | 'N2'
+  example: string
+  exampleFr: string
+}
+
+export interface AnkiWord {
+  deck: string
+  ja: string
+  reading: string
+  fr: string
+}
+
+export interface AnkiDeckInfo {
+  name: string
+  kind: 'grammar' | 'vocab'
+  count: number
+  /** Décoché : les notes restent importées mais ne sont plus proposées. */
+  enabled: boolean
+}
+
+export interface AnkiLibrary {
+  importedAt: number
+  decks: AnkiDeckInfo[]
+  grammar: AnkiGrammar[]
+  words: AnkiWord[]
 }

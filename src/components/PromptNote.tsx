@@ -28,14 +28,17 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
         <span>文法</span>
         <span className="fr">
           Grammaire {grammar.level}
+          {grammar.fromAnki ? ' · ton deck' : ''}
         </span>
       </h3>
       <p className="note-pattern green-ink">{grammar.pattern}</p>
       <p className="note-fr fr">{grammar.fr}</p>
-      <p className="note-example blue-ink">
-        <Jp text={grammar.example} furigana={furigana} />
-      </p>
-      <p className="note-fr fr">{grammar.exampleFr}</p>
+      {grammar.example && (
+        <p className="note-example blue-ink">
+          <Jp text={grammar.example} furigana={furigana} />
+        </p>
+      )}
+      {grammar.exampleFr && <p className="note-fr fr">{grammar.exampleFr}</p>}
 
       <h3 className="note-part blue-ink">
         <span>単語</span>
@@ -44,12 +47,16 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
       <ul className="note-words">
         {words.map((w) => (
           <li key={w.ja}>
-            <ruby className="blue-ink">
-              {w.ja}
-              <rp>(</rp>
-              <rt>{w.reading}</rt>
-              <rp>)</rp>
-            </ruby>
+            {w.reading ? (
+              <ruby className="blue-ink">
+                {w.ja}
+                <rp>(</rp>
+                <rt>{w.reading}</rt>
+                <rp>)</rp>
+              </ruby>
+            ) : (
+              <span className="blue-ink">{w.ja}</span>
+            )}
             <span className="fr"> — {w.fr}</span>
           </li>
         ))}

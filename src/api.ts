@@ -202,7 +202,7 @@ interface ApiResponse {
 /** Un appel à l'API. Les échecs sont convertis en messages lisibles. */
 function userMessage(text: string, prompt?: DailyPrompt | null): string {
   if (!prompt) return `Voici mon entrée de journal :\n\n${text}`
-  const words = prompt.words.map((w) => `${w.ja}（${w.reading}）`).join('、')
+  const words = prompt.words.map((w) => (w.reading ? `${w.ja}（${w.reading}）` : w.ja)).join('、')
   return [
     `Sujet proposé : ${plainText(prompt.topic.ja)}`,
     `Point de grammaire visé : ${prompt.grammar.pattern} (${prompt.grammar.fr})`,

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
 import PromptNote from '../components/PromptNote'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
-import { getEntry, listEntries, saveEntry, todayId } from '../db'
+import { getEntry, listEntries, loadAnki, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { pickPrompt } from '../prompts/pick'
 import type { Correction, DailyPrompt, Entry, Settings } from '../types'
@@ -111,16 +111,20 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
 
   /** Propose une idée (ou une autre) et la range dans l'entrée du jour. */
   async function suggest(next: number) {
-    const recent = (await listEntries())
-      .slice(0, 14)
+    const recentEntries = (await listEntries()).slice(0, 14)
+    const recent = recentEntries
       .map((e) => e.prompt?.grammar.pattern)
       .filter((p): p is string => Boolean(p))
+    const recentWords = recentEntries.flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
+    const library = await loadAnki().catch(() => null)
     const idea = pickPrompt({
       level: settings.targetLevel,
       dateId: id,
       variant: next,
       recentPatterns: recent,
+      recentWords,
       currentTopic: prompt?.topic.ja,
+      library,
     })
     setPrompt(idea)
     await savePrompt(idea)

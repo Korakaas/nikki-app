@@ -25,6 +25,15 @@ nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/da
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
 
+### Cartes Anki
+
+Réglages → Cartes Anki → Importer un export. L'appli lit les exports « Notes en texte brut »
+(`.txt`) : ton deck de grammaire (type de note « GRAM N3 »), JLPT Tango et le deck JLPT N3
+(`src/anki.ts`). Les notes sont stockées sur le téléphone (IndexedDB) ; chaque deck peut être
+décoché. Avec un deck de grammaire importé, la moitié des points proposés (en niveau N3) en
+viennent, le reste vient de la liste intégrée (N3 et N4). Deux mots sur trois viennent de tes
+decks. Réimporter un fichier remplace les notes des decks qu'il contient.
+
 ## Lancer en local
 
 ```bash
@@ -58,6 +67,7 @@ src/
   api.ts             appel à l'API Claude, consigne de correction, schéma de la réponse
   corrector.ts       lance une correction, file d'attente hors-ligne
   furigana.tsx       balisage {kanji|lecture|niveau} et affichage filtré
+  anki.ts            lecture des exports Anki (.txt) et fusion
   prompts/           contenu et tirage des idées du jour
   components/        vue de la correction, note d'idée
   types.ts           types, réglages par défaut (seuil furigana, niveau)

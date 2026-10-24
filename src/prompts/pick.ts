@@ -1,5 +1,6 @@
-import type { DailyPrompt, Settings } from '../types'
-import { GRAMMAR, TOPICS, VOCAB, type GrammarPoint } from './data'
+import { activeLibrary, patternKey } from '../anki'
+import type { AnkiLibrary, DailyPrompt, Settings } from '../types'
+import { GRAMMAR, TOPICS, VOCAB } from './data'
 
 /** Générateur pseudo-aléatoire déterministe : même date + même variante = même idée. */
 function hash(input: string): number {
@@ -31,50 +32,99 @@ interface PickOptions {
   variant: number
   /** Points de grammaire déjà proposés récemment : on évite de les répéter. */
   recentPatterns?: string[]
+  /** Mots déjà proposés récemment (deck Anki) : on évite de les répéter. */
+  recentWords?: string[]
   /** Sujet de l'idée précédente, pour ne pas le redonner tel quel. */
   currentTopic?: string
+  /** Cartes importées depuis Anki (facultatif). */
+  library?: AnkiLibrary | null
 }
 
 export function pickPrompt(options: PickOptions): DailyPrompt {
-  const { level, dateId, variant, recentPatterns = [], currentTopic } = options
+  const { level, dateId, variant, recentPatterns = [], recentWords = [], currentTopic } =
+    options
   const rand = mulberry32(hash(`${dateId}#${variant}`))
 
-  // N4 : points N4 seulement. N3 : surtout N3, avec un N4 sur trois pour consolider.
-  const wantLevel =
-    level === 'N4' ? 'N4' : rand() < 1 / 3 ? 'N4' : 'N3'
-  const fresh = (g: GrammarPoint) => !recentPatterns.includes(g.pattern)
-  let pool = GRAMMAR.filter((g) => g.level === wantLevel && fresh(g))
-  if (pool.length === 0) pool = GRAMMAR.filter((g) => g.level === wantLevel)
-  const grammar = choose(rand, pool)
+  const anki = activeLibrary(options.library)
+  const fresh = (pattern: string) => !recentPatterns.includes(pattern)
+  const ownKeys = new Set(anki.grammar.map((g) => patternKey(g.pattern)))
+  const builtin = (lvl: 'N4' | 'N3') =>
+    GRAMMAR.filter(
+      (g) =>
+        g.level === lvl && fresh(g.pattern) && !ownKeys.has(patternKey(g.pattern)),
+    )
+  const own = anki.grammar.filter((g) => fresh(g.pattern))
+
+  // N4 : points N4 seulement.
+  // N3 : un point N4 sur quatre pour consolider ; avec un deck importé, la moitié des
+  // points viennent du deck, sinon la liste intégrée N3.
+  let kind: 'n4' | 'n3' | 'deck' = 'n4'
+  if (level === 'N3') {
+    const roll = rand()
+    if (anki.grammar.length > 0) kind = roll < 0.25 ? 'n4' : roll < 0.5 ? 'n3' : 'deck'
+    else kind = roll < 1 / 3 ? 'n4' : 'n3'
+  }
+  const asPrompt = (
+    g: { pattern: string; fr: string; level: 'N4' | 'N3' | 'N2'; example: string; exampleFr: string },
+    fromAnki: boolean,
+  ): DailyPrompt['grammar'] => ({
+    pattern: g.pattern,
+    fr: g.fr,
+    level: g.level,
+    example: g.example,
+    exampleFr: g.exampleFr,
+    ...(fromAnki ? { fromAnki: true } : {}),
+  })
+  const pools: Record<typeof kind, DailyPrompt['grammar'][]> = {
+    n4: builtin('N4').map((g) => asPrompt(g, false)),
+    n3: builtin('N3').map((g) => asPrompt(g, false)),
+    deck: own.map((g) => asPrompt(g, true)),
+  }
+  let chosen = pools[kind]
+  if (chosen.length === 0) chosen = [...pools.deck, ...pools.n3, ...pools.n4]
+  if (chosen.length === 0) chosen = GRAMMAR.filter((g) => g.level === 'N4').map((g) => asPrompt(g, false))
+  const grammar = choose(rand, chosen)
 
   let topics = TOPICS.filter((t) => t.ja !== currentTopic)
   if (topics.length === 0) topics = TOPICS
   const topic = choose(rand, topics)
 
-  // 3 mots du thème, au niveau visé (N4 : mots N4 d'abord ; N3 : tous niveaux).
+  // Mots : un mot du thème du sujet + deux mots de ton deck (s'il y en a), sinon trois mots du thème.
   const themeWords = VOCAB[topic.theme]
   const preferred =
     level === 'N4' ? themeWords.filter((w) => w.level === 'N4') : themeWords
   const source = preferred.length >= 3 ? preferred : themeWords
-  const pickedWords = [...source]
-  for (let i = pickedWords.length - 1; i > 0; i--) {
+  const shuffled = [...source]
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1))
-    ;[pickedWords[i], pickedWords[j]] = [pickedWords[j], pickedWords[i]]
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  const words = pickedWords
-    .slice(0, 3)
-    .map(({ ja, reading, fr }) => ({ ja, reading, fr }))
+  const toWord = ({ ja, reading, fr }: { ja: string; reading: string; fr: string }) => ({
+    ja,
+    reading,
+    fr,
+  })
+
+  const ownWords = anki.words.filter((w) => !recentWords.includes(w.ja))
+  const fromDeck: ReturnType<typeof toWord>[] = []
+  if (ownWords.length >= 2) {
+    const taken = new Set<number>()
+    while (fromDeck.length < 2) {
+      const i = Math.floor(rand() * ownWords.length)
+      if (taken.has(i)) continue
+      taken.add(i)
+      fromDeck.push(toWord(ownWords[i]))
+    }
+  }
+  const words = [
+    ...shuffled.slice(0, 3 - fromDeck.length).map(toWord),
+    ...fromDeck,
+  ]
 
   return {
     variant,
     topic: { ja: topic.ja, fr: topic.fr },
-    grammar: {
-      pattern: grammar.pattern,
-      fr: grammar.fr,
-      level: grammar.level,
-      example: grammar.example,
-      exampleFr: grammar.exampleFr,
-    },
+    grammar,
     words,
   }
 }

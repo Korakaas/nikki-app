@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Entry, type Settings } from './types'
+import { DEFAULT_SETTINGS, type AnkiLibrary, type Entry, type Settings } from './types'
 
 const DB_NAME = 'nikki'
 const DB_VERSION = 1
@@ -83,6 +83,27 @@ export async function saveSettings(settings: Settings): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) =>
     s.put({ key: SETTINGS_KEY, ...settings }),
   )
+}
+
+const ANKI_KEY = 'anki'
+
+export async function loadAnki(): Promise<AnkiLibrary | null> {
+  const row = await run<(AnkiLibrary & { key: string }) | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(ANKI_KEY),
+  )
+  if (!row) return null
+  const { key: _key, ...lib } = row
+  return lib
+}
+
+export async function saveAnki(lib: AnkiLibrary): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: ANKI_KEY, ...lib }))
+}
+
+export async function clearAnki(): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.delete(ANKI_KEY))
 }
 
 /** Demande au navigateur de ne pas effacer les données en cas de manque de place. */

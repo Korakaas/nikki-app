@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
-import { listEntries, saveEntry, todayId } from '../db'
-import type { Entry, FuriganaFrom, Settings } from '../types'
+import { useEffect, useRef, useState } from 'react'
+import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
+import { clearAnki, listEntries, loadAnki, saveAnki, saveEntry, todayId } from '../db'
+import type { AnkiLibrary, Entry, FuriganaFrom, Settings } from '../types'
 
 interface Props {
   settings: Settings
@@ -19,6 +20,67 @@ export default function SettingsPage({ settings, onChange }: Props) {
   const [showKey, setShowKey] = useState(false)
   const [message, setMessage] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
+  const ankiInput = useRef<HTMLInputElement>(null)
+  const [anki, setAnki] = useState<AnkiLibrary | null>(null)
+  // Dernière version connue : plusieurs cases cochées coup sur coup partent de la même base.
+  const ankiRef = useRef<AnkiLibrary | null>(null)
+  const setLibrary = (lib: AnkiLibrary | null) => {
+    ankiRef.current = lib
+    setAnki(lib)
+  }
+  const [ankiMessage, setAnkiMessage] = useState('')
+
+  useEffect(() => {
+    void loadAnki()
+      .then(setLibrary)
+      .catch(() => setLibrary(null))
+  }, [])
+
+  async function importAnki(files: FileList) {
+    let lib = ankiRef.current ?? emptyLibrary()
+    const notes: string[] = []
+    let added = 0
+    for (const file of Array.from(files)) {
+      try {
+        const parsed = parseAnkiExport(await file.text())
+        const count = parsed.grammar.length + parsed.words.length
+        if (count === 0) {
+          notes.push(`${file.name} : rien de reconnu.`)
+          continue
+        }
+        lib = mergeExport(lib, parsed)
+        added += count
+      } catch {
+        notes.push(`${file.name} : fichier illisible.`)
+      }
+    }
+    if (added > 0) {
+      setLibrary(lib)
+      await saveAnki(lib)
+      notes.unshift(
+        `${lib.grammar.length} point(s) de grammaire et ${lib.words.length} mot(s) au total.`,
+      )
+    }
+    setAnkiMessage(notes.join(' '))
+  }
+
+  async function toggleDeck(name: string, enabled: boolean) {
+    const current = ankiRef.current
+    if (!current) return
+    const next = {
+      ...current,
+      decks: current.decks.map((d) => (d.name === name ? { ...d, enabled } : d)),
+    }
+    setLibrary(next)
+    await saveAnki(next)
+  }
+
+  async function removeAnki() {
+    if (!window.confirm('Retirer les cartes Anki importées ? Tes entrées ne changent pas.')) return
+    await clearAnki()
+    setLibrary(null)
+    setAnkiMessage('Cartes Anki retirées.')
+  }
 
   function patch(partial: Partial<Settings>) {
     onChange({ ...settings, ...partial })
@@ -97,6 +159,64 @@ export default function SettingsPage({ settings, onChange }: Props) {
         <p className="hint">
           Les mots plus faciles que ce seuil s'affichent sans lecture.
         </p>
+      </div>
+
+      <div className="field">
+        <span className="label">Cartes Anki</span>
+        {anki && anki.decks.length > 0 && (
+          <ul className="deck-list">
+            {anki.decks.map((d) => (
+              <li key={d.name}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={d.enabled}
+                    onChange={(e) => void toggleDeck(d.name, e.target.checked)}
+                  />
+                  <span>
+                    {d.name.split('::').pop()}
+                    <span className="fr">
+                      {' '}
+                      — {d.count} {d.kind === 'grammar' ? 'points' : 'mots'}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="row">
+          <button type="button" onClick={() => ankiInput.current?.click()}>
+            {anki ? 'Réimporter' : 'Importer un export'}
+          </button>
+          {anki && (
+            <button type="button" className="danger" onClick={() => void removeAnki()}>
+              Retirer
+            </button>
+          )}
+          <input
+            ref={ankiInput}
+            type="file"
+            accept=".txt,text/plain,text/tab-separated-values"
+            multiple
+            hidden
+            onChange={(e) => {
+              if (e.target.files?.length) void importAnki(e.target.files)
+              e.target.value = ''
+            }}
+          />
+        </div>
+        <p className="hint">
+          {anki
+            ? `Dernier import : ${new Date(anki.importedAt).toLocaleDateString('fr-FR')}. `
+            : ''}
+          Dans Anki : Fichier → Exporter → « Notes en texte brut », avec le nom du
+          deck. Pour ne reprendre que ce que tu as déjà vu, cherche{' '}
+          <code>-is:new</code> dans le navigateur, sélectionne tout, puis Notes →
+          Exporter les notes. Les idées du jour mélangent ces cartes avec la liste
+          intégrée.
+        </p>
+        {ankiMessage && <p className="notice">{ankiMessage}</p>}
       </div>
 
       <div className="field">
