@@ -1,0 +1,5 @@
+node_modules
+dist
+*.tsbuildinfo
+_to_delete/
+_update*.zip
