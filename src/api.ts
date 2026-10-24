@@ -1,4 +1,4 @@
-import { plainText } from './furigana'
+import { plainText, shouldShowReading } from './furigana'
 import {
   ERROR_KINDS,
   type Correction,
@@ -117,12 +117,14 @@ Niveau de l'apprenant(e) : JLPT ${level} (prépare le N3 en partant du N4). Écr
 
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
-- Corrige les vraies fautes (particules, conjugaisons, vocabulaire, orthographe) et signale les tournures grammaticalement justes mais peu naturelles (kind = "naturel"), sans exagérer.
+- Ne signale que de vraies fautes ou des tournures nettement moins naturelles (kind = "naturel", sans exagérer). Une phrase correcte et naturelle n'est PAS une erreur, même si une autre formulation est possible : の/は de thème ou de contraste, ordre des mots libre, お腹/腹, tournures courantes. Avant de signaler une particule, vérifie qu'elle est vraiment fausse ; en cas de doute, ne la signale pas.
+- Choix du kind : « particule » seulement si une particule change ; ordre des mots, mot trop familier ou peu courant → « naturel » ou « vocabulaire » ; faute de forme verbale ou d'adjectif → « conjugaison » ; « grammaire » pour une structure fausse.
 - Regroupe les fautes qui se répètent en un seul élément. Maximum 6 éléments, les plus utiles d'abord.
-- « original » recopie le passage fautif tel quel (court, quelques mots). « corrected » donne le passage corrigé.
+- « original » recopie le passage fautif tel quel (court, quelques mots). « corrected » donne le passage corrigé et DOIT être différent de « original ». Un simple conseil de contenu (« ajoute un détail ») n'est pas une erreur : ne le mets pas dans « errors ».
+- La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Elle reste au niveau ${level} autant que possible.
+- « summary » ne parle que de ce qui figure dans « errors » ou « grammar_good » ; n'y ajoute aucun autre conseil.
 - Si le texte est déjà correct, laisse « errors » vide et dis-le dans « summary ».
-- La version « natural » reste au niveau ${level} autant que possible.
-- Sois honnête : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas.
+- Sois honnête et exact : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas, et si tu n'es pas sûr d'une règle, dis-en moins plutôt que d'inventer une explication.
 - Si le texte n'est pas principalement en japonais, laisse « errors » vide, écris dans « natural » une version japonaise simple du sens, et dis-le dans « summary ».
 
 Furigana : dans TOUS les textes japonais que tu écris (summary, natural, corrected, explanation, point, note, example), balise CHAQUE groupe de kanji, sans exception, même les plus simples (人, 私, 何, 日, 今, 使, 言, 前…) : {kanji|lecture en hiragana}. L'application masque elle-même les lectures trop faciles selon son réglage, donc ne décide pas à sa place. Exemples : 食べる s'écrit {食|た}べる ; 面白かった s'écrit {面白|おもしろ}かった ; 今日 s'écrit {今日|きょう} ; 大丈夫 s'écrit {大丈夫|だいじょうぶ} ; 私たちは s'écrit {私|わたし}たちは. Les okurigana et les mots sans kanji restent hors des accolades. Avant de répondre, relis chaque champ pour vérifier qu'aucun kanji n'est resté sans balise. N'utilise PAS de balisage dans le champ « original ».
@@ -157,6 +159,8 @@ function normalize(input: unknown, text: string, model: string): Correction {
       explanation: str(e.explanation),
     }))
     .filter((e) => e.original && e.corrected)
+    // Une « correction » identique au texte n'en est pas une.
+    .filter((e) => plainText(e.corrected) !== e.original)
     .slice(0, 8)
   const grammarGood: GrammarGood[] = arr(raw.grammar_good)
     .map(obj)
@@ -217,6 +221,7 @@ async function callApi(
   settings: Settings,
   retry: boolean,
   prompt?: DailyPrompt | null,
+  extraHint?: string,
 ): Promise<ApiResponse> {
   if (!settings.apiKey) {
     throw new CorrectionFailure(
@@ -247,7 +252,8 @@ async function callApi(
           systemPrompt(settings.targetLevel) +
           (retry
             ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant l'outil ${TOOL_NAME}, sans autre texte.`
-            : ''),
+            : '') +
+          (extraHint ? `\n\nIMPORTANT : ${extraHint}` : ''),
         tools: [TOOL],
         // Certains modèles refusent qu'on impose l'outil : on laisse le choix
         // au modèle et on relance une fois s'il répond par du texte.
@@ -311,6 +317,30 @@ function findCorrection(data: ApiResponse) {
   return data.content?.find((b) => b.type === 'tool_use' && b.name === TOOL_NAME)
 }
 
+const HAN = /\p{Script=Han}/u
+const MARKUP = /\{[^{}|]+\|[^{}|]+(?:\|N[1-5])?\}/gi
+
+/** Kanji sans balise de furigana que le réglage actuel obligerait à lire. */
+function untaggedKanji(c: Correction, settings: Settings): string[] {
+  if (settings.furiganaFrom === 'none') return []
+  const fields = [
+    c.summary,
+    c.natural,
+    ...c.errors.flatMap((e) => [e.corrected, e.explanation]),
+    ...c.grammarGood.flatMap((g) => [g.point, g.note]),
+    ...c.grammarReview.flatMap((g) => [g.point, g.note, g.example]),
+  ]
+  const found = new Set<string>()
+  for (const field of fields) {
+    // Les groupes balisés sont retirés ; on garde un séparateur pour ne pas coller deux mots.
+    const rest = field.replace(MARKUP, '\u0000')
+    for (const run of rest.match(/\p{Script=Han}+/gu) ?? []) {
+      if (HAN.test(run) && shouldShowReading(run, settings.furiganaFrom)) found.add(run)
+    }
+  }
+  return [...found]
+}
+
 /** Demande la correction d'un texte à l'API Claude, directement depuis le téléphone. */
 export async function requestCorrection(
   text: string,
@@ -322,5 +352,29 @@ export async function requestCorrection(
   if (!block) {
     throw new CorrectionFailure('format', "La réponse n'a pas le bon format. Réessaie.")
   }
-  return normalize(block.input, text, settings.model)
+  const first = normalize(block.input, text, settings.model)
+
+  // Des kanji sont restés sans balise : un seul nouvel essai, on garde le meilleur résultat.
+  const missing = untaggedKanji(first, settings)
+  if (missing.length === 0) return first
+  try {
+    const again = findCorrection(
+      await callApi(
+        text,
+        settings,
+        false,
+        prompt,
+        `ta réponse précédente a oublié les balises {kanji|lecture} sur : ${missing
+          .slice(0, 10)
+          .join('、')}. Renvoie la correction complète en balisant TOUS les kanji de tous les champs.`,
+      ),
+    )
+    if (again) {
+      const second = normalize(again.input, text, settings.model)
+      if (untaggedKanji(second, settings).length < missing.length) return second
+    }
+  } catch {
+    /* le second essai est facultatif : on garde la première réponse */
+  }
+  return first
 }
