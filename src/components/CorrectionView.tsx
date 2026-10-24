@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Jp, plainText } from '../furigana'
+import Chevron from './Chevron'
 import type { Correction, FuriganaFrom } from '../types'
 
 interface Props {
@@ -6,17 +8,39 @@ interface Props {
   furigana: FuriganaFrom
   /** Le texte a changé depuis cette correction. */
   stale?: boolean
+  /** Replié au départ (par défaut : ouvert). */
+  startClosed?: boolean
 }
 
-export default function CorrectionView({ correction, furigana, stale }: Props) {
+export default function CorrectionView({ correction, furigana, stale, startClosed }: Props) {
   const { summary, natural, errors, grammarGood, grammarReview } = correction
+  const [open, setOpen] = useState(!startClosed)
+  const overview = `${errors.length === 0 ? 'aucune erreur' : errors.length === 1 ? '1 erreur' : `${errors.length} erreurs`}${
+    grammarGood.length + grammarReview.length > 0
+      ? ` · ${grammarGood.length} ○ ${grammarReview.length} △`
+      : ''
+  }`
 
   return (
     <section className="tensaku" lang="ja" aria-label="Correction">
       <h2 className="tensaku-title">
-        <span className="red-ink">添削</span>
-        <span className="fr">Correction</span>
+        <button
+          type="button"
+          className="fold"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="red-ink">添削</span>
+          <span className="fr">Correction</span>
+          <span className="fold-icon">
+            <Chevron dir={open ? 'down' : 'right'} size={22} />
+          </span>
+        </button>
       </h2>
+
+      {!open && <p className="fr tensaku-overview">{overview}</p>}
+      {open && (
+        <>
 
       {stale && (
         <p className="stale" lang="fr">
@@ -115,6 +139,8 @@ export default function CorrectionView({ correction, furigana, stale }: Props) {
               </li>
             ))}
           </ul>
+        </>
+      )}
         </>
       )}
     </section>

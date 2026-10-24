@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Jp } from '../furigana'
+import Chevron from './Chevron'
 import type { DailyPrompt, FuriganaFrom } from '../types'
 
 interface Props {
@@ -11,14 +13,33 @@ interface Props {
 /** Petit mot collé en haut de la page : le sujet, un point de grammaire, trois mots. */
 export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Props) {
   const { topic, grammar, words } = prompt
+  const [open, setOpen] = useState(true)
   return (
     <aside className="note-card" lang="ja" aria-label="Idée du jour">
       <span className="tape" aria-hidden="true" />
 
       <h2 className="note-title blue-ink">
-        <span>今日のお題</span>
-        <span className="fr">Idée du jour</span>
+        <button
+          type="button"
+          className="fold"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span>今日のお題</span>
+          <span className="fr">Idée du jour</span>
+          <span className="fold-icon">
+            <Chevron dir={open ? 'down' : 'right'} size={22} />
+          </span>
+        </button>
       </h2>
+      {!open && (
+        <p className="note-summary blue-ink">
+          <Jp text={topic.ja} furigana={furigana} />
+          <span className="fr"> · {grammar.pattern}</span>
+        </p>
+      )}
+      {open && (
+        <>
       <p className="note-topic blue-ink">
         <Jp text={topic.ja} furigana={furigana} />
       </p>
@@ -70,6 +91,8 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
           Retirer le sujet
         </button>
       </div>
+        </>
+      )}
     </aside>
   )
 }

@@ -28,8 +28,13 @@
   color-scheme: light dark;
 }
 
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* Thème sombre : automatique (suit le téléphone) ou imposé dans les réglages */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --paper: #211f1c;
     --rule: #3a372f;
     --rule-soft: #302d27;
@@ -40,6 +45,19 @@
     --red: #ff8c84;
     --tape: #3f6b60;
   }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #211f1c;
+  --rule: #3a372f;
+  --rule-soft: #302d27;
+  --ink: #ede7d8;
+  --pencil: #aca698;
+  --green: #86c99c;
+  --blue: #93b2f0;
+  --red: #ff8c84;
+  --tape: #3f6b60;
 }
 
 * {
@@ -545,9 +563,13 @@ rt {
 }
 
 @media (prefers-color-scheme: dark) {
-  .note-card {
+  :root:not([data-theme='light']) .note-card {
     background: color-mix(in srgb, var(--paper) 88%, white 12%);
   }
+}
+
+:root[data-theme='dark'] .note-card {
+  background: color-mix(in srgb, var(--paper) 88%, white 12%);
 }
 
 .tape {
@@ -980,4 +1002,36 @@ button.muted-link {
   display: inline-block;
   width: 1.2em;
   font-size: 1rem;
+}
+
+/* Boutons de repli (idée du jour, correction) */
+.fold {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fold-icon {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  margin-left: auto;
+  color: var(--pencil);
+}
+
+.note-summary {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.tensaku-overview {
+  margin: 0;
 }

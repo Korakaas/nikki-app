@@ -55,6 +55,28 @@ export default function App() {
     }
   }, [ready, settings])
 
+  // Thème : posé sur <html> (le CSS s'en sert), recopié dans localStorage pour être
+  // appliqué avant l'affichage au prochain lancement, et couleur de la barre du navigateur.
+  useEffect(() => {
+    const root = document.documentElement
+    if (settings.theme === 'auto') delete root.dataset.theme
+    else root.dataset.theme = settings.theme
+    try {
+      if (settings.theme === 'auto') localStorage.removeItem('nikki-theme')
+      else localStorage.setItem('nikki-theme', settings.theme)
+    } catch {
+      /* stockage indisponible : le thème reste appliqué pour cette session */
+    }
+    document.querySelectorAll('meta[data-nikki-theme]').forEach((m) => m.remove())
+    if (settings.theme !== 'auto') {
+      const meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      meta.content = settings.theme === 'dark' ? '#211f1c' : '#f1ecdd'
+      meta.setAttribute('data-nikki-theme', '')
+      document.head.prepend(meta)
+    }
+  }, [settings.theme])
+
   function updateSettings(next: Settings) {
     setSettings(next)
     void saveSettings(next)

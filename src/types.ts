@@ -12,6 +12,8 @@ export type Level = JlptLevel
  */
 export type FuriganaFrom = 'all' | 'N3' | 'N2' | 'N1' | 'none'
 
+export type Theme = 'auto' | 'light' | 'dark'
+
 export interface Settings {
   /** Clé API Claude, stockée uniquement sur ce téléphone. */
   apiKey: string
@@ -20,6 +22,8 @@ export interface Settings {
   /** Niveau visé pour les prompts et les explications. */
   targetLevel: 'N4' | 'N3'
   furiganaFrom: FuriganaFrom
+  /** Apparence : suit le téléphone, ou clair / sombre imposé. */
+  theme: Theme
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -27,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   model: 'claude-sonnet-5-5',
   targetLevel: 'N3',
   furiganaFrom: 'N2',
+  theme: 'auto',
 }
 
 export type ErrorKind =

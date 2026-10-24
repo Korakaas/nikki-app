@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
+import Chevron from '../components/Chevron'
 import PromptNote from '../components/PromptNote'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
@@ -31,15 +32,6 @@ function metaOf(entry?: Entry): Meta {
     pending: entry?.pendingCorrection,
     error: entry?.correctionError,
   }
-}
-
-function Chevron({ dir }: { dir: 'left' | 'right' }) {
-  return (
-    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d={dir === 'left' ? 'M15 4.5 8 12l7.2 7.4' : 'M9 4.5 16 12l-7.2 7.4'} />
-    </svg>
-  )
 }
 
 export default function WritePage({ id, onChangeDay, settings, onOpenSettings }: Props) {
@@ -334,7 +326,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         onChange={(e) => onChange(e.target.value)}
         placeholder={isToday ? '今日はどんな一日でしたか？' : 'この日はどんな一日でしたか？'}
         aria-label="Entrée du journal du jour"
-        autoFocus={isToday}
         spellCheck={false}
         autoCapitalize="off"
         autoCorrect="off"

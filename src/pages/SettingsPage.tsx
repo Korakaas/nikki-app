@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
 import { clearAnki, listEntries, loadAnki, saveAnki, saveEntry, todayId } from '../db'
-import type { AnkiLibrary, Entry, FuriganaFrom, Settings } from '../types'
+import type { AnkiLibrary, Entry, FuriganaFrom, Settings, Theme } from '../types'
 
 interface Props {
   settings: Settings
@@ -14,6 +14,12 @@ const FURIGANA_OPTIONS: { value: FuriganaFrom; label: string }[] = [
   { value: 'N2', label: 'Mots N2 et au-dessus (N2, N1)' },
   { value: 'N1', label: 'Mots N1 uniquement' },
   { value: 'none', label: 'Jamais' },
+]
+
+const THEME_OPTIONS: { value: Theme; label: string }[] = [
+  { value: 'auto', label: 'Automatique (comme le téléphone)' },
+  { value: 'light', label: 'Clair' },
+  { value: 'dark', label: 'Sombre' },
 ]
 
 export default function SettingsPage({ settings, onChange }: Props) {
@@ -141,6 +147,21 @@ export default function SettingsPage({ settings, onChange }: Props) {
         <p className="hint">
           Utilisé pour les prompts du jour et la difficulté des explications.
         </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="theme">Apparence</label>
+        <select
+          id="theme"
+          value={settings.theme}
+          onChange={(e) => patch({ theme: e.target.value as Theme })}
+        >
+          {THEME_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="field">
