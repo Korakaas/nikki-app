@@ -6,6 +6,7 @@ import {
   type WeeklyReview,
 } from './types'
 import type { QuizHistory } from './quiz'
+import { cleanEntry } from './trivial'
 
 const DB_NAME = 'nikki'
 const DB_VERSION = 1
@@ -61,7 +62,8 @@ export function todayId(date = new Date()): string {
 }
 
 export async function getEntry(id: string): Promise<Entry | undefined> {
-  return run<Entry | undefined>(ENTRIES, 'readonly', (s) => s.get(id))
+  const entry = await run<Entry | undefined>(ENTRIES, 'readonly', (s) => s.get(id))
+  return entry && cleanEntry(entry)
 }
 
 export async function saveEntry(entry: Entry): Promise<void> {
@@ -70,7 +72,7 @@ export async function saveEntry(entry: Entry): Promise<void> {
 
 export async function listEntries(): Promise<Entry[]> {
   const all = await run<Entry[]>(ENTRIES, 'readonly', (s) => s.getAll())
-  return all.sort((a, b) => b.id.localeCompare(a.id))
+  return all.map(cleanEntry).sort((a, b) => b.id.localeCompare(a.id))
 }
 
 export async function deleteEntry(id: string): Promise<void> {

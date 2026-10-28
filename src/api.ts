@@ -1,4 +1,5 @@
 import { plainText, shouldShowReading } from './furigana'
+import { isTrivialFix } from './trivial'
 import {
   ERROR_KINDS,
   type Correction,
@@ -124,10 +125,11 @@ ${levelLine(level)} Aucun français dans les champs.
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
 - Ne signale que de vraies fautes ou des tournures nettement moins naturelles (kind = "naturel", sans exagérer). Une phrase correcte et naturelle n'est PAS une erreur, même si une autre formulation est possible : の/は de thème ou de contraste, ordre des mots libre, お腹/腹, tournures courantes. Avant de signaler une particule, vérifie qu'elle est vraiment fausse ; en cas de doute, ne la signale pas.
+- NE CORRIGE JAMAIS : la ponctuation (。、「」, points, virgules, tirets, ！？), les espaces, la largeur des caractères (全角/半角), ni les fautes de frappe évidentes (lettre latine tapée par erreur, caractère en double, kana ou lettre manquante ou échangée par un simple geste de clavier, mot que l'apprenant(e) connaît visiblement). Elle n'a pas à les voir : ne les mets pas dans « errors » et ne les mentionne pas dans « summary ». Signale une faute d'écriture seulement si elle montre une vraie lacune (mauvais kana ou kanji choisi, mot confondu, mauvaise lecture). Dans le doute entre faute de frappe et lacune, ne la signale pas.
 - Choix du kind : « particule » seulement si une particule change ; ordre des mots, mot trop familier ou peu courant → « naturel » ou « vocabulaire » ; faute de forme verbale ou d'adjectif → « conjugaison » ; « grammaire » pour une structure fausse.
 - Regroupe les fautes qui se répètent en un seul élément. Maximum 6 éléments, les plus utiles d'abord.
 - « original » recopie le passage fautif tel quel (court, quelques mots). « corrected » donne le passage corrigé et DOIT être différent de « original ». Un simple conseil de contenu (« ajoute un détail ») n'est pas une erreur : ne le mets pas dans « errors ».
-- La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Elle reste au niveau ${level} autant que possible.
+- La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Seules exceptions : corrige-y sans les signaler les fautes de frappe évidentes, et garde la ponctuation de l'apprenant(e) telle quelle. Elle reste au niveau ${level} autant que possible.
 - « summary » ne parle que de ce qui figure dans « errors » ou « grammar_good » ; n'y ajoute aucun autre conseil.
 - Si le texte est déjà correct, laisse « errors » vide et dis-le dans « summary ».
 - Sois honnête et exact : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas, et si tu n'es pas sûr d'une règle, dis-en moins plutôt que d'inventer une explication.
@@ -167,6 +169,8 @@ function normalize(input: unknown, text: string, model: string): Correction {
     .filter((e) => e.original && e.corrected)
     // Une « correction » identique au texte n'en est pas une.
     .filter((e) => plainText(e.corrected) !== e.original)
+    // Ni ponctuation, ni lettre tapée par erreur : voir trivial.ts.
+    .filter((e) => !isTrivialFix(e))
     .slice(0, 8)
   const grammarGood: GrammarGood[] = arr(raw.grammar_good)
     .map(obj)
