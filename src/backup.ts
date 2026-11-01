@@ -2,12 +2,17 @@ import {
   listEntries,
   loadAnki,
   loadBackupInfo,
+  loadQuizHistory,
+  loadReviews,
   saveAnki,
   saveBackupInfo,
   saveEntry,
+  saveQuizHistory,
+  saveReviews,
   todayId,
 } from './db'
-import type { AnkiLibrary, Entry, Settings } from './types'
+import type { QuizHistory } from './quiz'
+import type { AnkiLibrary, Entry, Settings, WeeklyReview } from './types'
 
 export const BACKUP_EVENT = 'nikki-backup'
 const DAY = 86_400_000
@@ -22,6 +27,10 @@ export interface BackupFile {
   anki?: AnkiLibrary | null
   /** Réglages, sans la clé API (elle ne quitte jamais le téléphone). */
   settings?: Omit<Settings, 'apiKey'>
+  /** Bilans de la semaine. */
+  reviews?: WeeklyReview[]
+  /** Résultats du mini-quiz d'erreurs. */
+  quiz?: QuizHistory
 }
 
 export async function buildBackup(settings: Settings): Promise<BackupFile> {
@@ -32,6 +41,8 @@ export async function buildBackup(settings: Settings): Promise<BackupFile> {
     entries: await listEntries(),
     anki: await loadAnki().catch(() => null),
     settings: rest,
+    reviews: await loadReviews().catch(() => []),
+    quiz: await loadQuizHistory().catch(() => ({})),
   }
 }
 
@@ -110,6 +121,22 @@ export async function importBackup(text: string, restoreAnki: boolean): Promise<
   if (restoreAnki && data.anki && Array.isArray(data.anki.decks)) {
     await saveAnki(data.anki)
     anki = true
+  }
+  // Bilans : on garde l'union des deux listes. Quiz : le résultat le plus récent de chaque erreur.
+  if (Array.isArray(data.reviews) && data.reviews.length > 0) {
+    const mine = await loadReviews().catch(() => [])
+    const byTime = new Map<number, WeeklyReview>()
+    for (const r of [...mine, ...data.reviews]) {
+      if (r && typeof r.createdAt === 'number' && r.focus) byTime.set(r.createdAt, r)
+    }
+    await saveReviews([...byTime.values()].sort((a, b) => b.createdAt - a.createdAt))
+  }
+  if (data.quiz && typeof data.quiz === 'object') {
+    const merged: QuizHistory = { ...(await loadQuizHistory().catch(() => ({}))) }
+    for (const [key, value] of Object.entries(data.quiz)) {
+      if (!merged[key] || merged[key].last < value.last) merged[key] = value
+    }
+    await saveQuizHistory(merged)
   }
   return { imported, anki, settings: data.settings }
 }

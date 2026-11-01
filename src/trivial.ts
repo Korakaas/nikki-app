@@ -27,8 +27,25 @@ export function isTrivialFix(item: Pick<CorrectionItem, 'original' | 'corrected'
   return before.replace(/[A-Za-z0-9]/g, '') === after && /[A-Za-z]/.test(item.original)
 }
 
+/**
+ * Deux éléments qui se recouvrent : si le passage fautif d'un élément en contient un autre
+ * (et fait plus du double), on garde le plus précis et on écarte la phrase recopiée en entier.
+ */
+export function dropOverlaps<T extends Pick<CorrectionItem, 'original'>>(items: T[]): T[] {
+  return items.filter(
+    (a) =>
+      !items.some(
+        (b) =>
+          b !== a &&
+          b.original.length >= 2 &&
+          a.original.includes(b.original) &&
+          a.original.length > b.original.length * 2,
+      ),
+  )
+}
+
 export function cleanCorrection(c: Correction): Correction {
-  const errors = c.errors.filter((e) => !isTrivialFix(e))
+  const errors = dropOverlaps(c.errors.filter((e) => !isTrivialFix(e)))
   return errors.length === c.errors.length ? c : { ...c, errors }
 }
 

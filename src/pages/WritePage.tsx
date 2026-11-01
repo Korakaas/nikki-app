@@ -131,13 +131,13 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       .filter((p): p is string => Boolean(p))
     const recentWords = recentEntries.flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
     const library = await loadAnki().catch(() => null)
-    // Le point à viser du dernier bilan reste proposé pendant dix jours,
-    // jusqu'à ce qu'il ait été bien employé deux fois depuis.
+    // Le point à viser du dernier bilan reste proposé 3 jours après le bilan,
+    // ou jusqu'à ce qu'il ait été bien employé une fois.
     const review = (await loadReviews().catch(() => []))[0]
-    const fresh = review && Date.now() - review.createdAt < 10 * 86_400_000
-    const since = review ? goodPoints(all.filter((e) => e.id > review.to)) : []
+    const fresh = review && id >= review.to && id <= addDays(review.to, 3)
+    const since = review ? goodPoints(all.filter((e) => e.id >= review.to)) : []
     const focus =
-      review && fresh && timesUsed(review.focus.pattern, since) < 2 ? review.focus : null
+      review && fresh && timesUsed(review.focus.pattern, since) < 1 ? review.focus : null
     const idea = pickPrompt({
       level: settings.targetLevel,
       dateId: id,
@@ -145,6 +145,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       recentPatterns: recent,
       recentWords,
       currentTopic: prompt?.topic.ja,
+      recentTopics: recentEntries
+        .map((e) => e.prompt?.topic.ja)
+        .filter((t): t is string => Boolean(t)),
       library,
       good: goodPoints(all),
       focus,

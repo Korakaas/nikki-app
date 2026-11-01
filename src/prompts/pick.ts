@@ -23,10 +23,6 @@ function mulberry32(seed: number) {
   }
 }
 
-function choose<T>(rand: () => number, items: T[]): T {
-  return items[Math.floor(rand() * items.length)]
-}
-
 function chooseWeighted<T>(rand: () => number, items: T[], weight: (item: T) => number): T {
   const weights = items.map(weight)
   let roll = rand() * weights.reduce((a, b) => a + b, 0)
@@ -45,6 +41,8 @@ interface PickOptions {
   recentPatterns?: string[]
   /** Mots déjà proposés récemment (deck Anki) : on évite de les répéter. */
   recentWords?: string[]
+  /** Sujets des dernières entrées, du plus récent au plus ancien : on évite de les reproposer. */
+  recentTopics?: string[]
   /** Sujet de l'idée précédente, pour ne pas le redonner tel quel. */
   currentTopic?: string
   /** Cartes importées depuis Anki (facultatif). */
@@ -131,15 +129,29 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     }
   }
 
-  let topics = TOPICS.filter((t) => t.ja !== currentTopic)
+  // Sujet : jamais un sujet récent, et on évite de rester sur le même thème
+  // (météo, repas…) : les thèmes vus dans les derniers jours pèsent beaucoup moins.
+  const recentTopics = options.recentTopics ?? []
+  const themeOf = (ja: string) => TOPICS.find((t) => t.ja === ja)?.theme
+  const recentThemes = recentTopics.map(themeOf)
+  let topics = TOPICS.filter((t) => t.ja !== currentTopic && !recentTopics.slice(0, 20).includes(t.ja))
+  if (topics.length === 0) topics = TOPICS.filter((t) => t.ja !== currentTopic)
   if (topics.length === 0) topics = TOPICS
-  const topic = choose(rand, topics)
+  const topic = chooseWeighted(rand, topics, (t) => {
+    const last = recentThemes.indexOf(t.theme)
+    const seen = recentThemes.slice(0, 10).filter((x) => x === t.theme).length
+    const recency = last === -1 || last >= 4 ? 1 : last < 2 ? 0.05 : 0.3
+    return recency / (1 + seen)
+  })
 
   // Mots : un mot du thème du sujet + deux mots de ton deck (s'il y en a), sinon trois mots du thème.
   const themeWords = VOCAB[topic.theme]
   const preferred =
     level === 'N4' ? themeWords.filter((w) => w.level === 'N4') : themeWords
-  const source = preferred.length >= 3 ? preferred : themeWords
+  const pool = preferred.length >= 3 ? preferred : themeWords
+  // Pas de mot déjà proposé récemment (台風 trois fois en une semaine…), s'il en reste assez.
+  const unseen = pool.filter((w) => !recentWords.includes(w.ja))
+  const source = unseen.length >= 3 ? unseen : pool
   const shuffled = [...source]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1))

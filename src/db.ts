@@ -158,10 +158,14 @@ export async function loadReviews(): Promise<WeeklyReview[]> {
   return row?.list ?? []
 }
 
-export async function addReview(review: WeeklyReview): Promise<WeeklyReview[]> {
-  const list = [review, ...(await loadReviews())].slice(0, MAX_REVIEWS)
+export async function saveReviews(reviews: WeeklyReview[]): Promise<WeeklyReview[]> {
+  const list = reviews.slice(0, MAX_REVIEWS)
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: REVIEWS_KEY, list }))
   return list
+}
+
+export async function addReview(review: WeeklyReview): Promise<WeeklyReview[]> {
+  return saveReviews([review, ...(await loadReviews())])
 }
 
 const QUIZ_KEY = 'quiz'

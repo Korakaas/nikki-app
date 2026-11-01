@@ -316,7 +316,7 @@ export default function SettingsPage({ settings, onChange }: Props) {
         <p className="hint">
           Tes entrées ne vivent que sur ce téléphone. « Sauvegarder… » ouvre le
           menu de partage : choisis Drive (ou ton e-mail) et c'est en sécurité.
-          Le fichier contient tes entrées, tes cartes Anki et tes réglages, pas ta
+          Le fichier contient tes entrées, photos, bilans, résultats du quiz, cartes Anki et réglages, pas ta
           clé API. L'appli te le rappelle chaque semaine.
         </p>
         {lastBackup && <p className="hint">{lastBackup}</p>}

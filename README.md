@@ -35,7 +35,7 @@ L'onglet Stats (`src/pages/StatsPage.tsx`) résume l'écriture (jours, série, c
 
 ### Bilan de la semaine
 
-Dans l'onglet Stats, « Faire le bilan » envoie à Claude les entrées des 7 derniers jours (texte, erreurs relevées, comparaison avec les trois semaines d'avant) et rend : un résumé, les erreurs qui reviennent, ce qui progresse, et un point de grammaire à viser (`src/review.ts`). Les bilans sont gardés sur le téléphone (les 12 derniers). Le point visé devient la première idée du jour pendant dix jours, ou jusqu'à ce qu'il ait été bien employé deux fois.
+Dans l'onglet Stats, « Faire le bilan » envoie à Claude les entrées des 7 derniers jours (texte, erreurs relevées, comparaison avec les trois semaines d'avant) et rend : un résumé, les erreurs qui reviennent, ce qui progresse, et un point de grammaire à viser (`src/review.ts`). Les bilans sont gardés sur le téléphone (les 12 derniers). Le point visé devient la première idée du jour pendant 3 jours, ou jusqu’à ce qu’il ait été bien employé une fois.
 
 ### Revoir ses erreurs (quiz)
 
@@ -78,7 +78,7 @@ npm run preview    # sert dist/ pour vérifier la version de production
 Dans IndexedDB, sur l'appareil (base `nikki`) : une entrée par jour, plus les réglages
 (dont la clé API). Rien n'est envoyé ailleurs, hormis le texte envoyé à l'API pour la correction. Réglages → Sauvegarder… ouvre le
 menu de partage d'Android (Drive, e-mail…), Télécharger écrit le fichier JSON, Importer le restaure
-(entrées, photos, cartes Anki ; les réglages seulement sur un appareil neuf, sans clé API). La clé API n'est jamais
+(entrées, photos, bilans, quiz, cartes Anki ; les réglages seulement sur un appareil neuf, sans clé API). La clé API n'est jamais
 dans la sauvegarde. Un bandeau le rappelle sur l'écran Écrire quand la dernière sauvegarde a plus de 7 jours (`src/backup.ts`).
 
 ## Structure
