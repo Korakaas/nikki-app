@@ -1,4 +1,5 @@
 import { addDays, countChars } from './format'
+import { wordUsed } from './words'
 import { plainText } from './furigana'
 import { patternKey } from './anki'
 import type { Entry, ErrorKind } from './types'
@@ -168,4 +169,124 @@ export function topPoints(entries: Entry[]): { good: PointCount[]; review: Point
     good: tally(entries.flatMap((e) => e.correction?.grammarGood.map((g) => g.point) ?? [])),
     review: tally(entries.flatMap((e) => e.correction?.grammarReview.map((g) => g.point) ?? [])),
   }
+}
+
+// ------------------------------------------------ mots du jour
+
+export interface WordRecord {
+  ja: string
+  reading: string
+  fr: string
+  /** Combien de fois il a été proposé sur une page où tu as écrit. */
+  proposed: number
+  /** Combien de fois tu l'as employé ensuite. */
+  used: number
+  /** Dernière page où il a été proposé. */
+  lastId: string
+}
+
+/** Historique de chaque mot proposé, d'après les pages où quelque chose a été écrit. */
+export function wordHistory(entries: Entry[]): Map<string, WordRecord> {
+  const map = new Map<string, WordRecord>()
+  for (const e of entries) {
+    if (!e.prompt || e.text.trim() === '') continue
+    for (const w of e.prompt.words) {
+      const rec = map.get(w.ja) ?? {
+        ja: w.ja,
+        reading: w.reading,
+        fr: w.fr,
+        proposed: 0,
+        used: 0,
+        lastId: '',
+      }
+      rec.proposed++
+      if (wordUsed(w, e.text)) rec.used++
+      if (e.id > rec.lastId) rec.lastId = e.id
+      map.set(w.ja, rec)
+    }
+  }
+  return map
+}
+
+export interface WordTotals {
+  proposed: number
+  used: number
+  /** Mots proposés qui n'ont jamais été employés, du plus récent au plus ancien. */
+  unused: WordRecord[]
+}
+
+export function wordTotals(entries: Entry[]): WordTotals {
+  let proposed = 0
+  let used = 0
+  for (const e of entries) {
+    if (!e.prompt || e.text.trim() === '') continue
+    for (const w of e.prompt.words) {
+      proposed++
+      if (wordUsed(w, e.text)) used++
+    }
+  }
+  const unused = [...wordHistory(entries).values()]
+    .filter((r) => r.used === 0)
+    .sort((a, b) => b.lastId.localeCompare(a.lastId))
+  return { proposed, used, unused }
+}
+
+// ------------------------------------------------ par semaine
+
+export interface WeekStat {
+  /** Lundi de la semaine (YYYY-MM-DD). */
+  monday: string
+  days: number
+  chars: number
+  /** Caractères par entrée écrite. */
+  average: number
+  corrected: number
+  errors: number
+  /** Fautes pour 100 caractères, sur les entrées corrigées (null s'il n'y en a pas). */
+  per100: number | null
+}
+
+function mondayOf(id: string): string {
+  const [y, m, d] = id.split('-').map(Number)
+  const day = new Date(y, m - 1, d).getDay()
+  return addDays(id, -((day + 6) % 7))
+}
+
+/** Les `count` dernières semaines (lundi → dimanche), la semaine en cours comprise. */
+export function weekStats(entries: Entry[], today: string, count = 8): WeekStat[] {
+  const last = mondayOf(today)
+  const weeks: WeekStat[] = []
+  for (let i = count - 1; i >= 0; i--) {
+    weeks.push({
+      monday: addDays(last, -7 * i),
+      days: 0,
+      chars: 0,
+      average: 0,
+      corrected: 0,
+      errors: 0,
+      per100: null,
+    })
+  }
+  const correctedChars = new Map<string, number>()
+  for (const e of entries) {
+    if (e.text.trim() === '') continue
+    const week = weeks.find((w) => w.monday === mondayOf(e.id))
+    if (!week) continue
+    week.days++
+    week.chars += countChars(e.text)
+    if (e.correction && countChars(e.correction.sourceText) >= 10) {
+      week.corrected++
+      week.errors += e.correction.errors.length
+      correctedChars.set(
+        week.monday,
+        (correctedChars.get(week.monday) ?? 0) + countChars(e.correction.sourceText),
+      )
+    }
+  }
+  for (const w of weeks) {
+    w.average = w.days ? Math.round(w.chars / w.days) : 0
+    const c = correctedChars.get(w.monday) ?? 0
+    w.per100 = c > 0 ? (w.errors / c) * 100 : null
+  }
+  return weeks
 }

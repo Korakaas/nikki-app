@@ -117,7 +117,13 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
     }
     setBusy(true)
     try {
-      const review = await requestReview(entries, library, settings, today)
+      const review = await requestReview(
+        entries,
+        library,
+        settings,
+        today,
+        reviews.slice(0, 4).map((r) => r.focus.pattern),
+      )
       setReviews(await addReview(review))
     } catch (e) {
       setError(

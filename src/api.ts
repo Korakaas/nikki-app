@@ -106,12 +106,26 @@ const TOOL = {
           required: ['point', 'note', 'example'],
         },
       },
+      bonus: {
+        type: 'object',
+        description:
+          "Une phrase de plus que l'apprenant(e) pourrait ajouter à son entrée, dans la suite de ce qu'elle raconte (même sujet, mêmes personnes, mêmes lieux). Elle fait travailler le point de grammaire visé s'il n'apparaît pas encore, sinon un point à revoir ou un point utile du niveau.",
+        properties: {
+          ja: { type: 'string', description: 'La phrase en japonais, tous les kanji balisés {漢字|かんじ}.' },
+          fr: { type: 'string', description: 'Sa traduction française.' },
+          why: {
+            type: 'string',
+            description: 'En français, une phrase : le point de grammaire ou le mot que cette phrase fait travailler.',
+          },
+        },
+        required: ['ja', 'fr', 'why'],
+      },
     },
     required: ['summary', 'natural', 'errors', 'grammar_good', 'grammar_review'],
   },
 }
 
-function levelLine(level: string): string {
+export function levelLine(level: string): string {
   if (level === 'N2')
     return "Niveau de l'apprenant(e) : JLPT N2 (a le N3 et prépare le N2). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3–N2, phrases claires, sans tournures N1."
   return `Niveau de l'apprenant(e) : JLPT ${level} (prépare le N3 en partant du N4). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N4–N3, phrases courtes.`
@@ -135,6 +149,8 @@ Principes de correction :
 - Si le texte est déjà correct, laisse « errors » vide et dis-le dans « summary ».
 - Sois honnête et exact : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas, et si tu n'es pas sûr d'une règle, dis-en moins plutôt que d'inventer une explication.
 - Si le texte n'est pas principalement en japonais, laisse « errors » vide, écris dans « natural » une version japonaise simple du sens, et dis-le dans « summary ».
+
+Phrase bonus : dans « bonus », propose UNE phrase qui prolonge l'entrée (même histoire, même ton, première personne), au niveau ${level}, que l'apprenant(e) pourra recopier ou adapter. Elle emploie le point de grammaire visé s'il n'apparaît pas dans le texte, sinon un point de grammar_review, sinon un point utile du niveau. Ne reprends pas une phrase déjà écrite. Si le texte n'est pas principalement en japonais, omets « bonus ».
 
 Furigana : dans TOUS les textes japonais que tu écris (summary, natural, corrected, explanation, point, note, example), balise CHAQUE groupe de kanji, sans exception, même les plus simples (人, 私, 何, 日, 今, 使, 言, 前…) : {kanji|lecture en hiragana}. L'application masque elle-même les lectures trop faciles selon son réglage, donc ne décide pas à sa place. Exemples : 食べる s'écrit {食|た}べる ; 面白かった s'écrit {面白|おもしろ}かった ; 今日 s'écrit {今日|きょう} ; 大丈夫 s'écrit {大丈夫|だいじょうぶ} ; 私たちは s'écrit {私|わたし}たちは. Les okurigana et les mots sans kanji restent hors des accolades. Avant de répondre, relis chaque champ pour vérifier qu'aucun kanji n'est resté sans balise. N'utilise PAS de balisage dans le champ « original ».
 
@@ -187,6 +203,10 @@ function normalize(input: unknown, text: string, model: string): Correction {
     }))
     .filter((g) => g.point)
     .slice(0, 3)
+  const bonusRaw = obj(raw.bonus)
+  const bonus = str(bonusRaw.ja)
+    ? { ja: str(bonusRaw.ja), fr: str(bonusRaw.fr), why: str(bonusRaw.why) }
+    : undefined
   const natural = str(raw.natural)
   if (!natural) throw new CorrectionFailure('format', 'La réponse est incomplète.')
   return {
@@ -196,6 +216,7 @@ function normalize(input: unknown, text: string, model: string): Correction {
     errors,
     grammarGood,
     grammarReview,
+    ...(bonus ? { bonus } : {}),
     model,
     createdAt: Date.now(),
   }
@@ -346,6 +367,7 @@ function untaggedKanji(c: Correction, settings: Settings): string[] {
     ...c.errors.flatMap((e) => [e.corrected, e.explanation]),
     ...c.grammarGood.flatMap((g) => [g.point, g.note]),
     ...c.grammarReview.flatMap((g) => [g.point, g.note, g.example]),
+    ...(c.bonus ? [c.bonus.ja] : []),
   ]
   const found = new Set<string>()
   for (const field of fields) {

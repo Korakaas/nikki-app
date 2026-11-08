@@ -1,4 +1,4 @@
-import { activeLibrary } from './anki'
+import { activeLibrary, patternKey } from './anki'
 import { arr, CorrectionFailure, obj, postApi, str } from './api'
 import { addDays, countChars } from './format'
 import { plainText } from './furigana'
@@ -64,6 +64,7 @@ Règles :
 - Appuie-toi UNIQUEMENT sur ce qui figure dans les données. N'invente ni erreur, ni progrès. S'il y a peu de données, dis-le simplement.
 - Une erreur « qui revient » apparaît plusieurs fois (cette semaine ou dans la période précédente fournie pour comparaison). Une faute isolée n'en est pas une.
 - Un progrès doit être constaté : moins d'erreurs d'un type que la période précédente, un point de grammaire réussi, des phrases plus longues ou plus variées. Si rien ne le montre, laisse la liste vide.
+- Le point à viser doit être NOUVEAU : ne reprends jamais un point déjà visé par un bilan précédent (liste fournie), même s'il n'est pas encore maîtrisé. Si une erreur persiste sur un point déjà visé, signale-la dans « recurring », mais choisis un autre point à viser.
 - Le point à viser doit répondre à un besoin réel vu dans les entrées (une confusion, un point à revoir) ou, à défaut, être un point utile du niveau visé qu'elle n'a pas encore réussi à placer. Choisis-le dans la liste de candidats quand c'est possible.
 - Écris en français ; seules les phrases d'exemple sont en japonais, au niveau JLPT de l'apprenant(e).
 - Dans les champs « right » et « example », balise CHAQUE groupe de kanji : {漢字|かんじ}. Dans « wrong », recopie la phrase telle quelle, sans balisage.
@@ -211,13 +212,18 @@ export async function requestReview(
   library: AnkiLibrary | null,
   settings: Settings,
   today: string,
+  /** Points déjà visés par les bilans précédents (le plus récent d'abord). */
+  alreadyTargeted: string[] = [],
 ): Promise<WeeklyReview> {
   const win = reviewWindow(all, today)
   if (win.entries.length === 0) {
     throw new CorrectionFailure('other', 'Écris au moins une entrée cette semaine pour faire le bilan.')
   }
   const previous = between(all, addDays(today, -27), addDays(today, -7))
-  const candidates = focusCandidates(all, library, settings.targetLevel)
+  const taken = new Set(alreadyTargeted.map(patternKey))
+  const candidates = focusCandidates(all, library, settings.targetLevel).filter(
+    (c) => !taken.has(patternKey(c.pattern)),
+  )
   const content = [
     `Niveau visé : JLPT ${settings.targetLevel}.`,
     `Semaine à relire : du ${win.from} au ${win.to} (${win.entries.length} entrée(s)).`,
@@ -227,18 +233,22 @@ export async function requestReview(
     `## Période précédente (${addDays(today, -27)} → ${addDays(today, -7)}), pour comparer`,
     describePrevious(previous),
     '',
+    '## Points déjà visés par les bilans précédents (à ne PAS reproposer)',
+    alreadyTargeted.length ? alreadyTargeted.map((p) => `- ${p}`).join('\n') : '(aucun)',
+    '',
     '## Candidats pour le point à viser (pas encore bien placés)',
     candidates.length
       ? candidates.map((c) => `- ${c.pattern} : ${c.fr}`).join('\n')
       : '(aucun : propose un point utile du niveau visé)',
   ].join('\n')
 
-  const body = (retry: boolean) => ({
+  const body = (retry: boolean, hint = '') => ({
     model: settings.model,
     max_tokens: 3000,
     system:
       SYSTEM +
-      (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${TOOL_NAME}, sans autre texte.` : ''),
+      (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${TOOL_NAME}, sans autre texte.` : '') +
+      (hint ? `\n\nIMPORTANT : ${hint}` : ''),
     tools: [TOOL],
     tool_choice: { type: 'auto' },
     messages: [{ role: 'user', content }],
@@ -248,6 +258,20 @@ export async function requestReview(
   let block = find(await postApi(settings, body(false)))
   if (!block) block = find(await postApi(settings, body(true)))
   if (!block) throw new CorrectionFailure('format', "La réponse n'a pas le bon format. Réessaie.")
-  return normalizeReview(block.input, win, settings)
+  let review = normalizeReview(block.input, win, settings)
+  // Le même point que lors d'un bilan précédent : on redemande une fois, avec un rappel.
+  if (taken.has(patternKey(review.focus.pattern))) {
+    const again = find(
+      await postApi(
+        settings,
+        body(false, `le point « ${review.focus.pattern} » a déjà été visé. Choisis-en un AUTRE dans les candidats.`),
+      ),
+    )
+    if (again) {
+      const second = normalizeReview(again.input, win, settings)
+      if (!taken.has(patternKey(second.focus.pattern))) review = second
+    }
+  }
+  return review
 }
 

@@ -84,6 +84,8 @@ export interface Correction {
   errors: CorrectionItem[]
   grammarGood: GrammarGood[]
   grammarReview: GrammarReview[]
+  /** Une phrase de plus à ajouter à l'entrée (facultatif, absent des anciennes corrections). */
+  bonus?: BonusSentence
   model: string
   createdAt: number
 }
@@ -106,6 +108,24 @@ export interface DailyPrompt {
   }
   /** `reading` est vide quand le mot n'a pas de kanji. */
   words: { ja: string; reading: string; fr: string }[]
+  /** Phrase d'exemple sur le sujet, avec le point de grammaire et des mots du jour (écrite par Claude). */
+  link?: PromptLink
+}
+
+export interface PromptLink {
+  /** Phrase d'exemple, avec balisage de furigana. */
+  ja: string
+  fr: string
+  /** Conseil en français : comment placer le point de grammaire dans ce sujet. */
+  tip: string
+}
+
+/** Une phrase en plus que Claude propose d'ajouter à l'entrée, après la correction. */
+export interface BonusSentence {
+  ja: string
+  fr: string
+  /** Le point de grammaire ou le mot qu'elle fait travailler, en français. */
+  why: string
 }
 
 /** Photo collée dans une entrée, réduite et stockée en JPEG (data URL). */

@@ -1300,3 +1300,43 @@ button.quiz-option.dim {
   font-family: var(--hand);
   font-size: 1.15rem;
 }
+
+/* ---- stats par semaine, liens thème/mots, cartes après correction */
+.week-labels {
+  display: flex;
+  gap: 5px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.week-labels li {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.note-link {
+  margin-top: 4px;
+}
+
+.word-done {
+  font-weight: 700;
+}
+
+.after-card {
+  margin-top: 18px;
+}
+
+.bonus-ja {
+  margin: 4px 0;
+  font-size: 1.15rem;
+  line-height: 1.9;
+}
+
+.bonus-why {
+  margin: 2px 0 6px;
+}

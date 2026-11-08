@@ -2,6 +2,7 @@ import { activeLibrary, patternKey } from '../anki'
 import { timesUsed } from '../stats'
 import type { AnkiLibrary, DailyPrompt, Settings, WeeklyReview } from '../types'
 import { GRAMMAR, TOPICS, VOCAB } from './data'
+import { themeAffinity } from './themes'
 
 /** Générateur pseudo-aléatoire déterministe : même date + même variante = même idée. */
 function hash(input: string): number {
@@ -51,6 +52,8 @@ interface PickOptions {
   good?: string[][]
   /** Point à viser choisi par le bilan de la semaine : proposé en première idée du jour. */
   focus?: WeeklyReview['focus'] | null
+  /** Pour chaque mot déjà proposé : combien de fois proposé, combien de fois employé (voir stats.wordHistory). */
+  wordHistory?: Map<string, { proposed: number; used: number }>
 }
 
 export function pickPrompt(options: PickOptions): DailyPrompt {
@@ -163,15 +166,23 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     fr,
   })
 
+  // Deux mots du deck : ceux qui ont un lien avec le sujet passent en premier, ainsi que
+  // ceux qu'on a déjà reçus sans jamais les employer ; ceux déjà employés reviennent moins.
   const ownWords = anki.words.filter((w) => !recentWords.includes(w.ja))
   const fromDeck: ReturnType<typeof toWord>[] = []
   if (ownWords.length >= 2) {
-    const taken = new Set<number>()
+    const history = options.wordHistory
+    const weightOfWord = (w: (typeof ownWords)[number]) => {
+      const link = [1, 4, 8][Math.min(2, themeAffinity(w, topic.theme, topic.ja))]
+      const h = history?.get(w.ja)
+      const use = !h ? 1.5 : h.used > 0 ? 0.5 / h.used : 2.5 + Math.min(1.5, 0.5 * (h.proposed - 1))
+      return link * use
+    }
+    const left = [...ownWords]
     while (fromDeck.length < 2) {
-      const i = Math.floor(rand() * ownWords.length)
-      if (taken.has(i)) continue
-      taken.add(i)
-      fromDeck.push(toWord(ownWords[i]))
+      const w = chooseWeighted(rand, left, weightOfWord)
+      left.splice(left.indexOf(w), 1)
+      fromDeck.push(toWord(w))
     }
   }
   const words = [

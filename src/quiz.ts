@@ -126,3 +126,12 @@ export function buildQuiz(
     }
   })
 }
+
+/** Ajoute une réponse à l'historique (sans modifier l'ancien). */
+export function recordAnswer(history: QuizHistory, key: string, right: boolean, now = Date.now()): QuizHistory {
+  const h = history[key] ?? { right: 0, wrong: 0, last: 0 }
+  return {
+    ...history,
+    [key]: { right: h.right + (right ? 1 : 0), wrong: h.wrong + (right ? 0 : 1), last: now },
+  }
+}

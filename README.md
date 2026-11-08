@@ -25,13 +25,23 @@ nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/da
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
 
+### Lien entre sujet, mots et grammaire
+
+- Les mots de ton deck sont choisis en priorité s'ils ont un rapport avec le sujet du jour (mots-clés français et kanji par thème, `src/prompts/themes.ts`).
+- Dès qu'une idée est tirée, Claude écrit en arrière-plan une phrase d'exemple qui relie le sujet, le point de grammaire et des mots du jour, avec un conseil (`src/link.ts`, outil `submit_link`). Elle s'affiche dans la carte, section « Tout ensemble », et se garde avec l'entrée ; un bouton permet de la redemander si elle a échoué ou si tu étais hors ligne.
+- Les mots du jour sont cochés pendant que tu écris (`src/words.ts`, la forme conjuguée compte). Les statistiques gardent combien de fois chaque mot a été proposé et employé ; ceux jamais employés reviennent plus souvent, ceux déjà employés moins.
+
+### Après la correction
+
+Sous la correction : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste, puis une « révision éclair » : une question tirée de tes fautes des autres jours (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
+
 ### Série et grammaire placée
 
 L'écran Écrire montre les sept derniers jours en ronds (plein = une entrée écrite ; toucher un rond ouvre ce jour) et la série en cours. L'Historique ajoute le record et le nombre de points de grammaire jugés « bien employés » par les corrections (`src/stats.ts`). Les idées du jour proposent trois fois plus souvent un point jamais bien employé.
 
 ### Statistiques
 
-L'onglet Stats (`src/pages/StatsPage.tsx`) résume l'écriture (jours, série, caractères), les caractères par mois, les erreurs par type avec leur évolution pour 100 caractères, et la grammaire bien placée ou à revoir. Tout est calculé sur le téléphone à partir des entrées et des corrections.
+L'onglet Stats (`src/pages/StatsPage.tsx`) résume l'écriture (jours, série, caractères), les caractères par mois, les erreurs par type avec leur évolution semaine par semaine (fautes pour 100 caractères, jours écrits), les mots du jour employés, et la grammaire bien placée ou à revoir. Tout est calculé sur le téléphone à partir des entrées et des corrections.
 
 ### Bilan de la semaine
 

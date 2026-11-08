@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { BonusCard, QuickReview } from '../components/AfterCorrection'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import Chevron from '../components/Chevron'
@@ -7,8 +8,9 @@ import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
+import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
-import { goodPoints, streakInfo, timesUsed, writtenDays } from '../stats'
+import { goodPoints, streakInfo, timesUsed, wordHistory, writtenDays } from '../stats'
 import type { Correction, DailyPrompt, Entry, EntryPhoto, EntrySticker, Settings } from '../types'
 
 interface Props {
@@ -48,6 +50,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const [days, setDays] = useState<Set<string>>(() => new Set())
   const [photos, setPhotos] = useState<EntryPhoto[]>([])
   const [stickers, setStickers] = useState<EntrySticker[]>([])
+  const [linkState, setLinkState] = useState<'idle' | 'loading' | 'error'>('idle')
   const entryRef = useRef<Entry | undefined>(undefined)
   const timer = useRef<number | undefined>(undefined)
   const textRef = useRef(text)
@@ -75,6 +78,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       setPrompt(entry?.prompt ?? null)
       setPhotos(entry?.photos ?? [])
       setStickers(entry?.stickers ?? [])
+      setLinkState('idle')
       setLoaded(true)
     })
   }, [id])
@@ -129,7 +133,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     const recent = recentEntries
       .map((e) => e.prompt?.grammar.pattern)
       .filter((p): p is string => Boolean(p))
-    const recentWords = recentEntries.flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
+    const recentWords = recentEntries.slice(0, 10).flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
     const library = await loadAnki().catch(() => null)
     // Le point à viser du dernier bilan reste proposé 3 jours après le bilan,
     // ou jusqu'à ce qu'il ait été bien employé une fois.
@@ -151,9 +155,30 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       library,
       good: goodPoints(all),
       focus,
+      wordHistory: wordHistory(all),
     })
     setPrompt(idea)
+    setLinkState('idle')
     await savePrompt(idea)
+    void fetchLink(idea)
+  }
+
+  /** Une phrase d'exemple qui relie le sujet, la grammaire et les mots (facultatif, en arrière-plan). */
+  async function fetchLink(idea: DailyPrompt) {
+    if (!settings.apiKey || !navigator.onLine) return
+    const same = (p?: DailyPrompt | null) =>
+      !!p && p.variant === idea.variant && p.topic.ja === idea.topic.ja
+    setLinkState('loading')
+    try {
+      const link = await requestLink(idea, settings)
+      if (entryRef.current?.id !== id || !same(entryRef.current?.prompt)) return
+      const withLink = { ...idea, link }
+      setPrompt((p) => (same(p) ? withLink : p))
+      setLinkState('idle')
+      await savePrompt(withLink)
+    } catch {
+      if (same(entryRef.current?.prompt)) setLinkState('error')
+    }
   }
 
   async function savePrompt(idea: DailyPrompt | null) {
@@ -341,6 +366,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         <PromptNote
           prompt={prompt}
           furigana={settings.furiganaFrom}
+          text={text}
+          linkState={linkState}
+          onLink={settings.apiKey ? () => void fetchLink(prompt) : undefined}
           onAnother={() => void suggest(prompt.variant + 1)}
           onRemove={() => {
             setPrompt(null)
@@ -414,6 +442,26 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           correction={meta.correction}
           furigana={settings.furiganaFrom}
           stale={stale}
+        />
+      )}
+
+      {meta.correction?.bonus && hasText && (
+        <BonusCard
+          bonus={meta.correction.bonus}
+          furigana={settings.furiganaFrom}
+          text={text}
+          onAdd={(sentence) => {
+            const base = text.trimEnd()
+            onChange(base + (/[。！？!?」』）)]$/.test(base) || base === '' ? '' : '。') + sentence)
+          }}
+        />
+      )}
+
+      {meta.correction && hasText && (
+        <QuickReview
+          currentId={id}
+          correctionKey={meta.correction.createdAt}
+          furigana={settings.furiganaFrom}
         />
       )}
     </section>

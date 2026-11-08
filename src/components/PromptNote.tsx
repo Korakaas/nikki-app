@@ -2,16 +2,31 @@ import { useState } from 'react'
 import { Jp } from '../furigana'
 import Chevron from './Chevron'
 import type { DailyPrompt, FuriganaFrom } from '../types'
+import { wordUsed } from '../words'
 
 interface Props {
   prompt: DailyPrompt
   furigana: FuriganaFrom
   onAnother: () => void
   onRemove: () => void
+  /** Texte en cours d'écriture : les mots du jour déjà employés sont cochés. */
+  text?: string
+  /** Phrase d'exemple : en cours de demande, ratée, ou rien à signaler. */
+  linkState?: 'idle' | 'loading' | 'error'
+  /** Demande la phrase d'exemple (absente si pas de clé API). */
+  onLink?: () => void
 }
 
 /** Petit mot collé en haut de la page : le sujet, un point de grammaire, trois mots. */
-export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Props) {
+export default function PromptNote({
+  prompt,
+  furigana,
+  onAnother,
+  onRemove,
+  text = '',
+  linkState = 'idle',
+  onLink,
+}: Props) {
   const { topic, grammar, words } = prompt
   const [open, setOpen] = useState(false)
   return (
@@ -69,6 +84,11 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
       <ul className="note-words">
         {words.map((w) => (
           <li key={w.ja}>
+            {wordUsed(w, text) && (
+              <span className="word-done green-ink" role="img" aria-label="employé">
+                ✓{' '}
+              </span>
+            )}
             {w.reading ? (
               <ruby className="blue-ink">
                 {w.ja}
@@ -83,6 +103,33 @@ export default function PromptNote({ prompt, furigana, onAnother, onRemove }: Pr
           </li>
         ))}
       </ul>
+
+      {(prompt.link || linkState !== 'idle' || onLink) && (
+        <div className="note-link">
+          <h3 className="note-part blue-ink">
+            <span>例</span>
+            <span className="fr">Tout ensemble</span>
+          </h3>
+          {prompt.link ? (
+            <>
+              <p className="note-example blue-ink">
+                <Jp text={prompt.link.ja} furigana={furigana} />
+              </p>
+              <p className="note-fr fr">{prompt.link.fr}</p>
+              {prompt.link.tip && <p className="note-fr fr">{prompt.link.tip}</p>}
+            </>
+          ) : linkState === 'loading' ? (
+            <p className="note-fr fr">Claude cherche une phrase qui relie le sujet, la grammaire et les mots…</p>
+          ) : (
+            <p className="note-fr fr">
+              {linkState === 'error' && 'Pas réussi cette fois. '}
+              <button type="button" className="link" onClick={onLink}>
+                Voir une phrase qui relie le sujet, la grammaire et les mots
+              </button>
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="note-actions" lang="fr">
         <button type="button" className="link" onClick={onAnother}>

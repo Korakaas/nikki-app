@@ -4,12 +4,13 @@ import { listEntries, loadAnki, todayId } from '../db'
 import { GRAMMAR } from '../prompts/data'
 import {
   errorKinds,
-  errorTrend,
   goodPoints,
   monthStats,
   streakInfo,
   timesUsed,
   topPoints,
+  weekStats,
+  wordTotals,
   writingTotals,
   writtenDays,
 } from '../stats'
@@ -70,8 +71,10 @@ export default function StatsPage({ settings }: { settings: Settings }) {
   const maxChars = Math.max(1, ...months.map((m) => m.chars))
   const kinds = errorKinds(entries)
   const maxKind = Math.max(1, ...kinds.map((k) => k.count))
-  const trend = errorTrend(entries)
-  const maxTrend = Math.max(1, ...trend.map((t) => t.per100))
+  const weeks = weekStats(entries, today)
+  const weekRates = weeks.filter((w) => w.per100 !== null)
+  const maxRate = Math.max(1, ...weekRates.map((w) => w.per100 ?? 0))
+  const words = wordTotals(entries)
   const points = topPoints(entries)
 
   const good = goodPoints(entries)
@@ -147,23 +150,65 @@ export default function StatsPage({ settings }: { settings: Settings }) {
               </li>
             ))}
           </ul>
-          {trend.length >= 2 && (
+          {weekRates.length >= 2 && (
             <>
               <p className="fr trend-title">
-                Fautes pour 100 caractères, sur tes {trend.length} dernières corrections
-                (plus c'est bas, mieux c'est)
+                Fautes pour 100 caractères, semaine par semaine (plus c'est bas, mieux c'est)
               </p>
-              <ul className="trend" aria-label="Fautes pour 100 caractères">
-                {trend.map((t) => (
-                  <li key={t.id} title={`${t.id} : ${t.errors} faute(s)`}>
-                    <span className="trend-value fr">{t.per100.toFixed(1)}</span>
+              <ul className="trend weekly" aria-label="Fautes pour 100 caractères par semaine">
+                {weeks.map((w) => (
+                  <li key={w.monday} title={`Semaine du ${w.monday} : ${w.errors} faute(s), ${w.days} jour(s)`}>
+                    <span className="trend-value fr">
+                      {w.per100 === null ? '' : w.per100.toFixed(1)}
+                    </span>
                     <span
                       className="trend-bar"
-                      style={{ height: `${Math.max(4, (t.per100 / maxTrend) * 100)}%` }}
+                      style={{
+                        height: w.per100 === null ? '0%' : `${Math.max(4, (w.per100 / maxRate) * 100)}%`,
+                      }}
                     />
                   </li>
                 ))}
               </ul>
+              <ul className="week-labels fr" aria-hidden="true">
+                {weeks.map((w) => (
+                  <li key={w.monday}>
+                    <span>{Number(w.monday.slice(8))}/{Number(w.monday.slice(5, 7))}</span>
+                    <span>{w.days ? `${w.days} j` : ''}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+
+      <Heading ja="単語" fr="Mots du jour" />
+      {words.proposed === 0 ? (
+        <p className="fr empty">Les mots proposés dans « Idée du jour » seront comptés ici.</p>
+      ) : (
+        <>
+          <p className="fr">
+            {words.used} mot{words.used > 1 ? 's' : ''} employé{words.used > 1 ? 's' : ''} sur{' '}
+            {words.proposed} proposé{words.proposed > 1 ? 's' : ''} (
+            {Math.round((words.used / words.proposed) * 100)} %)
+          </p>
+          <div className="progress" aria-hidden="true">
+            <span style={{ width: `${(words.used / words.proposed) * 100}%` }} />
+          </div>
+          {words.unused.length > 0 && (
+            <>
+              <h3 className="sub fr">Proposés mais pas encore employés</h3>
+              <ul className="point-list" lang="ja">
+                {words.unused.slice(0, 6).map((w) => (
+                  <li key={w.ja}>
+                    <span className="mark red-ink">△</span> {w.ja}
+                    {w.reading && <span className="fr"> ({w.reading})</span>}
+                    <span className="fr"> — {w.fr}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="fr empty">Ils reviennent plus souvent dans les idées du jour.</p>
             </>
           )}
         </>
