@@ -39,10 +39,10 @@ const TOOL = {
   input_schema: {
     type: 'object',
     properties: {
-      summary: {
+      praise: {
         type: 'string',
         description:
-          'Un commentaire de 1 à 2 phrases en japonais simple : ce qui est bien, et le point principal à travailler.',
+          "En français, 1 à 2 phrases : ce qui est réussi dans l'entrée. Cite une phrase ou une tournure réelle de l'apprenant(e), recopiée en japonais (kanji balisés). Ton chaleureux et sincère, jamais sévère, jamais comparé à un objectif, aucun compliment générique.",
       },
       natural: {
         type: 'string',
@@ -65,7 +65,18 @@ const TOOL = {
             corrected: { type: 'string', description: 'Le passage corrigé.' },
             explanation: {
               type: 'string',
-              description: "Pourquoi, en 1 à 2 phrases de japonais simple.",
+              description:
+                "Pourquoi c'est faux, en français, 1 à 2 phrases. Les mots japonais cités sont balisés de furigana.",
+            },
+            context: {
+              type: 'string',
+              description:
+                "En français : dans quel contexte ce mot ou cette forme est impossible (ex. jamais avec un verbe d'état). À OMETTRE s'il n'y a rien de précis à dire.",
+            },
+            other_use: {
+              type: 'string',
+              description:
+                "En français : dans quel autre cas on pourrait l'employer, avec un court exemple japonais balisé. À OMETTRE s'il n'y a rien de précis à dire.",
             },
           },
           required: ['kind', 'original', 'corrected', 'explanation'],
@@ -122,7 +133,7 @@ const TOOL = {
         required: ['ja', 'fr', 'why'],
       },
     },
-    required: ['summary', 'natural', 'errors', 'grammar_good', 'grammar_review'],
+    required: ['praise', 'natural', 'errors', 'grammar_good', 'grammar_review'],
   },
 }
 
@@ -135,27 +146,28 @@ export function levelLine(level: string): string {
 function systemPrompt(level: string): string {
   return `Tu es un professeur de japonais qui corrige l'entrée de journal d'un(e) apprenant(e) francophone.
 
-${levelLine(level)} Aucun français dans les champs.
+${levelLine(level)} Les champs « natural », « corrected », « point », « note », « example » et « bonus.ja » sont en japonais, sans français. Les champs « praise », « explanation », « context », « other_use » (et « bonus.fr », « bonus.why ») sont en français.
 
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
 - Ne signale que de vraies fautes ou des tournures nettement moins naturelles (kind = "naturel", sans exagérer). Une phrase correcte et naturelle n'est PAS une erreur, même si une autre formulation est possible : の/は de thème ou de contraste, ordre des mots libre, お腹/腹, tournures courantes. Avant de signaler une particule, vérifie qu'elle est vraiment fausse ; en cas de doute, ne la signale pas.
-- NE CORRIGE JAMAIS : la ponctuation (。、「」, points, virgules, tirets, ！？), les espaces, la largeur des caractères (全角/半角), ni les fautes de frappe évidentes (lettre latine tapée par erreur, caractère en double, kana ou lettre manquante ou échangée par un simple geste de clavier, mot que l'apprenant(e) connaît visiblement). Elle n'a pas à les voir : ne les mets pas dans « errors » et ne les mentionne pas dans « summary ». Signale une faute d'écriture seulement si elle montre une vraie lacune (mauvais kana ou kanji choisi, mot confondu, mauvaise lecture). Une lettre en trop ou en moins dans un mot simple (« 寒くいても »), un mot mal converti par le clavier (« 天気飯田 » pour « 天気がいいだ ») sont des fautes de frappe : ne les signale pas. Dans le doute entre faute de frappe et lacune, ne la signale pas.
+- NE CORRIGE JAMAIS : la ponctuation (。、「」, points, virgules, tirets, ！？), les espaces, la largeur des caractères (全角/半角), ni les fautes de frappe évidentes (lettre latine tapée par erreur, caractère en double, kana ou lettre manquante ou échangée par un simple geste de clavier, mot que l'apprenant(e) connaît visiblement). Elle n'a pas à les voir : ne les mets pas dans « errors » et ne les mentionne pas dans « praise ». Signale une faute d'écriture seulement si elle montre une vraie lacune (mauvais kana ou kanji choisi, mot confondu, mauvaise lecture). Une lettre en trop ou en moins dans un mot simple (« 寒くいても »), un mot mal converti par le clavier (« 天気飯田 » pour « 天気がいいだ ») sont des fautes de frappe : ne les signale pas. Dans le doute entre faute de frappe et lacune, ne la signale pas.
 - Choix du kind : « particule » seulement si une particule change ; ordre des mots, mot trop familier ou peu courant → « naturel » ou « vocabulaire » ; faute de forme verbale ou d'adjectif → « conjugaison » ; « grammaire » pour une structure fausse.
 - Deux éléments de « errors » ne doivent jamais se recouvrir : « original » reste un passage court, jamais la phrase entière recopiée.
 - Regroupe les fautes qui se répètent en un seul élément. Maximum 6 éléments, les plus utiles d'abord.
 - « original » recopie le passage fautif tel quel (court, quelques mots). « corrected » donne le passage corrigé et DOIT être différent de « original ». Un simple conseil de contenu (« ajoute un détail ») n'est pas une erreur : ne le mets pas dans « errors ».
 - La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Seules exceptions : corrige-y sans les signaler les fautes de frappe évidentes, et garde la ponctuation de l'apprenant(e) telle quelle. Elle reste au niveau ${level} autant que possible.
-- « summary » ne parle que de ce qui figure dans « errors » ou « grammar_good » ; n'y ajoute aucun autre conseil.
-- Si le texte est déjà correct, laisse « errors » vide et dis-le dans « summary ».
+- « praise » vient en premier et dit ce qui est réussi : cite une phrase ou une tournure réelle de l'entrée (recopiée en japonais, kanji balisés), et dis ce qu'elle a de bien. Pas d'encouragement générique, pas de comparaison à un objectif, pas de sévérité. Ne félicite que ce qui est vrai. Il ne contient aucun conseil et ne parle pas des fautes.
+- Pour chaque faute : « explanation » dit pourquoi c'est faux ; « context » dit dans quel contexte ce mot ou cette forme est impossible ; « other_use » dit dans quel autre cas on pourrait l'employer. OMETS « context » et « other_use » quand ils n'apportent rien de précis : ne remplis jamais par des généralités.
+- Si le texte est déjà correct, laisse « errors » vide et dis-le dans « praise ».
 - Sois honnête et exact : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas, et si tu n'es pas sûr d'une règle, dis-en moins plutôt que d'inventer une explication.
-- Si le texte n'est pas principalement en japonais, laisse « errors » vide, écris dans « natural » une version japonaise simple du sens, et dis-le dans « summary ».
+- Si le texte n'est pas principalement en japonais, laisse « errors » vide, écris dans « natural » une version japonaise simple du sens, et dis-le gentiment dans « praise ».
 
 Phrase bonus : dans « bonus », propose UNE phrase qui prolonge l'entrée (même histoire, même ton, première personne), au niveau ${level}, que l'apprenant(e) pourra recopier ou adapter. Elle emploie le point de grammaire visé s'il n'apparaît pas dans le texte, sinon un point de grammar_review, sinon un point utile du niveau. Ne reprends pas une phrase déjà écrite. Si le texte n'est pas principalement en japonais, omets « bonus ».
 
-Furigana : dans TOUS les textes japonais que tu écris (summary, natural, corrected, explanation, point, note, example), balise CHAQUE groupe de kanji, sans exception, même les plus simples (人, 私, 何, 日, 今, 使, 言, 前…) : {kanji|lecture en hiragana}. L'application masque elle-même les lectures trop faciles selon son réglage, donc ne décide pas à sa place. Exemples : 食べる s'écrit {食|た}べる ; 面白かった s'écrit {面白|おもしろ}かった ; 今日 s'écrit {今日|きょう} ; 大丈夫 s'écrit {大丈夫|だいじょうぶ} ; 私たちは s'écrit {私|わたし}たちは. Les okurigana et les mots sans kanji restent hors des accolades. Avant de répondre, relis chaque champ pour vérifier qu'aucun kanji n'est resté sans balise. N'utilise PAS de balisage dans le champ « original ».
+Furigana : dans TOUS les textes japonais que tu écris (natural, corrected, point, note, example, et les phrases japonaises citées dans praise, explanation, context, other_use), balise CHAQUE groupe de kanji, sans exception, même les plus simples (人, 私, 何, 日, 今, 使, 言, 前…) : {kanji|lecture en hiragana}. L'application masque elle-même les lectures trop faciles selon son réglage, donc ne décide pas à sa place. Exemples : 食べる s'écrit {食|た}べる ; 面白かった s'écrit {面白|おもしろ}かった ; 今日 s'écrit {今日|きょう} ; 大丈夫 s'écrit {大丈夫|だいじょうぶ} ; 私たちは s'écrit {私|わたし}たちは. Les okurigana et les mots sans kanji restent hors des accolades. Avant de répondre, relis chaque champ pour vérifier qu'aucun kanji n'est resté sans balise. N'utilise PAS de balisage dans le champ « original ».
 
-Point de grammaire visé : quand le message indique un « point de grammaire visé », l'apprenant(e) essayait de l'employer. Commente-le dans grammar_good (bien employé) ou grammar_review (à revoir, avec un exemple). S'il est absent du texte, ajoute-le à grammar_review avec une note disant simplement qu'il n'apparaît pas encore, et ne le compte pas comme une faute. Ne signale jamais l'absence des mots de vocabulaire proposés ; s'ils sont bien utilisés, tu peux le dire dans summary.
+Point de grammaire visé : quand le message indique un « point de grammaire visé », l'apprenant(e) essayait de l'employer. Commente-le dans grammar_good (bien employé) ou grammar_review (à revoir, avec un exemple). S'il est absent du texte, ajoute-le à grammar_review avec une note disant simplement qu'il n'apparaît pas encore, et ne le compte pas comme une faute. Ne signale jamais l'absence des mots de vocabulaire proposés ; s'ils sont bien utilisés, tu peux le dire dans praise.
 
 Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 }
@@ -183,6 +195,8 @@ function normalize(input: unknown, text: string, model: string): Correction {
       original: str(e.original),
       corrected: str(e.corrected),
       explanation: str(e.explanation),
+      context: str(e.context) || undefined,
+      otherUse: str(e.other_use) || undefined,
     }))
     .filter((e) => e.original && e.corrected)
     // Une « correction » identique au texte n'en est pas une.
@@ -213,6 +227,7 @@ function normalize(input: unknown, text: string, model: string): Correction {
   return {
     sourceText: text,
     summary: str(raw.summary),
+    ...(str(raw.praise) ? { praise: str(raw.praise) } : {}),
     natural,
     errors,
     grammarGood,
@@ -375,8 +390,9 @@ function untaggedKanji(c: Correction, settings: Settings): string[] {
   if (settings.furiganaFrom === 'none') return []
   const fields = [
     c.summary,
+    c.praise ?? '',
     c.natural,
-    ...c.errors.flatMap((e) => [e.corrected, e.explanation]),
+    ...c.errors.flatMap((e) => [e.corrected, e.explanation, e.context ?? '', e.otherUse ?? '']),
     ...c.grammarGood.flatMap((g) => [g.point, g.note]),
     ...c.grammarReview.flatMap((g) => [g.point, g.note, g.example]),
     ...(c.bonus ? [c.bonus.ja] : []),

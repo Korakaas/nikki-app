@@ -8,6 +8,7 @@ import SettingsPage from './pages/SettingsPage'
 import StatsPage from './pages/StatsPage'
 import PracticePage from './pages/PracticePage'
 import BackupReminder from './components/BackupReminder'
+import CapNotice from './components/CapNotice'
 
 type Tab = 'write' | 'history' | 'stats' | 'practice' | 'settings'
 
@@ -90,6 +91,7 @@ export default function App() {
     <div className="app">
       <main className="content">
         {tab === 'write' && <BackupReminder settings={settings} />}
+        {tab === 'write' && <CapNotice settings={settings} />}
         {tab === 'write' && (
           <WritePage
             key={day}

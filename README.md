@@ -22,6 +22,8 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
 2. Écrire → Corriger. La correction s'affiche sous le texte et se retrouve dans l'historique.
 3. Sans réseau, la demande attend : elle part à la prochaine ouverture de l'appli avec du réseau.
 
+La correction commence par un encouragement en français qui cite une phrase réelle de l'entrée (`praise`). Chaque faute s'affiche repliée (« avant → après ») ; un tap la déplie en trois blocs : pourquoi c'est faux, dans quel contexte c'est impossible, dans quel autre cas l'employer. Les blocs sans objet sont omis, et « Tout déplier » ouvre toutes les fautes d'un coup. Les anciennes corrections (commentaire en japonais, une seule explication) s'affichent toujours.
+
 L'appel se fait depuis le navigateur vers `api.anthropic.com`, avec la réponse imposée
 sous forme d'outil (`submit_correction`, voir `src/api.ts`). Les textes japonais de la
 réponse contiennent un balisage `{漢字|かんじ|N4}` que `src/furigana.tsx` transforme en
@@ -80,7 +82,7 @@ L'Historique marque « pas corrigée » les entrées sans correction, avec un bo
 
 ### Consommation de l'API
 
-Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → « Consommation de l'API » montre l'estimation en dollars du mois en cours et du mois dernier (tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change). Le compteur n'est pas dans la sauvegarde.
+Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → « Consommation de l'API » montre l'estimation en dollars du mois en cours et du mois dernier (tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change). Le compteur n'est pas dans la sauvegarde. Un plafond du mois (2,50 $ par défaut, modifiable dans les mêmes réglages) alimente la barre de consommation ; à 80 %, un message doux s'affiche une seule fois par mois (`src/components/CapNotice.tsx`). Rien n'est jamais bloqué.
 
 ### Copier la semaine pour Claude
 

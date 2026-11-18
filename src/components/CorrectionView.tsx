@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Jp, plainText } from '../furigana'
 import Chevron from './Chevron'
-import type { Correction, FuriganaFrom } from '../types'
+import type { Correction, CorrectionItem, FuriganaFrom } from '../types'
 
 interface Props {
   correction: Correction
@@ -12,9 +12,25 @@ interface Props {
   startOpen?: boolean
 }
 
+/** Une faute a-t-elle des explications à déplier ? */
+function hasDetails(e: CorrectionItem): boolean {
+  return Boolean(e.explanation || e.context || e.otherUse)
+}
+
 export default function CorrectionView({ correction, furigana, stale, startOpen }: Props) {
-  const { summary, natural, errors, grammarGood, grammarReview } = correction
+  const { summary, praise, natural, errors, grammarGood, grammarReview } = correction
   const [open, setOpen] = useState(Boolean(startOpen))
+  // Fautes dont les explications sont dépliées (repliées au départ).
+  const [opened, setOpened] = useState<Set<number>>(new Set())
+  const foldable = errors.map((e, i) => (hasDetails(e) ? i : -1)).filter((i) => i >= 0)
+  const allOpen = foldable.length > 0 && foldable.every((i) => opened.has(i))
+  const toggleFault = (i: number) =>
+    setOpened((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
   const overview = `${errors.length === 0 ? 'aucune erreur' : errors.length === 1 ? '1 erreur' : `${errors.length} erreurs`}${
     grammarGood.length + grammarReview.length > 0
       ? ` · ${grammarGood.length} ○ ${grammarReview.length} △`
@@ -38,6 +54,12 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
         </button>
       </h2>
 
+      {praise && (
+        <p className="praise fr" lang="fr">
+          <Jp text={praise} furigana={furigana} />
+        </p>
+      )}
+
       {!open && <p className="fr tensaku-overview">{overview}</p>}
       {open && (
         <>
@@ -48,7 +70,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
         </p>
       )}
 
-      {summary && (
+      {summary && !praise && (
         <p className="teacher-note green-ink">
           <Jp text={summary} furigana={furigana} />
         </p>
@@ -62,9 +84,18 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
         <Jp text={natural} furigana={furigana} />
       </p>
 
-      <h3 className="part">
+      <h3 className="part part-row">
         <span>まちがい</span>
         <span className="fr">Erreurs</span>
+        {foldable.length > 0 && (
+          <button
+            type="button"
+            className="fold-all fr"
+            onClick={() => setOpened(allOpen ? new Set() : new Set(foldable))}
+          >
+            {allOpen ? 'Tout replier' : 'Tout déplier'}
+          </button>
+        )}
       </h3>
       {errors.length === 0 ? (
         <p className="green-ink">まちがいは見つかりませんでした。</p>
@@ -72,20 +103,57 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
         <ul className="fixes">
           {errors.map((e, i) => (
             <li key={i} className="fix">
-              <p className="fix-kind fr">{e.kind}</p>
-              <p className="fix-line">
-                <del className="fix-original">{plainText(e.original)}</del>
-                <span className="fix-arrow" aria-hidden="true">
-                  →
-                </span>
-                <span className="red-ink fix-corrected">
-                  <Jp text={e.corrected} furigana={furigana} />
-                </span>
-              </p>
-              {e.explanation && (
-                <p className="fix-why">
-                  <Jp text={e.explanation} furigana={furigana} />
-                </p>
+              {hasDetails(e) ? (
+                <button
+                  type="button"
+                  className="fix-head"
+                  aria-expanded={opened.has(i)}
+                  onClick={() => toggleFault(i)}
+                >
+                  <span className="fix-main">
+                    <span className="fix-kind fr">{e.kind}</span>
+                    <span className="fix-line">
+                      <del className="fix-original">{plainText(e.original)}</del>
+                      <span className="fix-arrow" aria-hidden="true">
+                        →
+                      </span>
+                      <span className="red-ink fix-corrected">
+                        <Jp text={e.corrected} furigana={furigana} />
+                      </span>
+                    </span>
+                  </span>
+                  <span className="fold-icon">
+                    <Chevron dir={opened.has(i) ? 'down' : 'right'} size={20} />
+                  </span>
+                </button>
+              ) : (
+                <div className="fix-head fix-head-plain">
+                  <span className="fix-main">
+                    <span className="fix-kind fr">{e.kind}</span>
+                    <span className="fix-line">
+                      <del className="fix-original">{plainText(e.original)}</del>
+                      <span className="fix-arrow" aria-hidden="true">
+                        →
+                      </span>
+                      <span className="red-ink fix-corrected">
+                        <Jp text={e.corrected} furigana={furigana} />
+                      </span>
+                    </span>
+                  </span>
+                </div>
+              )}
+              {opened.has(i) && (
+                <div className="fix-details">
+                  {e.explanation && (
+                    <FixPart label="Pourquoi c’est faux" text={e.explanation} furigana={furigana} />
+                  )}
+                  {e.context && (
+                    <FixPart label="Dans quel contexte c’est impossible" text={e.context} furigana={furigana} />
+                  )}
+                  {e.otherUse && (
+                    <FixPart label="Dans quel autre cas l’employer" text={e.otherUse} furigana={furigana} />
+                  )}
+                </div>
               )}
             </li>
           ))}
@@ -144,5 +212,16 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
         </>
       )}
     </section>
+  )
+}
+
+function FixPart({ label, text, furigana }: { label: string; text: string; furigana: FuriganaFrom }) {
+  return (
+    <div className="fix-part">
+      <p className="fix-part-label fr">{label}</p>
+      <p className="fix-why">
+        <Jp text={text} furigana={furigana} />
+      </p>
+    </div>
   )
 }

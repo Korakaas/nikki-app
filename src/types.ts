@@ -26,6 +26,8 @@ export interface Settings {
   furiganaFrom: FuriganaFrom
   /** Apparence : suit le téléphone, ou clair / sombre imposé. */
   theme: Theme
+  /** Plafond de dépense mensuel en dollars : sert à la barre et au message doux à 80 %. Rien n'est jamais bloqué. */
+  monthlyCap: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   targetLevel: 'N3',
   furiganaFrom: 'N2',
   theme: 'light',
+  monthlyCap: 2.5,
 }
 
 export type ErrorKind =
@@ -65,7 +68,12 @@ export interface CorrectionItem {
   /** Passage fautif, recopié tel que l'apprenant l'a écrit (texte brut). */
   original: string
   corrected: string
+  /** Pourquoi c'est faux (en français pour les nouvelles corrections, en japonais pour les anciennes). */
   explanation: string
+  /** Dans quel contexte le mot ou la forme est impossible (absent des anciennes corrections, ou sans objet). */
+  context?: string
+  /** Dans quel autre cas on pourrait l'employer (absent des anciennes corrections, ou sans objet). */
+  otherUse?: string
 }
 
 export interface GrammarGood {
@@ -82,7 +90,10 @@ export interface GrammarReview {
 export interface Correction {
   /** Texte corrigé : sert à repérer une correction devenue périmée. */
   sourceText: string
+  /** Ancien commentaire en japonais (corrections d'avant le sprint 2). */
   summary: string
+  /** Encouragement en français qui cite une phrase réelle de l'entrée (corrections récentes). */
+  praise?: string
   natural: string
   errors: CorrectionItem[]
   grammarGood: GrammarGood[]

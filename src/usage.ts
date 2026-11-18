@@ -64,3 +64,29 @@ export function formatCost(dollars: number): string {
   if (dollars < 0.01) return '< 0,01 $'
   return `${dollars.toFixed(2).replace('.', ',')} $`
 }
+
+/** Part du plafond atteinte (0 à plus de 1) ; 0 si aucun plafond valable. */
+export function capShare(cost: number, cap: number): number {
+  return cap > 0 ? cost / cap : 0
+}
+
+/** Seuil du message doux : 80 % du plafond du mois. */
+export const CAP_ALERT_SHARE = 0.8
+
+const CAP_SEEN_KEY = 'nikki-cap-notice'
+
+export function capNoticeSeen(month = monthId()): boolean {
+  try {
+    return localStorage.getItem(CAP_SEEN_KEY) === month
+  } catch {
+    return false
+  }
+}
+
+export function markCapNoticeSeen(month = monthId()): void {
+  try {
+    localStorage.setItem(CAP_SEEN_KEY, month)
+  } catch {
+    /* stockage indisponible : le message pourra réapparaître, sans conséquence */
+  }
+}

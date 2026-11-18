@@ -1610,3 +1610,111 @@ input.conj-input {
   border-color: var(--green);
   color: var(--green);
 }
+
+/* Sprint 2 : correction enrichie */
+.praise {
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1.5px dashed var(--green);
+  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
+  color: var(--green);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.part-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.fold-all {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.fix-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.fix-head {
+  cursor: pointer;
+}
+
+.fix-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fix-head .fix-line {
+  overflow-wrap: anywhere;
+}
+
+.fix-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 2px;
+  padding-left: 10px;
+  border-left: 2px solid var(--rule);
+}
+
+.fix-part-label {
+  margin: 0;
+  color: var(--pencil);
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.fix-part .fix-why {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.cap-bar {
+  height: 8px;
+  margin: 6px 0;
+  border-radius: 4px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.cap-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+
+.cap-bar.near > i {
+  background: var(--pencil);
+}
+
+.cap-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cap-field input {
+  width: 5.5em;
+}

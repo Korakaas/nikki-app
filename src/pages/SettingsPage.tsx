@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
 import { backupStatus, canShareFile, exportBackup, importBackup } from '../backup'
 import { clearAnki, listEntries, loadAnki, loadUsage, saveAnki, type UsageLog } from '../db'
-import { formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
+import CapNotice from '../components/CapNotice'
+import { CAP_ALERT_SHARE, capShare, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
 import type { AnkiLibrary, FuriganaFrom, Settings, Theme } from '../types'
 
 interface Props {
@@ -315,13 +316,31 @@ export default function SettingsPage({ settings, onChange }: Props) {
           const now = monthUsage(usage, monthId())
           const last = monthUsage(usage, previousMonthId())
           const tokens = (n: number) => n.toLocaleString('fr-FR')
+          const share = capShare(now.cost, settings.monthlyCap)
+          const capField = <CapField value={settings.monthlyCap} onCommit={(v) => patch({ monthlyCap: v })} />
           if (now.calls === 0 && last.calls === 0)
-            return <p className="hint">Rien de compté pour l'instant : chaque appel (correction, bilan, phrase d'exemple) s'ajoutera ici.</p>
+            return (
+              <>
+                <p className="hint">Rien de compté pour l'instant : chaque appel (correction, bilan, phrase d'exemple) s'ajoutera ici.</p>
+                {capField}
+              </>
+            )
           return (
             <>
               <p className="usage-line">
-                Ce mois-ci : <strong>≈ {formatCost(now.cost)}</strong> · {now.calls} appel{now.calls > 1 ? 's' : ''}
+                Ce mois-ci : <strong>≈ {formatCost(now.cost)}</strong> sur {formatCost(settings.monthlyCap)} · {now.calls} appel{now.calls > 1 ? 's' : ''}
               </p>
+              <div
+                className={`cap-bar${share >= CAP_ALERT_SHARE ? ' near' : ''}`}
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.min(100, Math.round(share * 100))}
+                aria-label="Part du plafond du mois"
+              >
+                <i style={{ width: `${Math.min(100, share * 100)}%` }} />
+              </div>
+              <CapNotice settings={settings} />
               <p className="hint">
                 {now.byKind.map(([k, c]) => `${c.calls} ${KIND_LABEL[k] ?? k}`).join(', ')} ·{' '}
                 {tokens(now.input)} jetons envoyés, {tokens(now.output)} reçus.
@@ -331,6 +350,7 @@ export default function SettingsPage({ settings, onChange }: Props) {
                   Mois dernier : ≈ {formatCost(last.cost)} ({last.calls} appels).
                 </p>
               )}
+              {capField}
               <p className="hint">
                 Estimation d'après les tarifs publiés (Sonnet 5.5 : 2 $ / 10 $ par million de jetons ; Haiku 5.5 : 0,10 $ /
                 0,50 $) ; elle ne compte que les appels faits depuis ce téléphone. Le chiffre exact est sur
@@ -377,5 +397,32 @@ export default function SettingsPage({ settings, onChange }: Props) {
         {message && <p className="notice">{message}</p>}
       </div>
     </section>
+  )
+}
+
+/** Plafond mensuel en dollars : on tape librement, la valeur est enregistrée en quittant le champ. */
+function CapField({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [text, setText] = useState(String(value).replace('.', ','))
+  const commit = () => {
+    const v = Number(text.replace(',', '.'))
+    if (Number.isFinite(v) && v > 0) onCommit(Math.round(v * 100) / 100)
+    else setText(String(value).replace('.', ','))
+  }
+  return (
+    <div className="cap-field">
+      <label htmlFor="monthly-cap">Plafond du mois</label>
+      <input
+        id="monthly-cap"
+        type="text"
+        inputMode="decimal"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
+      />
+      <span>$</span>
+    </div>
   )
 }
