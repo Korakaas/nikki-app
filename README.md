@@ -5,6 +5,17 @@ Petit journal quotidien en japonais, installable sur téléphone (PWA).
 (version plus naturelle, erreurs expliquées en japonais N4-N3, points de grammaire,
 furigana filtrés selon un seuil de niveau).
 
+## Écrans
+
+Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
+
+- **Stats** a deux onglets en bas de l'écran (au pouce), dont le dernier ouvert est mémorisé :
+  - **Progrès** : cinq chiffres clés visibles sans défiler (jours écrits, jours de suite, caractères écrits,
+    fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
+    Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
+  - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
+- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats).
+
 ## Correction
 
 1. Réglages → colle ta clé API Claude (elle reste sur le téléphone).

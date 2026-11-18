@@ -6,14 +6,16 @@ import WritePage from './pages/WritePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 import StatsPage from './pages/StatsPage'
+import PracticePage from './pages/PracticePage'
 import BackupReminder from './components/BackupReminder'
 
-type Tab = 'write' | 'history' | 'stats' | 'settings'
+type Tab = 'write' | 'history' | 'stats' | 'practice' | 'settings'
 
 const TABS: { id: Tab; ja: string; fr: string }[] = [
   { id: 'write', ja: '書く', fr: 'Écrire' },
   { id: 'history', ja: '記録', fr: 'Historique' },
   { id: 'stats', ja: '統計', fr: 'Stats' },
+  { id: 'practice', ja: '練習', fr: 'Exercices' },
   { id: 'settings', ja: '設定', fr: 'Réglages' },
 ]
 
@@ -105,6 +107,7 @@ export default function App() {
             }}
           />}
         {tab === 'stats' && <StatsPage settings={settings} />}
+        {tab === 'practice' && <PracticePage settings={settings} />}
         {tab === 'settings' && (
           <SettingsPage settings={settings} onChange={updateSettings} />
         )}

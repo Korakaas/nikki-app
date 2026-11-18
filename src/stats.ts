@@ -231,6 +231,20 @@ export function wordTotals(entries: Entry[]): WordTotals {
   return { proposed, used, unused }
 }
 
+/** Fautes relevées pour 100 caractères, sur toutes les entrées corrigées (null s'il n'y en a pas). */
+export function overallPer100(entries: Entry[]): number | null {
+  let errors = 0
+  let chars = 0
+  for (const e of entries) {
+    if (e.text.trim() === '' || !e.correction) continue
+    const n = countChars(e.correction.sourceText)
+    if (n < 10) continue
+    chars += n
+    errors += e.correction.errors.length
+  }
+  return chars > 0 ? (errors / chars) * 100 : null
+}
+
 // ------------------------------------------------ par semaine
 
 export interface WeekStat {

@@ -1487,3 +1487,126 @@ input.conj-input {
   padding-left: 18px;
   line-height: 1.7;
 }
+
+
+/* Stats : chiffres clés en lignes, infobulles « ? », sous-onglets en bas (pouce) */
+.stats-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.stats-body {
+  flex: 1;
+}
+
+.figures {
+  display: block;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.figure-row {
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.figure-row .tip-line {
+  gap: 12px;
+  min-height: 46px;
+}
+
+.figure-row .figure-value {
+  min-width: 4.2rem;
+  font-size: 1.7rem;
+}
+
+.figure-row .figure-label {
+  flex: 1;
+  text-align: left;
+}
+
+.tip-box {
+  position: relative;
+}
+
+.tip-line {
+  display: flex;
+  align-items: center;
+}
+
+.tip-heading {
+  margin: 30px 0 6px;
+}
+
+.tip-heading .part {
+  flex: 1;
+  margin: 0;
+}
+
+.tip-btn {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--pencil);
+  border-radius: 50%;
+  background: none;
+  color: var(--pencil);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tip-text {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tape) 22%, transparent);
+  line-height: 1.4;
+}
+
+.trend-title {
+  flex: 1;
+}
+
+.review-fold-title .fold {
+  align-items: baseline;
+  min-height: 44px;
+}
+
+.review-line {
+  margin: 0 0 8px;
+  color: var(--pencil);
+}
+
+.subtabs {
+  position: sticky;
+  bottom: -32px; /* colle au bas de l'écran, malgré le retrait de .content */
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  margin: 24px -16px -32px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.subtab {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: none;
+  color: var(--pencil);
+  font: inherit;
+  cursor: pointer;
+}
+
+.subtab.active {
+  border-color: var(--green);
+  color: var(--green);
+}

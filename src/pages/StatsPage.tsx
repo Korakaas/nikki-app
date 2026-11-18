@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { activeLibrary } from '../anki'
 import { listEntries, loadAnki, todayId } from '../db'
-import { deckVerbs } from '../conj/verbs'
 import { GRAMMAR } from '../prompts/data'
 import {
   errorKinds,
   goodPoints,
   monthStats,
+  overallPer100,
   streakInfo,
   timesUsed,
   topPoints,
@@ -15,11 +15,8 @@ import {
   writingTotals,
   writtenDays,
 } from '../stats'
-import ConjSection from '../components/ConjSection'
-import ErrorQuiz from '../components/ErrorQuiz'
+import InfoTip from '../components/InfoTip'
 import MonthReview from '../components/MonthReview'
-import ParticleDrill from '../components/ParticleDrill'
-import TransitivityDrill from '../components/TransitivityDrill'
 import ReviewSection from '../components/ReviewSection'
 import type { AnkiLibrary, Entry, Settings } from '../types'
 
@@ -33,21 +30,31 @@ const KIND_LABEL: Record<string, string> = {
   naturel: 'naturel',
 }
 
-function Heading({ ja, fr }: { ja: string; fr: string }) {
-  return (
+function Heading({ ja, fr, tip }: { ja: string; fr: string; tip?: string }) {
+  const title = (
     <h2 className="part">
       <span lang="ja">{ja}</span>
       <span className="fr">{fr}</span>
     </h2>
   )
+  return tip ? (
+    <InfoTip text={tip} className="tip-heading">
+      {title}
+    </InfoTip>
+  ) : (
+    title
+  )
 }
 
-function Figure({ value, label }: { value: string | number; label: string }) {
+/** Un chiffre clé : valeur, libellé sur une ligne, et son « ? ». */
+function Figure({ value, label, tip }: { value: string | number; label: string; tip: string }) {
   return (
-    <div className="figure">
-      <span className="figure-value green-ink">{value}</span>
-      <span className="figure-label fr">{label}</span>
-    </div>
+    <li className="figure-row">
+      <InfoTip text={tip}>
+        <span className="figure-value green-ink">{value}</span>
+        <span className="figure-label fr">{label}</span>
+      </InfoTip>
+    </li>
   )
 }
 
@@ -55,9 +62,31 @@ function plural(n: number, one: string, many: string) {
   return `${n} ${n > 1 ? many : one}`
 }
 
+type StatsTab = 'progress' | 'reviews'
+const TAB_KEY = 'nikki-stats-tab'
+
+function readTab(): StatsTab {
+  try {
+    return localStorage.getItem(TAB_KEY) === 'reviews' ? 'reviews' : 'progress'
+  } catch {
+    return 'progress'
+  }
+}
+
 export default function StatsPage({ settings }: { settings: Settings }) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
+  const [tab, setTab] = useState<StatsTab>(readTab)
+
+  function chooseTab(next: StatsTab) {
+    setTab(next)
+    try {
+      localStorage.setItem(TAB_KEY, next)
+    } catch {
+      /* stockage indisponible : l'onglet ne sera pas mémorisé */
+    }
+    document.querySelector('.content')?.scrollTo(0, 0)
+  }
 
   useEffect(() => {
     void listEntries().then(setEntries)
@@ -81,7 +110,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
   const maxRate = Math.max(1, ...weekRates.map((w) => w.per100 ?? 0))
   const words = wordTotals(entries)
   const points = topPoints(entries)
-  const deckSet = new Set(deckVerbs(library).map((v) => v.ja))
+  const per100 = overallPer100(entries)
 
   const good = goodPoints(entries)
   const candidates = [...activeLibrary(library).grammar, ...GRAMMAR]
@@ -99,31 +128,49 @@ export default function StatsPage({ settings }: { settings: Settings }) {
   }
 
   return (
-    <section className="page stats">
+    <section className="page stats stats-pane">
       <header className="page-header">
         <h1>Statistiques</h1>
       </header>
 
-      <ReviewSection entries={entries} library={library} settings={settings} today={today} />
-
-      <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
-      <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
-      <ConjSection library={library} />
-      <TransitivityDrill entries={entries} furigana={settings.furiganaFrom} deck={deckSet} />
-
+      <div className="stats-body">
+      {tab === 'reviews' ? (
+        <>
+          <ReviewSection entries={entries} library={library} settings={settings} today={today} />
+          <MonthReview entries={entries} today={today} />
+        </>
+      ) : (
+        <>
       <Heading ja="書いた日" fr="Écriture" />
-      <div className="figures">
-        <Figure value={totals.days} label="jours écrits" />
-        <Figure value={streak.current} label="jours de suite" />
-        <Figure value={streak.best} label="record de série" />
-        <Figure value={totals.chars.toLocaleString('fr-FR')} label="caractères" />
-        <Figure value={totals.average} label="par entrée" />
-        <Figure value={totals.corrected} label="corrigées" />
-      </div>
+      <ul className="figures" aria-label="Chiffres clés">
+        <Figure
+          value={totals.days}
+          label="jours écrits"
+          tip="Le nombre de jours où tu as écrit au moins une phrase, depuis le début."
+        />
+        <Figure
+          value={streak.current}
+          label="jours de suite"
+          tip="Les jours d'affilée où tu as écrit, jusqu'à aujourd'hui (ou hier si tu n'as pas encore écrit). Ton record est dans l'Historique."
+        />
+        <Figure
+          value={totals.chars.toLocaleString('fr-FR')}
+          label="caractères écrits"
+          tip="Le total des caractères écrits dans toutes tes entrées."
+        />
+        <Figure
+          value={per100 === null ? '–' : per100.toFixed(1).replace('.', ',')}
+          label="fautes pour 100 caractères"
+          tip="Les fautes relevées par les corrections, ramenées à 100 caractères, sur toutes tes entrées corrigées. Plus c'est bas, mieux c'est."
+        />
+        <Figure
+          value={words.used}
+          label="mots utilisés"
+          tip="Les mots proposés dans « Idée du jour » que tu as ensuite employés dans tes entrées."
+        />
+      </ul>
 
-      <MonthReview entries={entries} today={today} />
-
-      <Heading ja="月ごと" fr="Mois par mois" />
+      <Heading ja="月ごと" fr="Mois par mois" tip="Les caractères écrits chaque mois (la barre), avec le nombre de jours écrits dessous." />
       <ul className="months" aria-label="Caractères écrits par mois">
         {months.map((m) => (
           <li key={m.key}>
@@ -142,7 +189,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
         ))}
       </ul>
 
-      <Heading ja="まちがい" fr="Erreurs" />
+      <Heading ja="まちがい" fr="Erreurs" tip="Les fautes relevées par les corrections, classées par type, depuis le début." />
       {kinds.length === 0 ? (
         <p className="fr empty">Pas encore d'erreur relevée dans les corrections.</p>
       ) : (
@@ -163,9 +210,11 @@ export default function StatsPage({ settings }: { settings: Settings }) {
           </ul>
           {weekRates.length >= 2 && (
             <>
-              <p className="fr trend-title">
-                Fautes pour 100 caractères, semaine par semaine (plus c'est bas, mieux c'est)
-              </p>
+              <InfoTip text="Pour chaque semaine, les fautes relevées ramenées à 100 caractères. Sous chaque barre : le début de la semaine et le nombre de jours écrits.">
+                <p className="fr trend-title">
+                  Fautes pour 100 caractères, semaine par semaine (plus c'est bas, mieux c'est)
+                </p>
+              </InfoTip>
               <ul className="trend weekly" aria-label="Fautes pour 100 caractères par semaine">
                 {weeks.map((w) => (
                   <li key={w.monday} title={`Semaine du ${w.monday} : ${w.errors} faute(s), ${w.days} jour(s)`}>
@@ -194,7 +243,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
         </>
       )}
 
-      <Heading ja="単語" fr="Mots du jour" />
+      <Heading ja="単語" fr="Mots du jour" tip="Parmi les mots proposés dans « Idée du jour », ceux que tu as employés dans ton texte. Les autres reviennent plus souvent." />
       {words.proposed === 0 ? (
         <p className="fr empty">Les mots proposés dans « Idée du jour » seront comptés ici.</p>
       ) : (
@@ -225,7 +274,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
         </>
       )}
 
-      <Heading ja="文法" fr="Grammaire" />
+      <Heading ja="文法" fr="Grammaire" tip="Les points de grammaire que les corrections ont jugés bien employés, sur tous ceux de ton deck et de l'appli." />
       <p className="fr">
         {plural(placed, 'point bien placé', 'points bien placés')} sur {candidates.length}
       </p>
@@ -259,6 +308,30 @@ export default function StatsPage({ settings }: { settings: Settings }) {
           </ul>
         </>
       )}
+        </>
+      )}
+      </div>
+
+      <div className="subtabs" role="tablist" aria-label="Sections de Stats">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'progress'}
+          className={tab === 'progress' ? 'subtab active' : 'subtab'}
+          onClick={() => chooseTab('progress')}
+        >
+          Progrès
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'reviews'}
+          className={tab === 'reviews' ? 'subtab active' : 'subtab'}
+          onClick={() => chooseTab('reviews')}
+        >
+          Bilans
+        </button>
+      </div>
     </section>
   )
 }

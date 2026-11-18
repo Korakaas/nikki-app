@@ -96,6 +96,7 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
   const [error, setError] = useState('')
   const [older, setOlder] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     void loadReviews()
@@ -165,11 +166,23 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
 
   return (
     <>
-      <h2 className="part">
-        <span lang="ja">週の振り返り</span>
-        <span className="fr">Bilan de la semaine</span>
+      <h2 className="part review-fold-title">
+        <button type="button" className="fold" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          <span lang="ja">週の振り返り</span>
+          <span className="fr">Bilan de la semaine</span>
+          <span className="fold-icon">
+            <Chevron dir={open ? 'down' : 'right'} size={20} />
+          </span>
+        </button>
       </h2>
+      <p className="fr review-line">
+        {latest
+          ? `Du ${shortDate(latest.from)} au ${shortDate(latest.to)} · ${latest.entryCount} entrée${latest.entryCount > 1 ? 's' : ''}`
+          : `Pas de bilan · du ${shortDate(win.from)} au ${shortDate(win.to)}`}
+      </p>
 
+      {open && (
+        <>
       {latest && <ReviewView review={latest} furigana={settings.furiganaFrom} />}
 
       {!latest && (
@@ -223,6 +236,8 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
             reviews.slice(1).map((r) => (
               <ReviewView key={r.createdAt} review={r} furigana={settings.furiganaFrom} />
             ))}
+        </>
+      )}
         </>
       )}
     </>
