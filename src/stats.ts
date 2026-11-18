@@ -22,7 +22,7 @@ export interface StreakInfo {
 }
 
 /** Nombre de jours entiers de `a` à `b` (YYYY-MM-DD, jours civils, sans effet de l'heure d'été). */
-function daysBetween(a: string, b: string): number {
+export function daysBetween(a: string, b: string): number {
   const [ya, ma, da] = a.split('-').map(Number)
   const [yb, mb, db] = b.split('-').map(Number)
   return Math.round((Date.UTC(yb, mb - 1, db) - Date.UTC(ya, ma - 1, da)) / 86_400_000)

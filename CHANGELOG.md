@@ -1,5 +1,13 @@
 # Journal des changements
 
+## Sprint 4 : succès et correction à ta mesure (2026-11-18)
+
+- S7.2 : onglet « Succès » dans Stats, avec 20 succès (décision D31). Chaque succès débloqué a sa date ; chaque succès à venir montre sa condition et ta progression. Tout est calculé d'après les données déjà gardées : sur ta sauvegarde du 18/11, 10 succès sont déjà débloqués. Un succès débloqué ne se perd jamais.
+- S7.6 : célébration discrète d'un nouveau succès, une seule fois, fermée d'un tap ou seule après 4 s, immobile si le téléphone réduit les animations. Jamais pendant que tu tapes, jamais pour les succès déjà mérités (première ouverture, restauration d'une sauvegarde).
+- S3.5 : Réglages → Correction : complète ou courte, avec le coût par correction et par mois pour chaque choix. La correction courte ne demande plus le contexte, l'autre emploi, les points à revoir ni la phrase bonus.
+- Coût API : la correction courte coûte environ la moitié d'une complète (estimation à confirmer : l'appli la mesure dès 2 corrections courtes). La correction complète ne change pas. Les succès n'appellent jamais l'API.
+- Nouvelles données : `correctionMode` dans les réglages (« complète » si absent d'une ancienne sauvegarde) ; déblocages des succès gardés hors sauvegarde (recalculés d'après les données après une restauration). Le format des sauvegardes ne change pas.
+
 ## Sprint 3 : une série qui n'est jamais punitive (2026-11-18)
 
 - S7.1 : série douce (D27). Un jour sauté ne change rien ; deux jours entiers sautés mettent la série « en pause » (nombre gardé, mention « en pause » sur Écrire, Stats et Historique). La reprise repart à 1, le record reste (« record N » dans Stats). Seuls les jours écrits comptent.

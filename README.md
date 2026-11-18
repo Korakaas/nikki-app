@@ -48,6 +48,22 @@ Le point visé est transmis à la correction, qui dit s'il a été bien employé
 
 Sous la correction : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste, puis une « révision éclair » : une question tirée de tes fautes des autres jours (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
+### Succès
+
+Un troisième onglet de Stats, « Succès », liste 20 petites victoires (catalogue validé : décision D31) : jours écrits, séries, caractères, points de grammaire bien placés, premier bilan, quiz, conjugaison, page décorée… Chaque succès débloqué montre sa date ; chaque succès à venir montre sa condition et ta progression (« 26 / 30 »). Rien ne se calcule hors de tes données : tout vient des entrées, bilans, quiz et conjugaisons déjà gardés (`src/achievements.ts`, fonction pure testée sur ta vraie sauvegarde).
+
+- Un succès débloqué ne se perd jamais, même si une série se met en pause ou si une entrée est supprimée (déblocages gardés dans les réglages, hors sauvegarde).
+- À la première ouverture et après une restauration de sauvegarde, les succès déjà mérités sont attribués sans célébration.
+- Les dates des succès « quiz » et « conjugaison » sont approchées (le dernier jour de réponse), faute d'historique réponse par réponse.
+
+### Célébration d'un succès
+
+Quand un nouveau succès se débloque, une carte discrète s'affiche une fois : « Succès débloqué », son nom et sa condition. Elle se ferme d'un tap ou seule au bout de 4 secondes, ne s'affiche jamais pendant que tu tapes (elle attend que tu quittes le champ), passe en file s'il y en a plusieurs, et reste immobile si le téléphone réduit les animations (`src/components/Celebration.tsx`).
+
+### Correction courte ou complète
+
+Réglages → Correction. « Complète » (par défaut) : chaque faute avec ses explications, l'encouragement, la grammaire bien placée et à revoir, la phrase bonus. « Courte » : l'encouragement, la faute, sa correction et une phrase d'explication, plus les points bien employés ; elle n'envoie plus le contexte, l'autre emploi, les points à revoir ni la phrase bonus, et demande une réponse plus petite. Le choix s'applique à la prochaine correction ; les anciennes gardent leur forme. Le coût d'une correction et le coût mensuel (une par jour) sont affichés pour les deux choix : mesurés d'après ta consommation dès 2 appels de chaque sorte, estimés avant (complète ≈ 0,027 $, courte ≈ 55 % de cela). Les corrections courtes sont comptées à part dans Consommation de l'API.
+
 ### Série douce
 
 Règle (décision D27) : un jour sans entrée ne change rien ; deux jours entiers de suite sans entrée mettent la série « en pause » (le nombre est gardé et affiché). La prochaine entrée repart à 1. Le record n'est jamais effacé et aucun message ne parle d'échec. Seuls les jours écrits comptent. Le calcul est dans `streakInfo` (`src/stats.ts`) ; la mention « en pause » apparaît sur Écrire, Stats et Historique, et Stats affiche « record N » quand la série en cours est plus courte.

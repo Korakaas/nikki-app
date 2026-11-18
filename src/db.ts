@@ -6,6 +6,7 @@ import {
   type WeeklyReview,
 } from './types'
 import type { QuizHistory } from './quiz'
+import type { AchievementStore } from './achievements'
 import { normalizeConj, type ConjState } from './conj/srs'
 import { cleanEntry } from './trivial'
 import { costOf } from './usage'
@@ -68,8 +69,18 @@ export async function getEntry(id: string): Promise<Entry | undefined> {
   return entry && cleanEntry(entry)
 }
 
+/** Signale que des données utiles aux succès ont changé (regroupé : un seul signal après une rafale de sauvegardes). */
+export const DATA_EVENT = 'nikki-data'
+let notifyTimer: number | undefined
+function notifyChange(): void {
+  if (typeof window === 'undefined') return
+  window.clearTimeout(notifyTimer)
+  notifyTimer = window.setTimeout(() => window.dispatchEvent(new Event(DATA_EVENT)), 1200)
+}
+
 export async function saveEntry(entry: Entry): Promise<void> {
   await run(ENTRIES, 'readwrite', (s) => s.put(entry))
+  notifyChange()
 }
 
 export async function listEntries(): Promise<Entry[]> {
@@ -163,6 +174,7 @@ export async function loadReviews(): Promise<WeeklyReview[]> {
 export async function saveReviews(reviews: WeeklyReview[]): Promise<WeeklyReview[]> {
   const list = reviews.slice(0, MAX_REVIEWS)
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: REVIEWS_KEY, list }))
+  notifyChange()
   return list
 }
 
@@ -184,6 +196,7 @@ export async function loadQuizHistory(): Promise<QuizHistory> {
 
 export async function saveQuizHistory(results: QuizHistory): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: QUIZ_KEY, results }))
+  notifyChange()
 }
 
 const CONJ_KEY = 'conj'
@@ -200,6 +213,7 @@ export async function loadConj(): Promise<ConjState> {
 
 export async function saveConj(state: ConjState): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: CONJ_KEY, state }))
+  notifyChange()
 }
 
 const USAGE_KEY = 'usage'
@@ -240,4 +254,20 @@ export async function addUsage(
   c.output += output
   c.cost = (c.cost ?? 0) + costOf(input, output, model)
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: USAGE_KEY, months }))
+}
+
+const ACHIEVEMENTS_KEY = 'achievements'
+
+/** Succès débloqués. Gardé hors sauvegarde : après une restauration, ils se recalculent d'après les données. */
+export async function loadAchievementStore(): Promise<AchievementStore> {
+  const row = await run<({ key: string } & Partial<AchievementStore>) | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(ACHIEVEMENTS_KEY),
+  )
+  return { unlocked: row?.unlocked ?? {}, seeded: row?.seeded === true }
+}
+
+export async function saveAchievementStore(store: AchievementStore): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: ACHIEVEMENTS_KEY, ...store }))
 }

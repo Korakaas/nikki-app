@@ -3,7 +3,7 @@ import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
 import { backupStatus, canShareFile, exportBackup, importBackup } from '../backup'
 import { clearAnki, listEntries, loadAnki, loadUsage, saveAnki, type UsageLog } from '../db'
 import CapNotice from '../components/CapNotice'
-import { CAP_ALERT_SHARE, capShare, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
+import { CAP_ALERT_SHARE, CORRECTIONS_PER_MONTH, capShare, correctionCosts, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
 import type { AnkiLibrary, FuriganaFrom, Settings, Theme } from '../types'
 
 interface Props {
@@ -308,6 +308,56 @@ export default function SettingsPage({ settings, onChange }: Props) {
           Pour les petites tâches (la phrase d'exemple et le défi du thème), à environ 20 fois moins cher que le
           modèle de correction. S'il ne répond pas, c'est le modèle principal qui prend le relais.
         </p>
+      </div>
+
+      <div className="field">
+        <span className="label" id="mode-label">Correction</span>
+        {(() => {
+          const costs = correctionCosts(usage)
+          const money = (v: number) => (v < 0.1 ? v.toFixed(3) : v.toFixed(2)).replace('.', ',')
+          const month = (v: number) => v * CORRECTIONS_PER_MONTH
+          const options: { value: Settings['correctionMode']; name: string; what: string; per: number; measured: boolean }[] = [
+            {
+              value: 'full',
+              name: 'Complète',
+              what: "Chaque faute avec ses explications, l'encouragement, la grammaire bien placée.",
+              per: costs.full,
+              measured: costs.fullMeasured,
+            },
+            {
+              value: 'short',
+              name: 'Courte',
+              what: "La faute, la correction et une phrase d'explication. L'encouragement reste.",
+              per: costs.short,
+              measured: costs.shortMeasured,
+            },
+          ]
+          return (
+            <div role="radiogroup" aria-labelledby="mode-label" className="mode-choice">
+              {options.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={settings.correctionMode === o.value}
+                  className={settings.correctionMode === o.value ? 'mode-option selected' : 'mode-option'}
+                  onClick={() => patch({ correctionMode: o.value })}
+                >
+                  <span className="mode-name">{o.name}</span>
+                  <span className="mode-what fr">{o.what}</span>
+                  <span className="mode-cost fr">
+                    ≈ {money(o.per)} $ par correction · ≈ {money(month(o.per))} $ par mois
+                    {o.measured ? '' : ' (estimation)'}
+                  </span>
+                </button>
+              ))}
+              <p className="hint">
+                S'applique à la prochaine correction ; les anciennes gardent leur forme. Estimé pour une correction
+                par jour pendant 30 jours.
+              </p>
+            </div>
+          )
+        })()}
       </div>
 
       <div className="field">

@@ -137,6 +137,45 @@ const TOOL = {
   },
 }
 
+/** Outil de la correction courte : on retire ce qui coûte cher en réponse (contexte, autre emploi, points à revoir, phrase bonus). */
+function shortTool() {
+  const items = TOOL.input_schema.properties.errors.items
+  const { context: _c, other_use: _o, ...keep } = items.properties
+  const {
+    grammar_review: _r,
+    bonus: _b,
+    ...properties
+  } = TOOL.input_schema.properties
+  return {
+    ...TOOL,
+    input_schema: {
+      ...TOOL.input_schema,
+      properties: {
+        ...properties,
+        errors: {
+          ...properties.errors,
+          items: {
+            ...items,
+            properties: {
+              ...keep,
+              explanation: {
+                type: 'string',
+                description:
+                  "Pourquoi c'est faux, en français, UNE seule phrase courte. Les mots japonais cités sont balisés de furigana.",
+              },
+            },
+          },
+        },
+      },
+      required: ['praise', 'natural', 'errors', 'grammar_good'],
+    },
+  }
+}
+
+const SHORT_MODE = `
+
+MODE COURT (choisi par l'apprenant(e) pour lire moins et dépenser moins) : l'outil n'a pas les champs « context », « other_use », « grammar_review » ni « bonus » : n'en produis aucun. Chaque « explanation » tient en UNE phrase courte. Garde « praise » (l'encouragement reste), « natural », les fautes (« original » et « corrected ») et « grammar_good ». Les règles d'honnêteté, de furigana et de fautes à ne pas signaler restent les mêmes.`
+
 export function levelLine(level: string): string {
   if (level === 'N2')
     return "Niveau de l'apprenant(e) : JLPT N2 (a le N3 et prépare le N2). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3–N2, phrases claires, sans tournures N1."
@@ -273,27 +312,30 @@ async function callApi(
   prompt?: DailyPrompt | null,
   extraHint?: string,
 ): Promise<ApiResponse> {
+  const short = settings.correctionMode === 'short'
   return postApi(settings, {
     model: settings.model,
-    max_tokens: 4096,
+    max_tokens: short ? 2048 : 4096,
     system:
       systemPrompt(settings.targetLevel) +
+      (short ? SHORT_MODE : '') +
       (retry
         ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant l'outil ${TOOL_NAME}, sans autre texte.`
         : '') +
       (extraHint ? `\n\nIMPORTANT : ${extraHint}` : ''),
-    tools: [TOOL],
+    tools: [short ? shortTool() : TOOL],
     // Certains modèles refusent qu'on impose l'outil : on laisse le choix
     // au modèle et on relance une fois s'il répond par du texte.
     tool_choice: { type: 'auto' },
     messages: [{ role: 'user', content: userMessage(text, prompt) }],
-  })
+  }, short ? 'correction-courte' : undefined)
 }
 
 /** Appel brut à l'API Claude depuis le téléphone ; les échecs deviennent des messages lisibles. */
 export async function postApi(
   settings: Settings,
   body: Record<string, unknown>,
+  usageKind?: string,
 ): Promise<ApiResponse> {
   if (!settings.apiKey) {
     throw new CorrectionFailure(
@@ -370,7 +412,7 @@ export async function postApi(
   // Compteur de coût : un échec d'écriture ne doit jamais faire échouer l'appel.
   const tools = body.tools as { name?: string }[] | undefined
   void addUsage(
-    tools?.[0]?.name?.replace('submit_', '') ?? 'autre',
+    usageKind ?? tools?.[0]?.name?.replace('submit_', '') ?? 'autre',
     data.usage?.input_tokens ?? 0,
     data.usage?.output_tokens ?? 0,
     typeof body.model === 'string' ? body.model : '',

@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { processPending } from './corrector'
-import { loadSettings, saveSettings, todayId } from './db'
+import { DATA_EVENT, loadSettings, saveSettings, todayId } from './db'
+import { runAchievementSync } from './achievementsRun'
+import type { Achievement } from './achievements'
+import Celebration from './components/Celebration'
 import { DEFAULT_SETTINGS, type Settings } from './types'
 import WritePage from './pages/WritePage'
 import HistoryPage from './pages/HistoryPage'
@@ -25,6 +28,38 @@ export default function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [ready, setReady] = useState(false)
   const [day, setDay] = useState(() => todayId())
+  // Succès tout juste débloqués, à célébrer un par un ; la célébration attend qu'on ait fini de taper.
+  const [queue, setQueue] = useState<Achievement[]>([])
+  const [typing, setTyping] = useState(false)
+  const checking = useRef(false)
+
+  const checkAchievements = useCallback(async () => {
+    if (checking.current) return
+    checking.current = true
+    try {
+      const { fresh } = await runAchievementSync()
+      if (fresh.length) setQueue((q) => [...q, ...fresh.filter((f) => !q.some((x) => x.id === f.id))])
+    } catch {
+      /* les succès ne doivent jamais gêner l'écriture */
+    } finally {
+      checking.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const field = (el: EventTarget | null) =>
+      el instanceof HTMLElement && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT')
+    const onIn = (e: FocusEvent) => field(e.target) && setTyping(true)
+    const onOut = (e: FocusEvent) => field(e.target) && setTyping(false)
+    document.addEventListener('focusin', onIn)
+    document.addEventListener('focusout', onOut)
+    window.addEventListener(DATA_EVENT, checkAchievements)
+    return () => {
+      document.removeEventListener('focusin', onIn)
+      document.removeEventListener('focusout', onOut)
+      window.removeEventListener(DATA_EVENT, checkAchievements)
+    }
+  }, [checkAchievements])
 
   // Appli restée ouverte pendant la nuit : si on était sur « aujourd'hui », on passe au nouveau jour.
   useEffect(() => {
@@ -43,8 +78,16 @@ export default function App() {
   useEffect(() => {
     loadSettings()
       .then(setSettings)
-      .finally(() => setReady(true))
-  }, [])
+      .finally(() => {
+        setReady(true)
+        void checkAchievements()
+      })
+  }, [checkAchievements])
+
+  // Un changement d'onglet est un bon moment pour vérifier les succès.
+  useEffect(() => {
+    if (ready) void checkAchievements()
+  }, [tab, ready, checkAchievements])
 
   // Envoie les corrections demandées hors-ligne dès que le réseau et la clé sont là.
   // Le délai évite de partir avec une clé à moitié saisie dans les réglages.
@@ -114,6 +157,9 @@ export default function App() {
           <SettingsPage settings={settings} onChange={updateSettings} />
         )}
       </main>
+      {queue.length > 0 && !typing && (
+        <Celebration achievement={queue[0]} onClose={() => setQueue((q) => q.slice(1))} />
+      )}
       <nav className="tabbar" aria-label="Navigation principale">
         {TABS.map((t) => (
           <button

@@ -1,10 +1,12 @@
 import {
   listEntries,
+  loadAchievementStore,
   loadAnki,
   loadBackupInfo,
   loadConj,
   loadQuizHistory,
   loadReviews,
+  saveAchievementStore,
   saveAnki,
   saveBackupInfo,
   saveConj,
@@ -113,6 +115,12 @@ export interface ImportResult {
 export async function importBackup(text: string, restoreAnki: boolean): Promise<ImportResult> {
   const data = JSON.parse(text) as Partial<BackupFile>
   if (!Array.isArray(data.entries)) throw new Error('format')
+  // Après une restauration, les succès mérités par les données restaurées sont attribués sans célébration.
+  const silenceAchievements = async () =>
+    saveAchievementStore({ ...(await loadAchievementStore().catch(() => ({ unlocked: {}, seeded: false }))), seeded: false }).catch(
+      () => undefined,
+    )
+  await silenceAchievements()
   const existing = new Map((await listEntries()).map((e) => [e.id, e]))
   let imported = 0
   for (const entry of data.entries) {
@@ -148,6 +156,7 @@ export async function importBackup(text: string, restoreAnki: boolean): Promise<
     const mine = await loadConj().catch(() => normalizeConj(null))
     await saveConj(mergeConj(mine, normalizeConj(data.conj)))
   }
+  await silenceAchievements()
   return { imported, anki, settings: data.settings }
 }
 

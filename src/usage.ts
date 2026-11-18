@@ -9,6 +9,7 @@ export function pricesFor(model: string): { input: number; output: number } {
 
 export const KIND_LABEL: Record<string, string> = {
   correction: 'corrections',
+  'correction-courte': 'corrections courtes',
   review: 'bilans',
   link: 'phrases d’exemple',
   autre: 'autres',
@@ -89,4 +90,40 @@ export function markCapNoticeSeen(month = monthId()): void {
   } catch {
     /* stockage indisponible : le message pourra réapparaître, sans conséquence */
   }
+}
+
+/** Coût d'une correction complète quand rien n'a encore été mesuré (mesuré au Sprint 2 : environ 0,027 $). */
+export const FULL_COST_DEFAULT = 0.027
+/** La correction courte coûte environ la moitié : estimation tant qu'on n'a pas de mesure. */
+export const SHORT_SHARE = 0.55
+/** Nombre de corrections par mois pour l'estimation : une par jour. */
+export const CORRECTIONS_PER_MONTH = 30
+
+export interface CorrectionCosts {
+  full: number
+  short: number
+  fullMeasured: boolean
+  shortMeasured: boolean
+}
+
+/** Coût moyen d'une correction, mesuré sur tous les mois quand il y a assez d'appels, estimé sinon. */
+export function correctionCosts(log: UsageLog): CorrectionCosts {
+  const sum = (kind: string) => {
+    let calls = 0
+    let cost = 0
+    for (const month of Object.values(log)) {
+      const c = month[kind]
+      if (!c) continue
+      calls += c.calls
+      cost += c.cost ?? costOf(c.input, c.output)
+    }
+    return { calls, cost }
+  }
+  const f = sum('correction')
+  const s = sum('correction-courte')
+  const fullMeasured = f.calls >= 2
+  const full = fullMeasured ? f.cost / f.calls : FULL_COST_DEFAULT
+  const shortMeasured = s.calls >= 2
+  const short = shortMeasured ? s.cost / s.calls : full * SHORT_SHARE
+  return { full, short, fullMeasured, shortMeasured }
 }

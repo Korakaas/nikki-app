@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { activeLibrary } from '../anki'
 import { listEntries, loadAnki, todayId } from '../db'
+import { runAchievementSync } from '../achievementsRun'
+import type { Achievement } from '../achievements'
+import AchievementsView from '../components/AchievementsView'
 import { GRAMMAR } from '../prompts/data'
 import {
   errorKinds,
@@ -63,12 +66,13 @@ function plural(n: number, one: string, many: string) {
   return `${n} ${n > 1 ? many : one}`
 }
 
-type StatsTab = 'progress' | 'reviews'
+type StatsTab = 'progress' | 'reviews' | 'achievements'
 const TAB_KEY = 'nikki-stats-tab'
 
 function readTab(): StatsTab {
   try {
-    return localStorage.getItem(TAB_KEY) === 'reviews' ? 'reviews' : 'progress'
+    const saved = localStorage.getItem(TAB_KEY)
+    return saved === 'reviews' || saved === 'achievements' ? saved : 'progress'
   } catch {
     return 'progress'
   }
@@ -78,6 +82,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
   const [tab, setTab] = useState<StatsTab>(readTab)
+  const [achievements, setAchievements] = useState<Achievement[] | null>(null)
 
   function chooseTab(next: StatsTab) {
     setTab(next)
@@ -91,6 +96,9 @@ export default function StatsPage({ settings }: { settings: Settings }) {
 
   useEffect(() => {
     void listEntries().then(setEntries)
+    void runAchievementSync()
+      .then((r) => setAchievements(r.all))
+      .catch(() => setAchievements(null))
     void loadAnki()
       .then(setLibrary)
       .catch(() => setLibrary(null))
@@ -135,7 +143,9 @@ export default function StatsPage({ settings }: { settings: Settings }) {
       </header>
 
       <div className="stats-body">
-      {tab === 'reviews' ? (
+      {tab === 'achievements' ? (
+        achievements ? <AchievementsView achievements={achievements} /> : null
+      ) : tab === 'reviews' ? (
         <>
           <ReviewSection entries={entries} library={library} settings={settings} today={today} />
           <MonthReview entries={entries} today={today} />
@@ -332,6 +342,15 @@ export default function StatsPage({ settings }: { settings: Settings }) {
           onClick={() => chooseTab('reviews')}
         >
           Bilans
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'achievements'}
+          className={tab === 'achievements' ? 'subtab active' : 'subtab'}
+          onClick={() => chooseTab('achievements')}
+        >
+          Succès
         </button>
       </div>
     </section>

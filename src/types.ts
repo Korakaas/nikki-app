@@ -28,6 +28,8 @@ export interface Settings {
   theme: Theme
   /** Plafond de dépense mensuel en dollars : sert à la barre et au message doux à 80 %. Rien n'est jamais bloqué. */
   monthlyCap: number
+  /** Correction complète (par défaut) ou courte : la faute, sa correction et une phrase d'explication. */
+  correctionMode: 'full' | 'short'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   furiganaFrom: 'N2',
   theme: 'light',
   monthlyCap: 2.5,
+  correctionMode: 'full',
 }
 
 export type ErrorKind =

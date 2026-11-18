@@ -1751,3 +1751,181 @@ button.fix-head {
 .welcome-back button {
   min-height: 44px;
 }
+
+/* Sprint 4 : succès */
+.achievements {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.ach-dot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--pencil);
+  color: var(--paper);
+  font-size: 1rem;
+}
+
+.achievement.done .ach-dot {
+  border: none;
+  background: var(--green);
+}
+
+.ach-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ach-name {
+  font-family: var(--hand);
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.achievement.todo .ach-name {
+  color: var(--pencil);
+}
+
+.ach-sub {
+  color: var(--pencil);
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.ach-progress {
+  margin-left: auto;
+  flex: none;
+  color: var(--pencil);
+  font-size: 0.95rem;
+  text-align: right;
+}
+
+.celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(40, 38, 34, 0.35);
+  animation: celebration-fade 0.25s ease-out;
+}
+
+.celebration-card {
+  width: 100%;
+  max-width: 320px;
+  padding: 18px 14px 14px;
+  border: 1.5px solid var(--green);
+  border-radius: 14px;
+  background: var(--paper);
+  text-align: center;
+  animation: celebration-pop 0.35s ease-out;
+}
+
+.celebration-card p {
+  margin: 0;
+}
+
+.celebration-spark {
+  color: var(--green);
+  font-size: 1.6rem;
+  letter-spacing: 0.4rem;
+}
+
+.celebration-kicker,
+.celebration-condition,
+.celebration-hint {
+  color: var(--pencil);
+}
+
+.celebration-name {
+  margin: 4px 0 !important;
+  font-family: var(--hand);
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.celebration-hint {
+  margin-top: 10px !important;
+  font-size: 0.85rem;
+}
+
+@keyframes celebration-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes celebration-pop {
+  from {
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration,
+  .celebration-card {
+    animation: none;
+  }
+}
+
+/* Sprint 4 : correction courte ou complète */
+.mode-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mode-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mode-option.selected {
+  border-color: var(--green);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+}
+
+.mode-name {
+  font-family: var(--hand);
+  font-size: 1.3rem;
+}
+
+.mode-what {
+  color: var(--pencil);
+  font-size: 0.95rem;
+}
+
+.mode-cost {
+  color: var(--green);
+  font-size: 0.95rem;
+}
