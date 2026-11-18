@@ -10,29 +10,41 @@ export function writtenDays(entries: Entry[]): Set<string> {
 }
 
 export interface StreakInfo {
-  /** Jours d'affilée jusqu'à aujourd'hui (ou hier, tant que la journée n'est pas finie). */
+  /** Jours écrits dans la série en cours (le chiffre reste affiché pendant une pause). */
   current: number
+  /** Record : jamais effacé. */
   best: number
   total: number
+  /** Deux jours entiers d'affilée sans entrée : la série est en pause (elle repartira à 1). */
+  paused: boolean
+  /** Dernier jour écrit (vide s'il n'y en a aucun). */
+  lastDay: string
 }
 
-export function streakInfo(days: Set<string>, today: string): StreakInfo {
-  let current = 0
-  let cursor = days.has(today) ? today : addDays(today, -1)
-  while (days.has(cursor)) {
-    current++
-    cursor = addDays(cursor, -1)
-  }
+/** Nombre de jours entiers de `a` à `b` (YYYY-MM-DD, jours civils, sans effet de l'heure d'été). */
+function daysBetween(a: string, b: string): number {
+  const [ya, ma, da] = a.split('-').map(Number)
+  const [yb, mb, db] = b.split('-').map(Number)
+  return Math.round((Date.UTC(yb, mb - 1, db) - Date.UTC(ya, ma - 1, da)) / 86_400_000)
+}
 
+/**
+ * Série douce. Un jour sans entrée ne casse rien : la série continue. Deux jours entiers
+ * d'affilée sans entrée la mettent en pause : son chiffre reste affiché, et elle repart
+ * à 1 à la prochaine entrée. Le record n'est jamais effacé. Seuls les jours écrits sont comptés.
+ * Le jour en cours n'est pas encore « manqué » : on ne compte que les jours entiers écoulés.
+ */
+export function streakInfo(days: Set<string>, today: string): StreakInfo {
   let best = 0
   let run = 0
   let previous = ''
-  for (const day of [...days].sort()) {
-    run = previous && addDays(previous, 1) === day ? run + 1 : 1
+  for (const day of [...days].filter((d) => d <= today).sort()) {
+    run = previous && daysBetween(previous, day) <= 2 ? run + 1 : 1
     best = Math.max(best, run)
     previous = day
   }
-  return { current, best, total: days.size }
+  const missed = previous ? Math.max(0, daysBetween(previous, today) - 1) : 0
+  return { current: run, best, total: days.size, paused: missed >= 2, lastDay: previous }
 }
 
 // ------------------------------------------------ grammaire bien employée

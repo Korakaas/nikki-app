@@ -47,12 +47,13 @@ function Heading({ ja, fr, tip }: { ja: string; fr: string; tip?: string }) {
 }
 
 /** Un chiffre clé : valeur, libellé sur une ligne, et son « ? ». */
-function Figure({ value, label, tip }: { value: string | number; label: string; tip: string }) {
+function Figure({ value, label, tip, extra }: { value: string | number; label: string; tip: string; extra?: string }) {
   return (
     <li className="figure-row">
       <InfoTip text={tip}>
         <span className="figure-value green-ink">{value}</span>
         <span className="figure-label fr">{label}</span>
+        {extra && <span className="figure-extra fr">{extra}</span>}
       </InfoTip>
     </li>
   )
@@ -151,7 +152,8 @@ export default function StatsPage({ settings }: { settings: Settings }) {
         <Figure
           value={streak.current}
           label="jours de suite"
-          tip="Les jours d'affilée où tu as écrit, jusqu'à aujourd'hui (ou hier si tu n'as pas encore écrit). Ton record est dans l'Historique."
+          extra={[streak.paused ? 'en pause' : '', streak.current < streak.best ? `record ${streak.best}` : ''].filter(Boolean).join(' · ') || undefined}
+          tip="Les jours où tu as écrit à la suite. Un jour sauté ne change rien ; après deux jours sans écrire, la série se met en pause, puis repart à 1 à ta prochaine entrée. Ton record n'est jamais effacé."
         />
         <Figure
           value={totals.chars.toLocaleString('fr-FR')}

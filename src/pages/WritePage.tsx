@@ -12,6 +12,7 @@ import { addDays, countChars, formatDateJa } from '../format'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
 import { goodPoints, streakInfo, timesUsed, wordHistory, writtenDays } from '../stats'
+import WelcomeBack from '../components/WelcomeBack'
 import type { Correction, DailyPrompt, Entry, EntryPhoto, EntrySticker, Settings } from '../types'
 
 interface Props {
@@ -354,6 +355,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           selected={id}
           written={days}
           streak={streakInfo(days, today).current}
+          paused={streakInfo(days, today).paused}
           onSelect={onChangeDay}
         />
         {!isToday && (
@@ -362,6 +364,13 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           </button>
         )}
       </header>
+
+      {isToday && loaded && (
+        <WelcomeBack
+          lastDay={streakInfo(days, today).paused ? streakInfo(days, today).lastDay : null}
+          onStart={() => areaRef.current?.focus()}
+        />
+      )}
 
       {prompt ? (
         <PromptNote

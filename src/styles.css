@@ -1718,3 +1718,36 @@ button.fix-head {
 .cap-field input {
   width: 5.5em;
 }
+
+/* Sprint 3 : série douce et reprise */
+.figure-row .figure-extra {
+  flex: none;
+  color: var(--pencil);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.welcome-back {
+  margin: 10px 0 8px;
+  padding: 10px 14px 6px;
+  border: 1.5px dashed var(--blue);
+  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
+  color: var(--ink);
+}
+
+.welcome-back p {
+  margin: 0 0 6px;
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.welcome-back .row {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.welcome-back button {
+  min-height: 44px;
+}

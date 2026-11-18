@@ -73,8 +73,8 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
         </p>
         {entries.length > 0 && (
           <p className="muted stats-line">
-            Série : {streak.current} jour{streak.current > 1 ? 's' : ''} · record :{' '}
-            {streak.best}
+            Série : {streak.current} jour{streak.current > 1 ? 's' : ''}
+            {streak.paused ? ' (en pause)' : ''} · record : {streak.best}
             {good.length > 0 && ` · grammaire bien placée : ${placed} point${placed > 1 ? 's' : ''}`}
           </p>
         )}

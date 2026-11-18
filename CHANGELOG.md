@@ -1,5 +1,13 @@
 # Journal des changements
 
+## Sprint 3 : une série qui n'est jamais punitive (2026-11-18)
+
+- S7.1 : série douce (D27). Un jour sauté ne change rien ; deux jours entiers sautés mettent la série « en pause » (nombre gardé, mention « en pause » sur Écrire, Stats et Historique). La reprise repart à 1, le record reste (« record N » dans Stats). Seuls les jours écrits comptent.
+- S17.3 : message de reprise après une pause, affiché une seule fois par retour, sans compter les jours manqués : « Content de te revoir. Deux phrases suffisent pour aujourd'hui. »
+- S17.1 (spike) : écrire un jour passé fonctionne déjà. L'entrée garde la date choisie et son vrai moment d'écriture, et comble le trou de la série. Aucun code ajouté ; une éventuelle mention « écrit le … » reste à décider.
+- S17.2 (créneau de routine) écartée sur ta décision (D26).
+- Aucun appel API de plus (0 $). Aucun changement de la base ni du format de sauvegarde ; seule nouveauté de stockage : un repère du message de reprise, hors sauvegarde (localStorage).
+
 ## Sprint 2 : une correction qui explique et qui encourage (2026-11-18)
 
 - S3.1 : chaque faute explique pourquoi c'est faux, dans quel contexte le mot ou la forme est impossible et dans quel autre cas on pourrait l'employer. Les blocs sans objet sont omis plutôt que remplis de généralités. Les anciennes corrections s'affichent comme avant (une seule explication).

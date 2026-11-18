@@ -8,11 +8,13 @@ interface Props {
   written: Set<string>
   /** Jours d'affilée en cours. */
   streak: number
+  /** Série en pause : le chiffre reste affiché. */
+  paused?: boolean
   onSelect: (id: string) => void
 }
 
 /** Les sept derniers jours en petits ronds : plein quand une entrée existe. */
-export default function WeekStrip({ today, selected, written, streak, onSelect }: Props) {
+export default function WeekStrip({ today, selected, written, streak, paused, onSelect }: Props) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6))
   return (
     <div className="week-wrap">
@@ -48,7 +50,7 @@ export default function WeekStrip({ today, selected, written, streak, onSelect }
       </ul>
       {streak > 0 && (
         <p className="streak green-ink" lang="fr">
-          {streak} jour{streak > 1 ? 's' : ''} de suite
+          {streak} jour{streak > 1 ? 's' : ''} de suite{paused ? ' · en pause' : ''}
         </p>
       )}
     </div>

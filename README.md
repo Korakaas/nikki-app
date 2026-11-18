@@ -48,6 +48,18 @@ Le point visé est transmis à la correction, qui dit s'il a été bien employé
 
 Sous la correction : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste, puis une « révision éclair » : une question tirée de tes fautes des autres jours (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
+### Série douce
+
+Règle (décision D27) : un jour sans entrée ne change rien ; deux jours entiers de suite sans entrée mettent la série « en pause » (le nombre est gardé et affiché). La prochaine entrée repart à 1. Le record n'est jamais effacé et aucun message ne parle d'échec. Seuls les jours écrits comptent. Le calcul est dans `streakInfo` (`src/stats.ts`) ; la mention « en pause » apparaît sur Écrire, Stats et Historique, et Stats affiche « record N » quand la série en cours est plus courte.
+
+### Message de reprise
+
+Après une pause (au moins deux jours sans entrée), l'écran Écrire affiche une seule fois par retour : « Content de te revoir. Deux phrases suffisent pour aujourd'hui. » Il ne compte pas les jours manqués. « Écrire deux phrases » met le curseur dans l'entrée, « Plus tard » le range ; il reste en place pendant qu'on écrit pour que l'écran ne saute pas (`src/components/WelcomeBack.tsx`, mémorisé hors sauvegarde dans localStorage).
+
+### Écrire un jour passé
+
+Déjà possible (flèches de date, ronds de la semaine, balayage) : l'entrée est enregistrée sous la date choisie, garde son vrai moment d'écriture (`createdAt`) et comble le trou dans la série et les statistiques. Rien n'est affiché pour distinguer ces entrées pour l'instant.
+
 ### Série et grammaire placée
 
 L'écran Écrire montre les sept derniers jours en ronds (plein = une entrée écrite ; toucher un rond ouvre ce jour) et la série en cours. L'Historique ajoute le record et le nombre de points de grammaire jugés « bien employés » par les corrections (`src/stats.ts`). Les idées du jour proposent trois fois plus souvent un point jamais bien employé.
