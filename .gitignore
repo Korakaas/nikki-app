@@ -3,3 +3,7 @@ dist
 *.tsbuildinfo
 _to_delete/
 _update*.zip
+
+# Sauvegardes du journal : données personnelles, jamais sur GitHub
+nikki-sauvegarde*.json
+*sauvegarde*.json
