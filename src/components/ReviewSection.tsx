@@ -3,7 +3,7 @@ import Chevron from './Chevron'
 import { CorrectionFailure } from '../api'
 import { addReview, loadReviews } from '../db'
 import { Jp } from '../furigana'
-import { requestReview, reviewWindow } from '../review'
+import { requestReview, reviewWindow, weekForClaude } from '../review'
 import type { AnkiLibrary, Entry, FuriganaFrom, Settings, WeeklyReview } from '../types'
 
 interface Props {
@@ -95,6 +95,7 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [older, setOlder] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     void loadReviews()
@@ -104,6 +105,32 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
 
   const win = reviewWindow(entries, today)
   const latest = reviews[0]
+
+  /** Copie la semaine pour la coller dans une conversation avec Claude : pas d'appel à l'API. */
+  async function copyWeek() {
+    setError('')
+    setCopied(false)
+    try {
+      const text = weekForClaude(entries, library, settings, today, reviews.slice(0, 4).map((r) => r.focus.pattern))
+      try {
+        await navigator.clipboard.writeText(text)
+      } catch {
+        // Pas d'accès au presse-papiers : on passe par une zone de texte sélectionnée.
+        const area = document.createElement('textarea')
+        area.value = text
+        area.style.position = 'fixed'
+        area.style.opacity = '0'
+        document.body.appendChild(area)
+        area.select()
+        const ok = document.execCommand('copy')
+        area.remove()
+        if (!ok) throw new Error('copy')
+      }
+      setCopied(true)
+    } catch (e) {
+      setError(e instanceof CorrectionFailure ? e.message : 'Impossible de copier. Réessaie.')
+    }
+  }
 
   async function make() {
     setError('')
@@ -161,7 +188,15 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
         >
           {busy ? 'Relecture en cours…' : latest ? 'Refaire le bilan' : 'Faire le bilan'}
         </button>
+        <button type="button" className="sketch" disabled={win.entries.length === 0} onClick={() => void copyWeek()}>
+          Copier la semaine pour Claude
+        </button>
       </div>
+      {copied && (
+        <p className="fr green-ink" role="status">
+          Copié ! Colle-le dans une conversation avec Claude pour avoir ton bilan sans passer par l'API.
+        </p>
+      )}
       {win.entries.length === 0 && (
         <p className="fr">Écris une entrée cette semaine pour pouvoir faire le bilan.</p>
       )}

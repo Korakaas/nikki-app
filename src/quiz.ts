@@ -20,7 +20,10 @@ export interface QuizQuestion {
   options: string[]
 }
 
-export type QuizHistory = Record<string, { right: number; wrong: number; last: number }>
+export type QuizHistory = Record<
+  string,
+  { right: number; wrong: number; last: number; /** Écartée par l'utilisatrice : ne revient plus. */ hidden?: boolean }
+>
 
 const BLANK = '＿＿＿'
 
@@ -90,6 +93,7 @@ export function buildQuiz(
   rand: () => number = Math.random,
   now = Date.now(),
 ): QuizQuestion[] {
+  items = items.filter((it) => !history[it.key]?.hidden)
   const kindCounts = new Map<ErrorKind, number>()
   for (const it of items) kindCounts.set(it.kind, (kindCounts.get(it.kind) ?? 0) + 1)
 
@@ -132,6 +136,12 @@ export function recordAnswer(history: QuizHistory, key: string, right: boolean, 
   const h = history[key] ?? { right: 0, wrong: 0, last: 0 }
   return {
     ...history,
-    [key]: { right: h.right + (right ? 1 : 0), wrong: h.wrong + (right ? 0 : 1), last: now },
+    [key]: { ...h, right: h.right + (right ? 1 : 0), wrong: h.wrong + (right ? 0 : 1), last: now },
   }
+}
+
+/** Écarte une question pour de bon (« ce n'était pas une vraie erreur »). */
+export function hideItem(history: QuizHistory, key: string, now = Date.now()): QuizHistory {
+  const h = history[key] ?? { right: 0, wrong: 0, last: 0 }
+  return { ...history, [key]: { ...h, hidden: true, last: now } }
 }

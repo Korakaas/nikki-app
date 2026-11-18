@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { activeLibrary } from '../anki'
 import { listEntries, loadAnki, todayId } from '../db'
+import { deckVerbs } from '../conj/verbs'
 import { GRAMMAR } from '../prompts/data'
 import {
   errorKinds,
@@ -14,7 +15,11 @@ import {
   writingTotals,
   writtenDays,
 } from '../stats'
+import ConjSection from '../components/ConjSection'
 import ErrorQuiz from '../components/ErrorQuiz'
+import MonthReview from '../components/MonthReview'
+import ParticleDrill from '../components/ParticleDrill'
+import TransitivityDrill from '../components/TransitivityDrill'
 import ReviewSection from '../components/ReviewSection'
 import type { AnkiLibrary, Entry, Settings } from '../types'
 
@@ -76,6 +81,7 @@ export default function StatsPage({ settings }: { settings: Settings }) {
   const maxRate = Math.max(1, ...weekRates.map((w) => w.per100 ?? 0))
   const words = wordTotals(entries)
   const points = topPoints(entries)
+  const deckSet = new Set(deckVerbs(library).map((v) => v.ja))
 
   const good = goodPoints(entries)
   const candidates = [...activeLibrary(library).grammar, ...GRAMMAR]
@@ -101,6 +107,9 @@ export default function StatsPage({ settings }: { settings: Settings }) {
       <ReviewSection entries={entries} library={library} settings={settings} today={today} />
 
       <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
+      <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
+      <ConjSection library={library} />
+      <TransitivityDrill entries={entries} furigana={settings.furiganaFrom} deck={deckSet} />
 
       <Heading ja="書いた日" fr="Écriture" />
       <div className="figures">
@@ -111,6 +120,8 @@ export default function StatsPage({ settings }: { settings: Settings }) {
         <Figure value={totals.average} label="par entrée" />
         <Figure value={totals.corrected} label="corrigées" />
       </div>
+
+      <MonthReview entries={entries} today={today} />
 
       <Heading ja="月ごと" fr="Mois par mois" />
       <ul className="months" aria-label="Caractères écrits par mois">

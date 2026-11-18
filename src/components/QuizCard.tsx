@@ -23,10 +23,23 @@ interface Props {
   onNext?: () => void
   /** Ligne au-dessus de la question (ex. « Question 2 sur 5 »). */
   caption?: string
+  /** Écarte cette question pour de bon ; sans lui, pas de lien. */
+  onHide?: () => void
+  /** Consigne ; par défaut « Quelle est la bonne forme ? ». */
+  prompt?: string
 }
 
 /** Une question « quelle est la bonne forme ? » tirée d'une de tes fautes. */
-export default function QuizCard({ question: q, furigana, onAnswer, nextLabel, onNext, caption }: Props) {
+export default function QuizCard({
+  question: q,
+  furigana,
+  onAnswer,
+  nextLabel,
+  onNext,
+  caption,
+  onHide,
+  prompt = 'Quelle est la bonne forme ?',
+}: Props) {
   const [picked, setPicked] = useState<string | null>(null)
   const good = picked === q.item.correctPlain
 
@@ -42,7 +55,7 @@ export default function QuizCard({ question: q, furigana, onAnswer, nextLabel, o
         {caption ? `${caption} · ` : ''}
         {KIND_FR[q.item.kind] ?? q.item.kind}
       </p>
-      <p className="quiz-prompt fr">Quelle est la bonne forme ?</p>
+      <p className="quiz-prompt fr">{prompt}</p>
       <p className="quiz-sentence" lang="ja">
         {q.item.context ?? q.item.original}
       </p>
@@ -70,6 +83,13 @@ export default function QuizCard({ question: q, furigana, onAnswer, nextLabel, o
           )
         })}
       </ul>
+      {onHide && (
+        <p className="fr quiz-hide">
+          <button type="button" className="link" onClick={onHide}>
+            Retirer cette question (ce n'était pas une vraie erreur)
+          </button>
+        </p>
+      )}
       {picked !== null && (
         <div className="quiz-result" lang="ja">
           <p className={good ? 'green-ink' : 'red-ink'}>

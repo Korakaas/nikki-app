@@ -6,7 +6,9 @@ import {
   type WeeklyReview,
 } from './types'
 import type { QuizHistory } from './quiz'
+import { normalizeConj, type ConjState } from './conj/srs'
 import { cleanEntry } from './trivial'
+import { costOf } from './usage'
 
 const DB_NAME = 'nikki'
 const DB_VERSION = 1
@@ -182,4 +184,60 @@ export async function loadQuizHistory(): Promise<QuizHistory> {
 
 export async function saveQuizHistory(results: QuizHistory): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: QUIZ_KEY, results }))
+}
+
+const CONJ_KEY = 'conj'
+
+/** Cartes d'entraînement à la conjugaison (révision espacée). */
+export async function loadConj(): Promise<ConjState> {
+  const row = await run<{ key: string; state?: ConjState } | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(CONJ_KEY),
+  )
+  return normalizeConj(row?.state)
+}
+
+export async function saveConj(state: ConjState): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: CONJ_KEY, state }))
+}
+
+const USAGE_KEY = 'usage'
+
+/** Consommation de l'API sur ce téléphone, par mois puis par type d'appel. */
+export interface UsageCounter {
+  calls: number
+  input: number
+  output: number
+  /** Dollars, d'après le tarif du modèle au moment de l'appel (absent des anciens compteurs). */
+  cost?: number
+}
+export type UsageLog = Record<string, Record<string, UsageCounter>>
+
+export async function loadUsage(): Promise<UsageLog> {
+  const row = await run<{ key: string; months?: UsageLog } | undefined>(
+    SETTINGS,
+    'readonly',
+    (s) => s.get(USAGE_KEY),
+  )
+  return row?.months ?? {}
+}
+
+/** Ajoute un appel au compteur (mois courant). Ne doit jamais faire échouer l'appel. */
+export async function addUsage(
+  kind: string,
+  input: number,
+  output: number,
+  model = '',
+  at = new Date(),
+): Promise<void> {
+  const months = await loadUsage()
+  const month = `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}`
+  const slot = (months[month] ??= {})
+  const c = (slot[kind] ??= { calls: 0, input: 0, output: 0 })
+  c.calls++
+  c.input += input
+  c.output += output
+  c.cost = (c.cost ?? 0) + costOf(input, output, model)
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: USAGE_KEY, months }))
 }

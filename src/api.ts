@@ -1,4 +1,5 @@
 import { plainText, shouldShowReading } from './furigana'
+import { addUsage } from './db'
 import { dropOverlaps, isTrivialFix } from './trivial'
 import {
   ERROR_KINDS,
@@ -233,6 +234,8 @@ async function readApiMessage(res: Response): Promise<string> {
 
 export interface ApiResponse {
   content?: { type: string; name?: string; input?: unknown }[]
+  stop_reason?: string
+  usage?: { input_tokens?: number; output_tokens?: number }
 }
 
 /** Un appel à l'API. Les échecs sont convertis en messages lisibles. */
@@ -348,7 +351,16 @@ export async function postApi(
     )
   }
 
-  return (await res.json()) as ApiResponse
+  const data = (await res.json()) as ApiResponse
+  // Compteur de coût : un échec d'écriture ne doit jamais faire échouer l'appel.
+  const tools = body.tools as { name?: string }[] | undefined
+  void addUsage(
+    tools?.[0]?.name?.replace('submit_', '') ?? 'autre',
+    data.usage?.input_tokens ?? 0,
+    data.usage?.output_tokens ?? 0,
+    typeof body.model === 'string' ? body.model : '',
+  ).catch(() => undefined)
+  return data
 }
 
 function findCorrection(data: ApiResponse) {

@@ -2,16 +2,19 @@ import {
   listEntries,
   loadAnki,
   loadBackupInfo,
+  loadConj,
   loadQuizHistory,
   loadReviews,
   saveAnki,
   saveBackupInfo,
+  saveConj,
   saveEntry,
   saveQuizHistory,
   saveReviews,
   todayId,
 } from './db'
 import type { QuizHistory } from './quiz'
+import { mergeConj, normalizeConj, type ConjState } from './conj/srs'
 import type { AnkiLibrary, Entry, Settings, WeeklyReview } from './types'
 
 export const BACKUP_EVENT = 'nikki-backup'
@@ -31,6 +34,8 @@ export interface BackupFile {
   reviews?: WeeklyReview[]
   /** Résultats du mini-quiz d'erreurs. */
   quiz?: QuizHistory
+  /** Entraînement à la conjugaison. */
+  conj?: ConjState
 }
 
 export async function buildBackup(settings: Settings): Promise<BackupFile> {
@@ -43,6 +48,7 @@ export async function buildBackup(settings: Settings): Promise<BackupFile> {
     settings: rest,
     reviews: await loadReviews().catch(() => []),
     quiz: await loadQuizHistory().catch(() => ({})),
+    conj: await loadConj().catch(() => undefined),
   }
 }
 
@@ -137,6 +143,10 @@ export async function importBackup(text: string, restoreAnki: boolean): Promise<
       if (!merged[key] || merged[key].last < value.last) merged[key] = value
     }
     await saveQuizHistory(merged)
+  }
+  if (data.conj && typeof data.conj === 'object') {
+    const mine = await loadConj().catch(() => normalizeConj(null))
+    await saveConj(mergeConj(mine, normalizeConj(data.conj)))
   }
   return { imported, anki, settings: data.settings }
 }

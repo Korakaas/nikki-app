@@ -51,6 +51,68 @@ Dans l'onglet Stats, « Faire le bilan » envoie à Claude les entrées des 7 de
 
 Toujours dans Stats : 5 questions tirées des erreurs corrigées (ta phrase avec un blanc, quatre formes à choisir). Les types d'erreurs les plus fréquents et les erreurs ratées reviennent en priorité ; celles réussies hier sortent moins (`src/quiz.ts`). Aucun appel à l'API.
 
+### Exercices de particules
+
+Dans Stats : 10 questions « quelle particule ? ». Les fautes de particule corrigées dans tes entrées passent en premier (`src/particles.ts` repère la particule changée par la correction) ; le reste vient d'une liste d'une trentaine de verbes à particule fixe (`会う → に`, `緊張する → に`…), à compléter dans ce même fichier. Les réponses alimentent le même historique que le quiz.
+
+### Retirer une question
+
+Sous chaque question du quiz, des exercices et de la révision éclair : « Retirer cette question ». Elle ne revient plus (drapeau `hidden` dans l'historique du quiz, gardé dans la sauvegarde).
+
+### Réécrire sans regarder
+
+Sous la correction : tu retapes ton texte corrigé de mémoire, l'appli compare caractère par caractère (ponctuation ignorée) et marque en rouge ce qui est faux, en vert ce qu'il fallait écrire (`src/rewrite.ts`).
+
+### Entrées non corrigées
+
+L'Historique marque « pas corrigée » les entrées sans correction, avec un bouton « Corriger maintenant ».
+
+### Consommation de l'API
+
+Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → « Consommation de l'API » montre l'estimation en dollars du mois en cours et du mois dernier (tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change). Le compteur n'est pas dans la sauvegarde.
+
+### Copier la semaine pour Claude
+
+Dans le bilan (Stats), « Copier la semaine pour Claude » met dans le presse-papiers tes 7 derniers jours avec leurs corrections et les consignes du bilan, à coller dans une conversation avec Claude : un bilan sans appel à l'API.
+
+### Défi de traduction
+
+La phrase d'exemple du thème vient avec un défi : une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge`, absent des idées créées avant cette version).
+
+### Modèle léger
+
+La phrase d'exemple et le défi sont demandés à un modèle plus léger (Réglages → « Modèle léger », `claude-haiku-5-5` par défaut, environ 20 fois moins cher) ; s'il échoue, le modèle principal prend le relais. La correction et le bilan restent sur le modèle principal. Le compteur de coût applique le tarif de chaque modèle (`src/usage.ts`).
+
+### Bilan du mois
+
+Dans Stats, sans appel à l'API : jours écrits, caractères par entrée, fautes pour 100 caractères et fautes par type, comparés au mois d'avant (flèche seulement au-delà de 5 %), mots du jour employés, points de grammaire réussis pour la première fois, « à revoir puis réussis » et « encore à revoir ». Les flèches permettent de remonter mois par mois.
+
+### Souvenir du jour
+
+Sous l'idée du jour, une ligne « Il y a un mois, tu écrivais… » (l'entrée la plus proche d'il y a 30 jours, d'au moins une semaine) qui se déplie pour relire le texte d'alors et le nombre de fautes relevées (`src/memory.ts`).
+
+### Conjugaison (活用)
+
+Entraînement à la conjugaison, sans appel à l'API : tout se calcule sur le téléphone (`src/conj/`).
+
+- **Verbes** : repérés dans le deck Anki (mots dont la fin est un kana en う, et noms suivis de « (する) »). Le deck n'indique pas la nature des mots, donc les locutions et mots-outils sont écartés par une liste ; le groupe (五段 / 一段 / irrégulier) se déduit de la lecture, avec une liste d'exceptions pour les verbes en る qui sont du groupe 1 (帰る, 知る, 切る, 入る…). Verbes sans forme ordinaire (ある, いる, くださる…) écartés.
+- **Formes** : ない, なかった, ないで, た, て, ば, たら, たい, potentiel, passif, causatif, causatif passif, volitif, impératif, interdiction (pas la forme du dictionnaire ni la forme ます). Débloquées par paliers : ない・た・て, puis なかった・ないで・ば・たい, puis potentiel・passif・causatif, puis le reste. On passe au palier suivant à 75 % de bonnes réponses sur 20 ; « Tout débloquer maintenant » ouvre tout.
+- **Exercices** : « Mets-le à la forme… » (réponse écrite, en kana ou en kanji) et « Quel groupe ? » (trois choix). Après chaque réponse : la bonne forme, la règle en français, et « Retirer ce verbe » si le deck se trompe de groupe ou de lecture. Une mauvaise réponse revient une fois à la fin de la série.
+- **Révision espacée** : boîtes de 0 à 5 (révision aujourd'hui, 1, 3, 7, 14, 30 jours) ; une erreur renvoie à la boîte 0. Une série = 10 cartes (dues d'abord, puis nouvelles, avec plus de verbes aux finales trompeuses).
+- **Conjugaison éclair** : après une correction, 3 cartes (dues d'abord) sous la révision éclair.
+- **Stats** : cartes vues / acquises / à revoir, verbes qui résistent, verbes retirés.
+- Données : ligne `conj` de la base (cartes, palier, verbes retirés), incluse dans la sauvegarde et fusionnée à l'import (carte la plus récente gagnante).
+- Non géré pour l'instant : la forme en ら抜き, les adjectifs, les phrases à trous.
+
+### Transitif / intransitif (自動詞・他動詞)
+
+Dans Stats, 78 paires de verbes (開く / 開ける, 止まる / 止める…) rédigées à la main (`src/transitivity.ts`), sans appel à l'API.
+
+- **Écrire le verbe** : une phrase japonaise avec un blanc (`ドアが＿＿＿。`) et sa traduction ; tu tapes le verbe, en kanji ou en kana. « Indice » montre les deux verbes de la paire (la réponse juste compte alors comme à revoir). Après la réponse : la bonne forme et la règle (が + verbe qui se produit seul, を + verbe où quelqu'un agit).
+- **Choisir le verbe** : mêmes phrases, deux verbes au choix, et « transitif ou intransitif ? » pour un verbe seul.
+- **Lien avec tes fautes** : les corrections passées sont lues pour repérer les verbes de ces paires (formes ない, た, て, ば, ます, たい, volitif). Si tu as employé l'autre verbe de la paire, ou si une particule a été corrigée dans une phrase avec un de ces verbes, la paire revient plus souvent (×4 ou ×2) et la liste des confusions s'affiche dans la section. En mode écrit, jusqu'à 3 de tes propres phrases corrigées reviennent en priorité : ta phrase avec un blanc, tu réécris le passage corrigé.
+- Les paires dont un verbe est dans ton deck reviennent un peu plus souvent ; les ratés en premier ; « Retirer cette question » écarte une question. Résultats dans l'historique du quiz (clés `t|…` et `tw|…`, donc dans la sauvegarde). Un dépliant « Voir toutes les paires » sert d'aide-mémoire.
+
 ### Photos et autocollants
 
 Sous le bouton Corriger : « Photos et autocollants » ajoute des photos (réduites à 1000 px, JPEG) collées en polaroïd, et des autocollants dessinés en SVG (`src/components/stickers.tsx`, à compléter). Ils apparaissent aussi dans l'Historique et dans la sauvegarde.
@@ -102,6 +164,8 @@ src/
   stats.ts           séries de jours, grammaire déjà bien employée
   review.ts          bilan de la semaine (appel à Claude)
   quiz.ts            mini-quiz d'erreurs
+  transitivity.ts    paires 自動詞 / 他動詞 et exercices
+  conj/              moteur de conjugaison, verbes du deck, révision espacée
   backup.ts          sauvegarde, import, rappel hebdomadaire
   image.ts           réduction des photos
   anki.ts            lecture des exports Anki (.txt) et fusion

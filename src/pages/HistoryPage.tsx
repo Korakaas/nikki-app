@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import CorrectionView from '../components/CorrectionView'
 import { DecorBoard } from '../components/Decor'
-import { ENTRY_UPDATED } from '../corrector'
+import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { activeLibrary } from '../anki'
 import { deleteEntry, listEntries, loadAnki, todayId } from '../db'
 import { countChars, formatDateJa } from '../format'
@@ -20,6 +20,7 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
+  const [, bump] = useState(0)
 
   useEffect(() => {
     void loadAnki()
@@ -42,6 +43,12 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
     await deleteEntry(id)
     setEntries((prev) => prev?.filter((e) => e.id !== id) ?? null)
     setOpenId(null)
+  }
+
+  /** Corrige une entrée depuis la liste ; le résultat arrive par l'événement ENTRY_UPDATED. */
+  function correctNow(id: string) {
+    void runCorrection(id, settings)
+    bump((n) => n + 1)
   }
 
   if (!entries) return null
@@ -87,11 +94,13 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                   {formatDateJa(entry.id, entry.id.slice(0, 4) !== thisYear)}
                 </span>
                 <span className="entry-meta">
-                  {entry.correction && (
+                  {entry.correction ? (
                     <span lang="ja" className="red-ink entry-mark">
                       添削
                     </span>
-                  )}
+                  ) : entry.text.trim() !== '' ? (
+                    <span className="fr muted entry-mark entry-todo">pas corrigée</span>
+                  ) : null}
                   <span className="entry-count">{countChars(entry.text)} 文字</span>
                 </span>
               </button>
@@ -121,6 +130,22 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                       furigana={settings.furiganaFrom}
                       stale={entry.correction.sourceText !== entry.text}
                     />
+                  )}
+                  {!entry.correction && entry.text.trim() !== '' && (
+                    <p className="fr">
+                      {entry.correctionError && <span className="problem">{entry.correctionError} </span>}
+                      {settings.apiKey ? (
+                        <button
+                          className="sketch primary"
+                          disabled={isRunning(entry.id)}
+                          onClick={() => correctNow(entry.id)}
+                        >
+                          {isRunning(entry.id) ? 'Correction en cours…' : 'Corriger maintenant'}
+                        </button>
+                      ) : (
+                        'Ajoute ta clé API dans les réglages pour corriger cette entrée.'
+                      )}
+                    </p>
                   )}
                   <button className="sketch" onClick={() => onOpenDay(entry.id)}>
                     Modifier

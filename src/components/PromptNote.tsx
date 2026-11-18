@@ -117,6 +117,18 @@ export default function PromptNote({
               </p>
               <p className="note-fr fr">{prompt.link.fr}</p>
               {prompt.link.tip && <p className="note-fr fr">{prompt.link.tip}</p>}
+              {prompt.link.challenge && (
+                <div className="note-challenge">
+                  <h3 className="note-part blue-ink">
+                    <span>訳</span>
+                    <span className="fr">Défi de traduction</span>
+                  </h3>
+                  <p className="fr note-challenge-text">« {prompt.link.challenge} »</p>
+                  <p className="fr note-fr">
+                    Traduis cette phrase en japonais pour commencer ton entrée, sans regarder l'exemple ci-dessus.
+                  </p>
+                </div>
+              )}
             </>
           ) : linkState === 'loading' ? (
             <p className="note-fr fr">Claude cherche une phrase qui relie le sujet, la grammaire et les mots…</p>

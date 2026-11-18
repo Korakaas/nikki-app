@@ -21,8 +21,13 @@ const TOOL = {
         description:
           "Un conseil en français, 1 à 2 phrases : comment placer ce point de grammaire dans ce sujet, avec une piste concrète de ce qu'on peut raconter.",
       },
+      challenge: {
+        type: 'string',
+        description:
+          "Un défi de traduction : UNE phrase française (10 à 25 mots), à la première personne, sur le sujet du jour, dont la traduction naturelle en japonais emploie le point de grammaire et au moins un des mots. Différente de la phrase d'exemple. Pas de japonais dedans.",
+      },
     },
-    required: ['ja', 'fr', 'tip'],
+    required: ['ja', 'fr', 'tip', 'challenge'],
   },
 }
 
@@ -31,7 +36,7 @@ function system(level: string): string {
 
 ${levelLine(level)}
 
-On te donne le sujet du jour, un point de grammaire et des mots. Écris UNE phrase d'exemple de journal intime, à la première personne, simple et naturelle, qui traite du sujet en employant le point de grammaire et au moins un des mots (de préférence deux). Les mots doivent y être à leur place, pas plaqués. Ne reprends pas la phrase d'exemple du point de grammaire. Baliser TOUS les kanji de la phrase : {漢字|かんじ}.
+On te donne le sujet du jour, un point de grammaire et des mots. Écris UNE phrase d'exemple de journal intime, à la première personne, simple et naturelle, qui traite du sujet en employant le point de grammaire et au moins un des mots (de préférence deux). Les mots doivent y être à leur place, pas plaqués. Ne reprends pas la phrase d'exemple du point de grammaire. Baliser TOUS les kanji de la phrase : {漢字|かんじ}. Écris aussi un défi de traduction : une phrase française à traduire, que l'apprenant(e) pourra utiliser pour commencer son entrée.
 
 Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 }
@@ -47,8 +52,21 @@ function content(prompt: DailyPrompt): string {
 
 /** Demande à Claude une phrase qui relie le sujet, la grammaire et les mots du jour. */
 export async function requestLink(prompt: DailyPrompt, settings: Settings): Promise<PromptLink> {
+  const light = settings.lightModel?.trim()
+  // Modèle léger d'abord (bien moins cher) ; s'il échoue, le modèle principal prend le relais.
+  if (light && light !== settings.model) {
+    try {
+      return await requestLinkWith(prompt, settings, light)
+    } catch {
+      // on retente avec le modèle principal
+    }
+  }
+  return requestLinkWith(prompt, settings, settings.model)
+}
+
+async function requestLinkWith(prompt: DailyPrompt, settings: Settings, model: string): Promise<PromptLink> {
   const body = (retry: boolean) => ({
-    model: settings.model,
+    model,
     max_tokens: 800,
     system:
       system(settings.targetLevel) +
@@ -63,7 +81,9 @@ export async function requestLink(prompt: DailyPrompt, settings: Settings): Prom
   if (!block) block = find(await postApi(settings, body(true)))
   if (!block) throw new CorrectionFailure('format', "La réponse n'a pas le bon format.")
   const raw = obj(block.input)
-  const link = { ja: str(raw.ja), fr: str(raw.fr), tip: str(raw.tip) }
+  const link: PromptLink = { ja: str(raw.ja), fr: str(raw.fr), tip: str(raw.tip) }
+  const challenge = str(raw.challenge)
+  if (challenge) link.challenge = challenge
   if (!link.ja) throw new CorrectionFailure('format', 'La réponse est incomplète.')
   return link
 }

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { loadQuizHistory, saveQuizHistory } from '../db'
 import { Jp } from '../furigana'
-import { buildQuiz, collectItems, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
+import { buildQuiz, collectItems, hideItem, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import QuizCard from './QuizCard'
 import type { Entry, FuriganaFrom } from '../types'
 
@@ -36,6 +36,13 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
     await saveQuizHistory(history.current).catch(() => undefined)
   }
 
+  async function hide(q: QuizQuestion) {
+    history.current = hideItem(history.current, q.item.key)
+    // La question suivante prend sa place : on ne change pas l'index.
+    setQuestions((qs) => qs?.filter((x) => x.item.key !== q.item.key) ?? null)
+    await saveQuizHistory(history.current).catch(() => undefined)
+  }
+
   const heading = (
     <h2 className="part">
       <span lang="ja">復習</span>
@@ -48,8 +55,7 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
       <>
         {heading}
         <p className="fr empty">
-          Le quiz se débloque avec {MIN_ITEMS} erreurs corrigées (il y en a {items.length}
-          pour l'instant).
+          Le quiz se débloque avec {MIN_ITEMS} erreurs corrigées (il y en a {items.length} pour l'instant).
         </p>
       </>
     )
@@ -72,6 +78,19 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
   }
 
   const done = index >= questions.length
+  if (done && questions.length === 0) {
+    return (
+      <>
+        {heading}
+        <p className="fr empty">Plus de question disponible pour l'instant.</p>
+        <div className="actions">
+          <button type="button" className="sketch" onClick={() => setQuestions(null)}>
+            Fermer
+          </button>
+        </div>
+      </>
+    )
+  }
   if (done) {
     return (
       <>
@@ -123,6 +142,7 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
         furigana={furigana}
         caption={`Question ${index + 1} sur ${questions.length}`}
         onAnswer={(right) => void answer(q, right)}
+        onHide={() => void hide(q)}
         nextLabel={index + 1 >= questions.length ? 'Voir le résultat' : 'Suivante'}
         onNext={() => setIndex(index + 1)}
       />

@@ -206,15 +206,14 @@ export function normalizeReview(input: unknown, win: Window, settings: Settings)
   }
 }
 
-/** Demande à Claude le bilan de la semaine (sans toucher aux entrées). */
-export async function requestReview(
+/** Le texte envoyé à Claude pour le bilan : la semaine, la période d'avant, les points à éviter et les candidats. */
+function reviewContent(
   all: Entry[],
   library: AnkiLibrary | null,
   settings: Settings,
   today: string,
-  /** Points déjà visés par les bilans précédents (le plus récent d'abord). */
-  alreadyTargeted: string[] = [],
-): Promise<WeeklyReview> {
+  alreadyTargeted: string[],
+) {
   const win = reviewWindow(all, today)
   if (win.entries.length === 0) {
     throw new CorrectionFailure('other', 'Écris au moins une entrée cette semaine pour faire le bilan.')
@@ -241,10 +240,43 @@ export async function requestReview(
       ? candidates.map((c) => `- ${c.pattern} : ${c.fr}`).join('\n')
       : '(aucun : propose un point utile du niveau visé)',
   ].join('\n')
+  return { win, taken, content }
+}
+
+/** La semaine mise en forme pour la coller dans une conversation avec Claude (sans passer par l'API). */
+export function weekForClaude(
+  all: Entry[],
+  library: AnkiLibrary | null,
+  settings: Settings,
+  today: string,
+  alreadyTargeted: string[] = [],
+): string {
+  const { content } = reviewContent(all, library, settings, today, alreadyTargeted)
+  const rules = SYSTEM.replace(/^Tu es le professeur[^\n]*\n\n/, '').replace(/\n\nRéponds uniquement[^\n]*$/, '')
+  return [
+    "Voici ma semaine d'entrées de journal en japonais, avec leurs corrections. Fais-moi le bilan : résumé, erreurs qui reviennent (avec une phrase fautive et sa version corrigée), ce qui progresse, et UN point de grammaire à viser la semaine suivante (avec phrase d'exemple et traduction).",
+    '',
+    rules,
+    '',
+    '---',
+    content,
+  ].join('\n')
+}
+
+/** Demande à Claude le bilan de la semaine (sans toucher aux entrées). */
+export async function requestReview(
+  all: Entry[],
+  library: AnkiLibrary | null,
+  settings: Settings,
+  today: string,
+  /** Points déjà visés par les bilans précédents (le plus récent d'abord). */
+  alreadyTargeted: string[] = [],
+): Promise<WeeklyReview> {
+  const { win, taken, content } = reviewContent(all, library, settings, today, alreadyTargeted)
 
   const body = (retry: boolean, hint = '') => ({
     model: settings.model,
-    max_tokens: 3000,
+    max_tokens: 2500,
     system:
       SYSTEM +
       (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${TOOL_NAME}, sans autre texte.` : '') +
@@ -253,25 +285,56 @@ export async function requestReview(
     tool_choice: { type: 'auto' },
     messages: [{ role: 'user', content }],
   })
-  const find = (r: Awaited<ReturnType<typeof postApi>>) =>
-    r.content?.find((b) => b.type === 'tool_use' && b.name === TOOL_NAME)
-  let block = find(await postApi(settings, body(false)))
-  if (!block) block = find(await postApi(settings, body(true)))
-  if (!block) throw new CorrectionFailure('format', "La réponse n'a pas le bon format. Réessaie.")
+  // Jetons consommés par ce bilan, pour expliquer un échec.
+  let tokensIn = 0
+  let tokensOut = 0
+  const call = async (b: ReturnType<typeof body>) => {
+    const r = await postApi(settings, b)
+    tokensIn += r.usage?.input_tokens ?? 0
+    tokensOut += r.usage?.output_tokens ?? 0
+    return r
+  }
+  const spent = () => `${tokensIn} jetons envoyés, ${tokensOut} reçus`
+  /** Le bilan de la réponse, ou null s'il manque l'outil ou le point à viser. */
+  const usable = (r: Awaited<ReturnType<typeof postApi>>) => {
+    const block = r.content?.find((x) => x.type === 'tool_use' && x.name === TOOL_NAME)
+    return block && str(obj(obj(block.input).focus).pattern) ? block : null
+  }
+  const cutOff = (r: Awaited<ReturnType<typeof postApi>>) => {
+    if (r.stop_reason === 'max_tokens')
+      throw new CorrectionFailure(
+        'format',
+        `La réponse a été coupée parce qu'elle était trop longue (${spent()}). Réessaie.`,
+      )
+  }
+
+  // Au plus deux appels pour obtenir un bilan exploitable, jamais davantage.
+  const first = await call(body(false))
+  cutOff(first)
+  let block = usable(first)
+  if (!block) {
+    const second = await call(body(true))
+    cutOff(second)
+    block = usable(second)
+  }
+  if (!block)
+    throw new CorrectionFailure('format', `Réponse incomplète : le bilan est arrivé sans point à viser (${spent()}). Réessaie.`)
   let review = normalizeReview(block.input, win, settings)
   // Le même point que lors d'un bilan précédent : on redemande une fois, avec un rappel.
+  // Si cette seconde réponse est inutilisable, on garde la première plutôt que de tout perdre.
   if (taken.has(patternKey(review.focus.pattern))) {
-    const again = find(
-      await postApi(
-        settings,
+    try {
+      const again = await call(
         body(false, `le point « ${review.focus.pattern} » a déjà été visé. Choisis-en un AUTRE dans les candidats.`),
-      ),
-    )
-    if (again) {
-      const second = normalizeReview(again.input, win, settings)
-      if (!taken.has(patternKey(second.focus.pattern))) review = second
+      )
+      const found = again.stop_reason === 'max_tokens' ? null : usable(again)
+      if (found) {
+        const second = normalizeReview(found.input, win, settings)
+        if (!taken.has(patternKey(second.focus.pattern))) review = second
+      }
+    } catch {
+      // on garde le premier bilan
     }
   }
   return review
 }
-

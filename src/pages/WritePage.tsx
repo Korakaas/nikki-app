@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { BonusCard, QuickReview } from '../components/AfterCorrection'
+import MemoryCard from '../components/MemoryCard'
+import { BonusCard, ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import Chevron from '../components/Chevron'
@@ -385,6 +386,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         </button>
       )}
 
+      <MemoryCard id={id} />
+
       <textarea
         ref={areaRef}
         className="sheet editor"
@@ -457,6 +460,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         />
       )}
 
+      {meta.correction && hasText && !stale && <RewriteCard correction={meta.correction} />}
+
       {meta.correction && hasText && (
         <QuickReview
           currentId={id}
@@ -464,6 +469,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           furigana={settings.furiganaFrom}
         />
       )}
+
+      {meta.correction && hasText && <ConjDaily correctionKey={meta.correction.createdAt} />}
     </section>
   )
 }

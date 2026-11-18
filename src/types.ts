@@ -17,8 +17,10 @@ export type Theme = 'auto' | 'light' | 'dark'
 export interface Settings {
   /** Clé API Claude, stockée uniquement sur ce téléphone. */
   apiKey: string
-  /** Identifiant du modèle utilisé pour la correction. */
+  /** Identifiant du modèle utilisé pour la correction et le bilan. */
   model: string
+  /** Modèle plus léger (et bien moins cher) pour les petites tâches : la phrase d'exemple du thème. */
+  lightModel: string
   /** Niveau visé pour les prompts et les explications. */
   targetLevel: 'N4' | 'N3' | 'N2'
   furiganaFrom: FuriganaFrom
@@ -29,6 +31,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   apiKey: '',
   model: 'claude-sonnet-5-5',
+  lightModel: 'claude-haiku-5-5',
   targetLevel: 'N3',
   furiganaFrom: 'N2',
   theme: 'light',
@@ -118,6 +121,8 @@ export interface PromptLink {
   fr: string
   /** Conseil en français : comment placer le point de grammaire dans ce sujet. */
   tip: string
+  /** Défi : une phrase en français à traduire en japonais avec le point de grammaire (absente des anciennes idées). */
+  challenge?: string
 }
 
 /** Une phrase en plus que Claude propose d'ajouter à l'entrée, après la correction. */

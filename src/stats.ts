@@ -290,3 +290,129 @@ export function weekStats(entries: Entry[], today: string, count = 8): WeekStat[
   }
   return weeks
 }
+
+// ------------------------------------------------ bilan du mois
+
+export interface MonthReviewData {
+  /** YYYY-MM */
+  month: string
+  days: number
+  chars: number
+  average: number
+  corrected: number
+  errors: number
+  per100: number | null
+  /** Le mois d'avant, pour comparer. */
+  prev: { days: number; average: number; per100: number | null }
+  kinds: { kind: ErrorKind; count: number; prev: number }[]
+  /** Points de grammaire « bien employés » pour la première fois ce mois-ci. */
+  newlyGood: string[]
+  /** Points à revoir ce mois-ci, puis bien employés ensuite. */
+  recovered: string[]
+  /** Points à revoir ce mois-ci et jamais bien employés depuis. */
+  stillReview: string[]
+  words: { proposed: number; used: number }
+}
+
+function inMonth(entries: Entry[], month: string): Entry[] {
+  return entries.filter((e) => e.id.startsWith(month) && e.text.trim() !== '')
+}
+
+function monthFigures(entries: Entry[]) {
+  let chars = 0
+  let corrected = 0
+  let errors = 0
+  let correctedChars = 0
+  for (const e of entries) {
+    chars += countChars(e.text)
+    if (e.correction && countChars(e.correction.sourceText) >= 10) {
+      corrected++
+      errors += e.correction.errors.length
+      correctedChars += countChars(e.correction.sourceText)
+    }
+  }
+  return {
+    days: entries.length,
+    chars,
+    average: entries.length ? Math.round(chars / entries.length) : 0,
+    corrected,
+    errors,
+    per100: correctedChars > 0 ? (errors / correctedChars) * 100 : null,
+  }
+}
+
+export function previousMonth(month: string): string {
+  const [y, m] = month.split('-').map(Number)
+  const d = new Date(y, m - 2, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+export function monthReview(all: Entry[], month: string): MonthReviewData {
+  const mine = inMonth(all, month)
+  const before = inMonth(all, previousMonth(month))
+  const fig = monthFigures(mine)
+  const prevFig = monthFigures(before)
+
+  const kindCount = (list: Entry[]) => {
+    const m = new Map<ErrorKind, number>()
+    for (const e of list)
+      for (const x of e.correction?.errors ?? []) m.set(x.kind, (m.get(x.kind) ?? 0) + 1)
+    return m
+  }
+  const now = kindCount(mine)
+  const was = kindCount(before)
+  const kinds = [...new Set([...now.keys(), ...was.keys()])]
+    .map((kind) => ({ kind, count: now.get(kind) ?? 0, prev: was.get(kind) ?? 0 }))
+    .sort((a, b) => b.count - a.count || b.prev - a.prev)
+
+  // Grammaire : première réussite de chaque point, et points à revoir.
+  const sorted = [...all].filter((e) => e.correction).sort((a, b) => a.id.localeCompare(b.id))
+  const firstGood = new Map<string, { id: string; label: string }>()
+  const lastGood = new Map<string, string>()
+  for (const e of sorted)
+    for (const g of e.correction!.grammarGood) {
+      const label = plainText(g.point).trim()
+      const key = patternKey(label)
+      if (!firstGood.has(key)) firstGood.set(key, { id: e.id, label })
+      lastGood.set(key, e.id)
+    }
+  const newlyGood = [...firstGood.values()].filter((g) => g.id.startsWith(month)).map((g) => g.label)
+
+  const firstReview = new Map<string, { id: string; label: string }>()
+  for (const e of sorted) {
+    if (!e.id.startsWith(month)) continue
+    for (const g of e.correction!.grammarReview) {
+      const label = plainText(g.point).trim()
+      const key = patternKey(label)
+      if (!firstReview.has(key)) firstReview.set(key, { id: e.id, label })
+    }
+  }
+  const recovered: string[] = []
+  const stillReview: string[] = []
+  for (const [key, r] of firstReview) {
+    const good = lastGood.get(key)
+    if (good && good > r.id) recovered.push(r.label)
+    else stillReview.push(r.label)
+  }
+
+  let proposed = 0
+  let used = 0
+  for (const e of mine) {
+    if (!e.prompt) continue
+    for (const w of e.prompt.words) {
+      proposed++
+      if (wordUsed(w, e.text)) used++
+    }
+  }
+
+  return {
+    month,
+    ...fig,
+    prev: { days: prevFig.days, average: prevFig.average, per100: prevFig.per100 },
+    kinds,
+    newlyGood,
+    recovered,
+    stillReview,
+    words: { proposed, used },
+  }
+}

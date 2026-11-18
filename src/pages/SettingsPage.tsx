@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
 import { backupStatus, canShareFile, exportBackup, importBackup } from '../backup'
-import { clearAnki, listEntries, loadAnki, saveAnki } from '../db'
+import { clearAnki, listEntries, loadAnki, loadUsage, saveAnki, type UsageLog } from '../db'
+import { formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
 import type { AnkiLibrary, FuriganaFrom, Settings, Theme } from '../types'
 
 interface Props {
@@ -37,6 +38,12 @@ export default function SettingsPage({ settings, onChange }: Props) {
   }
   const [ankiMessage, setAnkiMessage] = useState('')
   const [lastBackup, setLastBackup] = useState('')
+  const [usage, setUsage] = useState<UsageLog>({})
+  useEffect(() => {
+    void loadUsage()
+      .then(setUsage)
+      .catch(() => setUsage({}))
+  }, [])
   const refreshStatus = async () => {
     const s = await backupStatus()
     setLastBackup(
@@ -285,6 +292,53 @@ export default function SettingsPage({ settings, onChange }: Props) {
           onChange={(e) => patch({ model: e.target.value.trim() })}
           spellCheck={false}
         />
+      </div>
+
+      <div className="field">
+        <label htmlFor="light-model">Modèle léger</label>
+        <input
+          id="light-model"
+          type="text"
+          value={settings.lightModel}
+          onChange={(e) => patch({ lightModel: e.target.value.trim() })}
+          spellCheck={false}
+        />
+        <p className="hint">
+          Pour les petites tâches (la phrase d'exemple et le défi du thème), à environ 20 fois moins cher que le
+          modèle de correction. S'il ne répond pas, c'est le modèle principal qui prend le relais.
+        </p>
+      </div>
+
+      <div className="field">
+        <span className="label">Consommation de l'API</span>
+        {(() => {
+          const now = monthUsage(usage, monthId())
+          const last = monthUsage(usage, previousMonthId())
+          const tokens = (n: number) => n.toLocaleString('fr-FR')
+          if (now.calls === 0 && last.calls === 0)
+            return <p className="hint">Rien de compté pour l'instant : chaque appel (correction, bilan, phrase d'exemple) s'ajoutera ici.</p>
+          return (
+            <>
+              <p className="usage-line">
+                Ce mois-ci : <strong>≈ {formatCost(now.cost)}</strong> · {now.calls} appel{now.calls > 1 ? 's' : ''}
+              </p>
+              <p className="hint">
+                {now.byKind.map(([k, c]) => `${c.calls} ${KIND_LABEL[k] ?? k}`).join(', ')} ·{' '}
+                {tokens(now.input)} jetons envoyés, {tokens(now.output)} reçus.
+              </p>
+              {last.calls > 0 && (
+                <p className="hint">
+                  Mois dernier : ≈ {formatCost(last.cost)} ({last.calls} appels).
+                </p>
+              )}
+              <p className="hint">
+                Estimation d'après les tarifs publiés (Sonnet 5.5 : 2 $ / 10 $ par million de jetons ; Haiku 5.5 : 0,10 $ /
+                0,50 $) ; elle ne compte que les appels faits depuis ce téléphone. Le chiffre exact est sur
+                console.anthropic.com.
+              </p>
+            </>
+          )
+        })()}
       </div>
 
       <div className="field">
