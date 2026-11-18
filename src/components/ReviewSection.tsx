@@ -175,20 +175,11 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
           </span>
         </button>
       </h2>
-      <p className="fr review-line">
-        {latest
-          ? `Du ${shortDate(latest.from)} au ${shortDate(latest.to)} · ${latest.entryCount} entrée${latest.entryCount > 1 ? 's' : ''}`
-          : `Pas de bilan · du ${shortDate(win.from)} au ${shortDate(win.to)}`}
-      </p>
-
-      {open && (
-        <>
-      {latest && <ReviewView review={latest} furigana={settings.furiganaFrom} />}
-
-      {!latest && (
-        <p className="fr empty">
-          Claude relit tes entrées des 7 derniers jours : erreurs qui reviennent,
-          progrès, et un point de grammaire à viser ensuite.
+      {!open && (
+        <p className="fr review-line">
+          {latest
+            ? `Du ${shortDate(latest.from)} au ${shortDate(latest.to)} · ${latest.entryCount} entrée${latest.entryCount > 1 ? 's' : ''}`
+            : `Pas de bilan · du ${shortDate(win.from)} au ${shortDate(win.to)}`}
         </p>
       )}
 
@@ -216,6 +207,17 @@ export default function ReviewSection({ entries, library, settings, today }: Pro
       {error && (
         <p className="problem" role="alert">
           {error}
+        </p>
+      )}
+
+      {open && (
+        <>
+      {latest && <ReviewView review={latest} furigana={settings.furiganaFrom} />}
+
+      {!latest && (
+        <p className="fr empty">
+          Claude relit tes entrées des 7 derniers jours : erreurs qui reviennent,
+          progrès, et un point de grammaire à viser ensuite.
         </p>
       )}
 
