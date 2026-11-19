@@ -767,7 +767,8 @@ button.muted-link {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: 40px;
+  width: 44px;
+  min-height: 48px;
   padding: 4px 0;
   border: 0;
   background: none;
@@ -1928,4 +1929,94 @@ button.fix-head {
 .mode-cost {
   color: var(--green);
   font-size: 0.95rem;
+}
+
+/* ---- Sprint 5 : écrire à une main */
+.write-dock {
+  position: sticky;
+  bottom: -32px;
+  z-index: 4;
+  margin: 14px -16px -32px;
+  padding: 10px 16px 12px;
+  background: var(--paper);
+  box-shadow: 0 -1px 0 var(--rule);
+}
+
+.dock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dock-bar .counter {
+  margin: 0;
+}
+
+.write-dock button.primary {
+  min-width: 150px;
+  min-height: 52px;
+}
+
+/* Cibles d'au moins 44 px sur l'écran Écrire */
+.write .fold {
+  align-items: center;
+  min-height: 44px;
+}
+
+.write .decor-toggle {
+  min-height: 44px;
+  text-align: left;
+}
+
+/* Amorces de phrase (au-dessus de la barre Corriger, sous le pouce) */
+.starters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.starters-label {
+  margin: 0;
+  color: var(--pencil);
+  font-size: 0.95rem;
+}
+
+button.starter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 52px;
+  padding: 6px 16px;
+  text-align: left;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.starter-ja {
+  font-size: 1.2rem;
+}
+
+.starter-fr {
+  color: var(--pencil);
+  font-size: 0.9rem;
+}
+
+/* « Changer » : à côté du titre de la grammaire et des mots (le sujet ne bouge pas) */
+.note-part:has(.note-change) {
+  align-items: center;
+}
+
+button.note-change {
+  flex: none;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 4px 14px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.note-actions .link {
+  min-height: 44px;
 }

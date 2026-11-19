@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import MemoryCard from '../components/MemoryCard'
 import { BonusCard, ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
 import CorrectionView from '../components/CorrectionView'
@@ -11,6 +11,8 @@ import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from
 import { addDays, countChars, formatDateJa } from '../format'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
+import { pickStarters } from '../prompts/starters'
+import { Jp, plainText } from '../furigana'
 import { goodPoints, streakInfo, timesUsed, wordHistory, writtenDays } from '../stats'
 import WelcomeBack from '../components/WelcomeBack'
 import type { Correction, DailyPrompt, Entry, EntryPhoto, EntrySticker, Settings } from '../types'
@@ -128,8 +130,19 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     })
   }
 
+  /** Insère une amorce dans l'entrée, puis place le curseur à la fin pour continuer à écrire. */
+  function insertStarter(starter: string) {
+    onChange(starter)
+    requestAnimationFrame(() => {
+      const area = areaRef.current
+      if (!area) return
+      area.focus()
+      area.setSelectionRange(starter.length, starter.length)
+    })
+  }
+
   /** Propose une idée (ou une autre) et la range dans l'entrée du jour. */
-  async function suggest(next: number) {
+  async function suggest(next: number, part?: 'grammar' | 'words') {
     const all = await listEntries()
     const recentEntries = all.slice(0, 14)
     const recent = recentEntries
@@ -144,13 +157,17 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     const since = review ? goodPoints(all.filter((e) => e.id >= review.to)) : []
     const focus =
       review && fresh && timesUsed(review.focus.pattern, since) < 1 ? review.focus : null
-    const idea = pickPrompt({
+    // « Changer » : le sujet reste le même ; ce qui vient d'être proposé aujourd'hui ne revient pas aussitôt.
+    const keep = part && prompt ? prompt : null
+    const drawn = pickPrompt({
       level: settings.targetLevel,
       dateId: id,
       variant: next,
-      recentPatterns: recent,
-      recentWords,
+      recentPatterns: keep && part === 'grammar' ? [...recent, keep.grammar.pattern, ...(keep.prevGrammar ?? [])] : recent,
+      recentWords:
+        keep && part === 'words' ? [...recentWords, ...keep.words.map((w) => w.ja), ...(keep.prevWords ?? [])] : recentWords,
       currentTopic: prompt?.topic.ja,
+      fixedTopic: keep?.topic.ja,
       recentTopics: recentEntries
         .map((e) => e.prompt?.topic.ja)
         .filter((t): t is string => Boolean(t)),
@@ -159,6 +176,15 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       focus,
       wordHistory: wordHistory(all),
     })
+    let idea = drawn
+    if (keep) {
+      const { link: _oldLink, ...rest } = keep
+      void _oldLink
+      idea =
+        part === 'grammar'
+          ? { ...rest, variant: next, grammar: drawn.grammar, prevGrammar: [...(keep.prevGrammar ?? []), keep.grammar.pattern].slice(-10) }
+          : { ...rest, variant: next, words: drawn.words, prevWords: [...(keep.prevWords ?? []), ...keep.words.map((w) => w.ja)].slice(-12) }
+    }
     setPrompt(idea)
     setLinkState('idle')
     await savePrompt(idea)
@@ -308,6 +334,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     else if (!isToday) onChangeDay(addDays(id, 1))
   }
 
+  // Les amorces suivent le thème du sujet du jour ; sans sujet, des amorces générales.
+  const starters = useMemo(() => pickStarters(prompt?.topic.ja, id), [prompt?.topic.ja, id])
+
   if (!loaded) return null
 
   const hasText = text.trim() !== ''
@@ -380,6 +409,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           linkState={linkState}
           onLink={settings.apiKey ? () => void fetchLink(prompt) : undefined}
           onAnother={() => void suggest(prompt.variant + 1)}
+          onChangeGrammar={() => void suggest(prompt.variant + 1, 'grammar')}
+          onChangeWords={() => void suggest(prompt.variant + 1, 'words')}
           onRemove={() => {
             setPrompt(null)
             void savePrompt(null)
@@ -409,23 +440,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         autoCapitalize="off"
         autoCorrect="off"
       />
-
-      <p className="counter muted">{countChars(text)} 文字</p>
-
-      <div className="actions">
-        <button
-          type="button"
-          className="sketch primary"
-          disabled={!hasText || busy}
-          onClick={() => void onCorrect()}
-        >
-          {busy
-            ? 'Correction en cours…'
-            : meta.correction
-              ? 'Corriger de nouveau'
-              : 'Corriger'}
-        </button>
-      </div>
 
       <Decor photos={photos} stickers={stickers} onChange={(p, s) => void saveDecor(p, s)} />
 
@@ -480,6 +494,49 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       )}
 
       {meta.correction && hasText && <ConjDaily correctionKey={meta.correction.createdAt} />}
+
+      {/* Barre du bas : le compteur et « Corriger » restent sous le pouce, même quand la page défile. */}
+      <div className="write-dock">
+        {!hasText && (
+          <div className="starters" lang="ja" role="group" aria-label="Amorces de phrase">
+            <p className="starters-label fr">Pour commencer (touche pour l'insérer)</p>
+            {starters.map((st) => (
+              <button
+                key={st.ja}
+                type="button"
+                className="sketch starter"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => insertStarter(plainText(st.ja))}
+              >
+                <span className="starter-ja">
+                  <Jp text={st.ja} furigana={settings.furiganaFrom} />
+                </span>
+                <span className="starter-fr fr">{st.fr}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="dock-bar">
+          <span className="counter muted">{countChars(text)} 文字</span>
+          <button
+            type="button"
+            className="sketch primary"
+            disabled={!hasText || busy}
+            // Garde le clavier ouvert au toucher : sinon la page se réorganise et le tap est perdu.
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              areaRef.current?.blur()
+              void onCorrect()
+            }}
+          >
+            {busy
+              ? 'Correction en cours…'
+              : meta.correction
+                ? 'Corriger de nouveau'
+                : 'Corriger'}
+          </button>
+        </div>
+      </div>
     </section>
   )
 }

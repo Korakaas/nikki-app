@@ -8,6 +8,10 @@ interface Props {
   prompt: DailyPrompt
   furigana: FuriganaFrom
   onAnother: () => void
+  /** Change seulement le point de grammaire (le sujet et les mots restent). */
+  onChangeGrammar: () => void
+  /** Change seulement les mots (le sujet et la grammaire restent). */
+  onChangeWords: () => void
   onRemove: () => void
   /** Texte en cours d'écriture : les mots du jour déjà employés sont cochés. */
   text?: string
@@ -22,6 +26,8 @@ export default function PromptNote({
   prompt,
   furigana,
   onAnother,
+  onChangeGrammar,
+  onChangeWords,
   onRemove,
   text = '',
   linkState = 'idle',
@@ -67,6 +73,9 @@ export default function PromptNote({
           {grammar.fromAnki ? ' · ton deck' : ''}
           {grammar.fromReview ? ' · visé par ton bilan' : ''}
         </span>
+        <button type="button" className="sketch note-change fr" aria-label="Changer la grammaire" onClick={onChangeGrammar}>
+          Changer
+        </button>
       </h3>
       <p className="note-pattern green-ink">{grammar.pattern}</p>
       <p className="note-fr fr">{grammar.fr}</p>
@@ -80,6 +89,9 @@ export default function PromptNote({
       <h3 className="note-part blue-ink">
         <span>単語</span>
         <span className="fr">Mots</span>
+        <button type="button" className="sketch note-change fr" aria-label="Changer les mots" onClick={onChangeWords}>
+          Changer
+        </button>
       </h3>
       <ul className="note-words">
         {words.map((w) => (
@@ -145,7 +157,7 @@ export default function PromptNote({
 
       <div className="note-actions" lang="fr">
         <button type="button" className="link" onClick={onAnother}>
-          Autre idée
+          Tout changer
         </button>
         <button type="button" className="link" onClick={onRemove}>
           Retirer le sujet

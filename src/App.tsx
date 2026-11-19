@@ -31,6 +31,8 @@ export default function App() {
   // Succès tout juste débloqués, à célébrer un par un ; la célébration attend qu'on ait fini de taper.
   const [queue, setQueue] = useState<Achievement[]>([])
   const [typing, setTyping] = useState(false)
+  // Clavier du téléphone ouvert : la hauteur de l'écran rétrécit (viewport « interactive-widget=resizes-content »).
+  const [keyboard, setKeyboard] = useState(false)
   const checking = useRef(false)
 
   const checkAchievements = useCallback(async () => {
@@ -44,6 +46,23 @@ export default function App() {
     } finally {
       checking.current = false
     }
+  }, [])
+
+  useEffect(() => {
+    let width = window.innerWidth
+    let tallest = window.innerHeight
+    const onResize = () => {
+      if (window.innerWidth !== width) {
+        // Rotation de l'écran : on repart de la nouvelle hauteur.
+        width = window.innerWidth
+        tallest = window.innerHeight
+      } else {
+        tallest = Math.max(tallest, window.innerHeight)
+      }
+      setKeyboard(window.innerHeight < tallest - 120)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   useEffect(() => {
@@ -160,6 +179,8 @@ export default function App() {
       {queue.length > 0 && !typing && (
         <Celebration achievement={queue[0]} onClose={() => setQueue((q) => q.slice(1))} />
       )}
+      {/* Clavier ouvert pendant la frappe : les onglets s'effacent (plus de place pour écrire) et la barre « Corriger » reste au-dessus du clavier. */}
+      {!(tab === 'write' && typing && keyboard) && (
       <nav className="tabbar" aria-label="Navigation principale">
         {TABS.map((t) => (
           <button
@@ -175,6 +196,7 @@ export default function App() {
           </button>
         ))}
       </nav>
+      )}
     </div>
   )
 }

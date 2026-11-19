@@ -1,5 +1,14 @@
 # Journal des changements
 
+## Sprint 5 : écrire à une main (2026-11-18)
+
+- S18.1 : audit à une main des écrans (largeur d'un S25). Constats et suites dans Notion : S18.4 (cibles de 44 px sur Historique, Stats, Exercices) et S18.5 (rappel de sauvegarde compact) ajoutées au backlog ; flèches de jour refusées (le balayage existe).
+- S18.2 : sur Écrire, le compteur et « Corriger » sont dans une barre fixe en bas ; clavier ouvert, les onglets s'effacent et la barre reste au-dessus du clavier (les onglets reviennent dès que le clavier se ferme). Pastilles de la semaine, carte « Idée du jour », « 思い出 » et « Photos et autocollants » passent à 44 px minimum.
+- S4.2 : trois amorces de phrase adaptées au thème du jour tant que l'entrée est vide ; un tap l'insère et place le curseur à la fin.
+- S5.1 : « Changer » séparé pour la grammaire et pour les mots (le sujet reste) ; ce qui vient d'être proposé aujourd'hui ne revient pas ; « Tout changer » remplace « Autre idée ».
+- Coût API : 0 $ pour la barre, l'audit et les amorces. « Changer » relance en arrière-plan la phrase d'exemple du sujet, comme « Autre idée » le faisait déjà (même coût qu'avant, par tap).
+- Données : l'idée du jour garde, en plus, `prevGrammar` et `prevWords` (facultatifs). Le format des sauvegardes ne change pas : une ancienne sauvegarde s'importe comme avant.
+
 ## Sprint 4 : succès et correction à ta mesure (2026-11-18)
 
 - S7.2 : onglet « Succès » dans Stats, avec 20 succès (décision D31). Chaque succès débloqué a sa date ; chaque succès à venir montre sa condition et ta progression. Tout est calculé d'après les données déjà gardées : sur ta sauvegarde du 18/11, 10 succès sont déjà débloqués. Un succès débloqué ne se perd jamais.

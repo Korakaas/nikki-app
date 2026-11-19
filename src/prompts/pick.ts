@@ -46,6 +46,8 @@ interface PickOptions {
   recentTopics?: string[]
   /** Sujet de l'idée précédente, pour ne pas le redonner tel quel. */
   currentTopic?: string
+  /** Garde ce sujet (écrit comme dans TOPICS) : seuls la grammaire et les mots sont tirés. */
+  fixedTopic?: string
   /** Cartes importées depuis Anki (facultatif). */
   library?: AnkiLibrary | null
   /** Points déjà bien employés (voir stats.goodPoints) : on préfère ceux qui ne le sont pas encore. */
@@ -140,7 +142,8 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
   let topics = TOPICS.filter((t) => t.ja !== currentTopic && !recentTopics.slice(0, 20).includes(t.ja))
   if (topics.length === 0) topics = TOPICS.filter((t) => t.ja !== currentTopic)
   if (topics.length === 0) topics = TOPICS
-  const topic = chooseWeighted(rand, topics, (t) => {
+  const fixedTopic = options.fixedTopic ? TOPICS.find((t) => t.ja === options.fixedTopic) : undefined
+  const topic = fixedTopic ?? chooseWeighted(rand, topics, (t) => {
     const last = recentThemes.indexOf(t.theme)
     const seen = recentThemes.slice(0, 10).filter((x) => x === t.theme).length
     const recency = last === -1 || last >= 4 ? 1 : last < 2 ? 0.05 : 0.3

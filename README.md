@@ -32,11 +32,27 @@ furigana selon le réglage.
 ## Idées du jour
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
-N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. « Autre idée » en tire une
-nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
+N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Dans la carte ouverte, « Changer » à côté de la grammaire ou des mots
+ne change que cette partie (le sujet reste) et ne reprend pas ce qui vient d'être proposé aujourd'hui ; « Tout changer » en tire une
+idée entière nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
+
+### Écrire à une main
+
+Sur l'écran Écrire, le compteur et le bouton « Corriger » sont dans une barre fixe en bas, juste au-dessus des onglets : ils restent
+sous le pouce même quand la page défile. Quand le clavier du téléphone est ouvert, les onglets s'effacent et la barre reste
+au-dessus du clavier ; dès que le clavier se ferme (même avec le geste « retour »), les onglets reviennent.
+Tout ce qui se touche sur cet écran (pastilles de la semaine, carte « Idée du jour », « 思い出 », « Photos et autocollants »,
+boutons « Changer ») fait au moins 44 px.
+
+### Amorces de phrase
+
+Tant que l'entrée est vide, trois amorces (début de phrase en japonais, sens en français) s'affichent au-dessus de « Corriger », adaptées au
+thème du sujet du jour (météo, repas, travail…), ou générales si le sujet est retiré. Un tap insère l'amorce dans l'entrée
+et place le curseur à la fin ; les amorces disparaissent dès qu'il y a du texte et reviennent si l'entrée est vidée. Elles sont dans
+`src/prompts/starters.ts` (six par thème, à compléter) : aucun appel API.
 
 ### Lien entre sujet, mots et grammaire
 
@@ -210,7 +226,7 @@ src/
   backup.ts          sauvegarde, import, rappel hebdomadaire
   image.ts           réduction des photos
   anki.ts            lecture des exports Anki (.txt) et fusion
-  prompts/           contenu et tirage des idées du jour
+  prompts/           contenu et tirage des idées du jour, amorces de phrase
   components/        vue de la correction, note d'idée
   types.ts           types, réglages par défaut (seuil furigana, niveau)
   pages/             Écrire, Historique, Stats, Réglages
