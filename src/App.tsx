@@ -35,6 +35,26 @@ export default function App() {
   const [keyboard, setKeyboard] = useState(false)
   const checking = useRef(false)
 
+  // Retour arrière (geste Android) : revient à l'écran précédent au lieu de quitter l'appli.
+  const tabRef = useRef<Tab>('write')
+  tabRef.current = tab
+  const go = useCallback((next: Tab) => {
+    if (tabRef.current === next) return
+    window.history.pushState({ nikkiTab: next }, '')
+    tabRef.current = next
+    setTab(next)
+  }, [])
+
+  useEffect(() => {
+    window.history.replaceState({ nikkiTab: 'write' }, '')
+    const onPop = (e: PopStateEvent) => {
+      const t = (e.state as { nikkiTab?: Tab } | null)?.nikkiTab
+      setTab(t && TABS.some((x) => x.id === t) ? t : 'write')
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   const checkAchievements = useCallback(async () => {
     if (checking.current) return
     checking.current = true
@@ -160,14 +180,14 @@ export default function App() {
             id={day}
             onChangeDay={setDay}
             settings={settings}
-            onOpenSettings={() => setTab('settings')}
+            onOpenSettings={() => go('settings')}
           />
         )}
         {tab === 'history' && <HistoryPage
             settings={settings}
             onOpenDay={(id) => {
               setDay(id)
-              setTab('write')
+              go('write')
             }}
           />}
         {tab === 'stats' && <StatsPage settings={settings} />}
@@ -186,7 +206,7 @@ export default function App() {
           <button
             key={t.id}
             className={t.id === tab ? 'tab active' : 'tab'}
-            onClick={() => setTab(t.id)}
+            onClick={() => go(t.id)}
             aria-current={t.id === tab ? 'page' : undefined}
           >
             <span className="tab-ja" lang="ja" aria-hidden="true">

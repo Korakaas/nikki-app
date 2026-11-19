@@ -127,6 +127,8 @@ export interface DailyPrompt {
   words: { ja: string; reading: string; fr: string }[]
   /** Phrase d'exemple sur le sujet, avec le point de grammaire et des mots du jour (écrite par Claude). */
   link?: PromptLink
+  /** « Juste le thème » : ce jour-là, la grammaire et les mots sont masqués et ne comptent pas dans les stats. */
+  themeOnly?: boolean
   /** Points de grammaire déjà proposés aujourd'hui avant un « Changer » : on ne les reprend pas aussitôt. */
   prevGrammar?: string[]
   /** Mots déjà proposés aujourd'hui avant un « Changer » : on ne les reprend pas aussitôt. */

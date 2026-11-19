@@ -1,5 +1,13 @@
 # Journal des changements
 
+## Sprint 6 : tout se touche facilement (2026-11-19)
+
+- S18.4 : Historique : toute la ligne d'une entrée (date, aperçu, compteur) ouvre l'entrée, pas seulement la date. Stats : les boutons « ? » se touchent sur 44 px (même apparence). Exercices : « Voir toutes les paires » fait 44 px.
+- S18.5 : le rappel de sauvegarde tient sur une ligne de texte et une ligne de boutons (« Sauvegarder » ou « Télécharger », « Plus tard »). Le champ d'écriture est visible dès l'ouverture. « Plus tard » fonctionne comme avant.
+- S5.5 : « Juste le thème » dans la carte « Idée du jour » : masque la grammaire et les mots pour la journée (« Remettre mots et grammaire » les ramène). Ce jour-là, les mots ne comptent pas comme « non utilisés » dans les stats, la correction ne reçoit que le sujet, et le défi de traduction est libre. Le mode est gardé dans l'entrée (`themeOnly`, facultatif) et survit à « Tout changer ».
+- S18.3 : le retour arrière (geste Android) revient à l'écran précédent (Historique → Exercices → retour = Historique) au lieu de quitter l'appli. Mesures : changement d'onglet entre 0,09 et 0,22 s sur le test, aucune barre de défilement horizontale.
+- Coût API : 0 $ de plus. Données : `themeOnly` facultatif dans l'idée du jour ; le format des sauvegardes ne change pas.
+
 ## Sprint 5 : écrire à une main (2026-11-18)
 
 - S18.1 : audit à une main des écrans (largeur d'un S25). Constats et suites dans Notion : S18.4 (cibles de 44 px sur Historique, Stats, Exercices) et S18.5 (rappel de sauvegarde compact) ajoutées au backlog ; flèches de jour refusées (le balayage existe).

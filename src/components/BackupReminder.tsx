@@ -44,13 +44,12 @@ export default function BackupReminder({ settings }: Props) {
     <div className="backup-reminder" role="status">
       <p>
         {never
-          ? `Ton journal n'a encore jamais été sauvegardé (première entrée il y a ${days} jours).`
-          : `Dernière sauvegarde il y a ${days} jours.`}{' '}
-        Il ne vit que sur ce téléphone.
+          ? `Jamais sauvegardé : ${days} jours d'écriture.`
+          : `Dernière sauvegarde il y a ${days} jours.`}
       </p>
       <div className="row">
         <button type="button" className="primary" disabled={busy} onClick={() => void save()}>
-          {canShareFile() ? 'Sauvegarder (Drive, e-mail…)' : 'Télécharger la sauvegarde'}
+          {canShareFile() ? 'Sauvegarder' : 'Télécharger'}
         </button>
         <button type="button" className="link" onClick={() => void snoozeReminder()}>
           Plus tard

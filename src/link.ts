@@ -20,7 +20,16 @@ const TOOL = {
   },
 }
 
-function system(level: string): string {
+function system(level: string, themeOnly = false): string {
+  if (themeOnly) {
+    return `Tu aides un(e) francophone qui tient un journal en japonais.
+
+${levelLine(level)}
+
+On te donne le sujet du jour. Écris un défi de traduction : UNE phrase française, à la première personne, simple et naturelle, sur le sujet, que l'apprenant(e) traduira en japonais pour commencer son entrée. Aucune contrainte de grammaire ni de mots. Ne donne ni la traduction ni aucun japonais.
+
+Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
+  }
   return `Tu aides un(e) francophone qui tient un journal en japonais.
 
 ${levelLine(level)}
@@ -31,6 +40,7 @@ Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 }
 
 function content(prompt: DailyPrompt): string {
+  if (prompt.themeOnly) return `Sujet : ${plainText(prompt.topic.ja)} (${prompt.topic.fr})\nPas de point de grammaire ni de mots imposés : phrase libre sur le sujet.`
   const words = prompt.words.map((w) => `${plainText(w.ja)}${w.reading ? `（${w.reading}）` : ''} = ${w.fr}`)
   return [
     `Sujet : ${plainText(prompt.topic.ja)} (${prompt.topic.fr})`,
@@ -58,7 +68,7 @@ async function requestLinkWith(prompt: DailyPrompt, settings: Settings, model: s
     model,
     max_tokens: 300,
     system:
-      system(settings.targetLevel) +
+      system(settings.targetLevel, prompt.themeOnly) +
       (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${TOOL_NAME}, sans autre texte.` : ''),
     tools: [TOOL],
     tool_choice: { type: 'auto' },

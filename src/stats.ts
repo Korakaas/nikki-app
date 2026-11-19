@@ -201,7 +201,7 @@ export interface WordRecord {
 export function wordHistory(entries: Entry[]): Map<string, WordRecord> {
   const map = new Map<string, WordRecord>()
   for (const e of entries) {
-    if (!e.prompt || e.text.trim() === '') continue
+    if (!e.prompt || e.prompt.themeOnly || e.text.trim() === '') continue
     for (const w of e.prompt.words) {
       const rec = map.get(w.ja) ?? {
         ja: w.ja,
@@ -231,7 +231,7 @@ export function wordTotals(entries: Entry[]): WordTotals {
   let proposed = 0
   let used = 0
   for (const e of entries) {
-    if (!e.prompt || e.text.trim() === '') continue
+    if (!e.prompt || e.prompt.themeOnly || e.text.trim() === '') continue
     for (const w of e.prompt.words) {
       proposed++
       if (wordUsed(w, e.text)) used++
@@ -424,7 +424,7 @@ export function monthReview(all: Entry[], month: string): MonthReviewData {
   let proposed = 0
   let used = 0
   for (const e of mine) {
-    if (!e.prompt) continue
+    if (!e.prompt || e.prompt.themeOnly) continue
     for (const w of e.prompt.words) {
       proposed++
       if (wordUsed(w, e.text)) used++

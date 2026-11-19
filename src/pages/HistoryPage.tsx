@@ -90,34 +90,35 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                 onClick={() => setOpenId(open ? null : entry.id)}
                 aria-expanded={open}
               >
-                <span lang="ja" className="entry-date date-ink">
-                  {formatDateJa(entry.id, entry.id.slice(0, 4) !== thisYear)}
+                <span className="entry-top">
+                  <span lang="ja" className="entry-date date-ink">
+                    {formatDateJa(entry.id, entry.id.slice(0, 4) !== thisYear)}
+                  </span>
+                  <span className="entry-meta">
+                    {entry.correction ? (
+                      <span lang="ja" className="red-ink entry-mark">
+                        添削
+                      </span>
+                    ) : entry.text.trim() !== '' ? (
+                      <span className="fr muted entry-mark entry-todo">pas corrigée</span>
+                    ) : null}
+                    <span className="entry-count">{countChars(entry.text)} 文字</span>
+                  </span>
                 </span>
-                <span className="entry-meta">
-                  {entry.correction ? (
-                    <span lang="ja" className="red-ink entry-mark">
-                      添削
-                    </span>
-                  ) : entry.text.trim() !== '' ? (
-                    <span className="fr muted entry-mark entry-todo">pas corrigée</span>
-                  ) : null}
-                  <span className="entry-count">{countChars(entry.text)} 文字</span>
-                </span>
-              </button>
-              {!open && (
-                <>
-                  <p lang="ja" className="entry-preview">
+                {/* L'aperçu fait partie du bouton : toute la ligne ouvre l'entrée. */}
+                {!open && (
+                  <span lang="ja" className="entry-preview">
                     {entry.text}
-                  </p>
-                  <DecorBoard small photos={entry.photos ?? []} stickers={entry.stickers ?? []} />
-                </>
-              )}
+                  </span>
+                )}
+              </button>
+              {!open && <DecorBoard small photos={entry.photos ?? []} stickers={entry.stickers ?? []} />}
               {open && (
                 <div className="entry-body">
                   {entry.prompt && (
                     <p lang="ja" className="entry-topic blue-ink">
                       お題：<Jp text={entry.prompt.topic.ja} furigana={settings.furiganaFrom} />
-                      <span className="fr"> ・ {entry.prompt.grammar.pattern}</span>
+                      {!entry.prompt.themeOnly && <span className="fr"> ・ {entry.prompt.grammar.pattern}</span>}
                     </p>
                   )}
                   <p lang="ja" className="sheet entry-text">

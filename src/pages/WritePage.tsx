@@ -149,10 +149,11 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   async function suggest(next: number, part?: 'grammar' | 'words') {
     const all = await listEntries()
     const recentEntries = all.slice(0, 14)
-    const recent = recentEntries
+    const proposed = recentEntries.filter((e) => !e.prompt?.themeOnly)
+    const recent = proposed
       .map((e) => e.prompt?.grammar.pattern)
       .filter((p): p is string => Boolean(p))
-    const recentWords = recentEntries.slice(0, 10).flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
+    const recentWords = proposed.slice(0, 10).flatMap((e) => e.prompt?.words.map((w) => w.ja) ?? [])
     const library = await loadAnki().catch(() => null)
     // Le point à viser du dernier bilan reste proposé 3 jours après le bilan,
     // ou jusqu'à ce qu'il ait été bien employé une fois.
@@ -189,6 +190,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           ? { ...rest, variant: next, grammar: drawn.grammar, prevGrammar: [...(keep.prevGrammar ?? []), keep.grammar.pattern].slice(-10) }
           : { ...rest, variant: next, words: drawn.words, prevWords: [...(keep.prevWords ?? []), ...keep.words.map((w) => w.ja)].slice(-12) }
     }
+    if (prompt?.themeOnly) idea = { ...idea, themeOnly: true }
     setPrompt(idea)
     setLinkState('idle')
     await savePrompt(idea)
@@ -415,6 +417,12 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           onAnother={() => void suggest(prompt.variant + 1)}
           onChangeGrammar={() => void suggest(prompt.variant + 1, 'grammar')}
           onChangeWords={() => void suggest(prompt.variant + 1, 'words')}
+          onToggleThemeOnly={() => {
+            const next: DailyPrompt = { ...prompt, themeOnly: !prompt.themeOnly }
+            if (!next.themeOnly) delete next.themeOnly
+            setPrompt(next)
+            void savePrompt(next)
+          }}
           onRemove={() => {
             setPrompt(null)
             void savePrompt(null)

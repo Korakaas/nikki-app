@@ -13,6 +13,8 @@ interface Props {
   /** Change seulement les mots (le sujet et la grammaire restent). */
   onChangeWords: () => void
   onRemove: () => void
+  /** « Juste le thème » : masque (ou remet) la grammaire et les mots du jour. */
+  onToggleThemeOnly: () => void
   /** Texte en cours d'écriture : les mots du jour déjà employés sont cochés. */
   text?: string
   /** Défi de traduction : en cours de demande, raté, ou rien à signaler. */
@@ -29,12 +31,14 @@ export default function PromptNote({
   onChangeGrammar,
   onChangeWords,
   onRemove,
+  onToggleThemeOnly,
   text = '',
   linkState = 'idle',
   onLink,
 }: Props) {
   const { topic, grammar, words } = prompt
   const challenge = prompt.link?.challenge
+  const themeOnly = Boolean(prompt.themeOnly)
   const [open, setOpen] = useState(false)
   return (
     <aside className="note-card" lang="ja" aria-label="Idée du jour">
@@ -57,7 +61,7 @@ export default function PromptNote({
       {!open && (
         <p className="note-summary blue-ink">
           <Jp text={topic.ja} furigana={furigana} />
-          <span className="fr"> · {grammar.pattern}{grammar.fromReview ? ' ★' : ''}</span>
+          {!themeOnly && <span className="fr"> · {grammar.pattern}{grammar.fromReview ? ' ★' : ''}</span>}
         </p>
       )}
       {open && (
@@ -67,6 +71,8 @@ export default function PromptNote({
       </p>
       <p className="note-fr fr">{topic.fr}</p>
 
+      {!themeOnly && (
+        <>
       <h3 className="note-part blue-ink">
         <span>文法</span>
         <span className="fr">
@@ -117,6 +123,9 @@ export default function PromptNote({
         ))}
       </ul>
 
+        </>
+      )}
+
       {(challenge || linkState !== 'idle' || onLink) && (
         <div className="note-link">
           <div className="note-challenge">
@@ -144,6 +153,9 @@ export default function PromptNote({
       )}
 
       <div className="note-actions" lang="fr">
+        <button type="button" className="link" aria-pressed={themeOnly} onClick={onToggleThemeOnly}>
+          {themeOnly ? 'Remettre mots et grammaire' : 'Juste le thème'}
+        </button>
         <button type="button" className="link" onClick={onAnother}>
           Tout changer
         </button>

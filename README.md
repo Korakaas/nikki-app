@@ -47,6 +47,12 @@ au-dessus du clavier ; dès que le clavier se ferme (même avec le geste « reto
 Tout ce qui se touche sur cet écran (pastilles de la semaine, carte « Idée du jour », « 思い出 », « Photos et autocollants »,
 boutons « Changer ») fait au moins 44 px.
 
+### Juste le thème
+Dans la carte « Idée du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
+
+### Retour arrière
+Le geste « retour » d'Android revient à l'écran précédent (onglet ou entrée ouverte depuis l'Historique) au lieu de quitter l'appli.
+
 ### Amorces de phrase
 
 Rien ne s'affiche de soi-même. Tant que l'entrée est vide, un bouton « Amorces » apparaît dans la barre du bas, entre le compteur et
