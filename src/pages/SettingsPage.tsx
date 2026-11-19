@@ -305,7 +305,7 @@ export default function SettingsPage({ settings, onChange }: Props) {
           spellCheck={false}
         />
         <p className="hint">
-          Pour les petites tâches (la phrase d'exemple et le défi du thème), à environ 20 fois moins cher que le
+          Pour les petites tâches (le défi de traduction du thème), à environ 20 fois moins cher que le
           modèle de correction. S'il ne répond pas, c'est le modèle principal qui prend le relais.
         </p>
       </div>

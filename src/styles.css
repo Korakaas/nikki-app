@@ -2033,3 +2033,9 @@ button.note-change {
 .note-actions .link {
   min-height: 44px;
 }
+
+.note-challenge .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

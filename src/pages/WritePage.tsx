@@ -195,7 +195,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     void fetchLink(idea)
   }
 
-  /** Une phrase d'exemple qui relie le sujet, la grammaire et les mots (facultatif, en arrière-plan). */
+  /** Un défi de traduction qui relie le sujet, la grammaire et les mots (facultatif, en arrière-plan). */
   async function fetchLink(idea: DailyPrompt) {
     if (!settings.apiKey || !navigator.onLine) return
     const same = (p?: DailyPrompt | null) =>

@@ -6,7 +6,8 @@
 - S18.2 : sur Écrire, le compteur et « Corriger » sont dans une barre fixe en bas ; clavier ouvert, les onglets s'effacent et la barre reste au-dessus du clavier (les onglets reviennent dès que le clavier se ferme). Pastilles de la semaine, carte « Idée du jour », « 思い出 » et « Photos et autocollants » passent à 44 px minimum.
 - S4.2 : amorces de phrase adaptées au thème du jour, **sur demande seulement** (bouton « Amorces » dans la barre du bas, entrée vide) : une rangée de trois amorces qui défile, un tap l'insère et place le curseur à la fin. Première version renvoyée par Kora : trop de place prise quand elles s'affichaient d'elles-mêmes (décision D36).
 - S5.1 : « Changer » séparé pour la grammaire et pour les mots (le sujet reste) ; ce qui vient d'être proposé aujourd'hui ne revient pas ; « Tout changer » remplace « Autre idée ».
-- Coût API : 0 $ pour la barre, l'audit et les amorces. « Changer » relance en arrière-plan la phrase d'exemple du sujet, comme « Autre idée » le faisait déjà (même coût qu'avant, par tap).
+- Phrase d'exemple « Tout ensemble » retirée de la carte « Idée du jour » (décision D37) : le défi de traduction suffit. Claude ne la demande plus : la demande en arrière-plan ne produit que le défi (réponse limitée à 300 jetons au lieu de 800), donc moins chère qu'avant. Les anciennes phrases gardées dans les entrées ne sont plus affichées ; rien n'est supprimé des données.
+- Coût API : 0 $ pour la barre, l'audit et les amorces. « Changer » relance en arrière-plan le défi de traduction, comme « Autre idée » le faisait déjà pour la phrase d'exemple (par tap, moins cher qu'avant puisque la demande est plus courte).
 - Données : l'idée du jour garde, en plus, `prevGrammar` et `prevWords` (facultatifs). Le format des sauvegardes ne change pas : une ancienne sauvegarde s'importe comme avant.
 
 ## Sprint 4 : succès et correction à ta mesure (2026-11-18)

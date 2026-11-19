@@ -58,7 +58,7 @@ Les amorces sont dans `src/prompts/starters.ts` (six par thème, à compléter) 
 ### Lien entre sujet, mots et grammaire
 
 - Les mots de ton deck sont choisis en priorité s'ils ont un rapport avec le sujet du jour (mots-clés français et kanji par thème, `src/prompts/themes.ts`).
-- Dès qu'une idée est tirée, Claude écrit en arrière-plan une phrase d'exemple qui relie le sujet, le point de grammaire et des mots du jour, avec un conseil (`src/link.ts`, outil `submit_link`). Elle s'affiche dans la carte, section « Tout ensemble », et se garde avec l'entrée ; un bouton permet de la redemander si elle a échoué ou si tu étais hors ligne.
+- Dès qu'une idée est tirée, Claude écrit en arrière-plan un défi de traduction qui relie le sujet, le point de grammaire et des mots du jour (`src/link.ts`, outil `submit_link`). Il s'affiche dans la carte, section « Défi de traduction », et se garde avec l'entrée ; un bouton permet de le redemander s'il a échoué ou si tu étais hors ligne. Il n'y a plus de phrase d'exemple « Tout ensemble » (retirée au Sprint 5, les anciennes ne sont plus affichées).
 - Les mots du jour sont cochés pendant que tu écris (`src/words.ts`, la forme conjuguée compte). Les statistiques gardent combien de fois chaque mot a été proposé et employé ; ceux jamais employés reviennent plus souvent, ceux déjà employés moins.
 
 ### Après la correction
@@ -135,11 +135,11 @@ Dans le bilan (Stats), « Copier la semaine pour Claude » met dans le presse-pa
 
 ### Défi de traduction
 
-La phrase d'exemple du thème vient avec un défi : une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge`, absent des idées créées avant cette version).
+Une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge` de l'idée). C'est la seule chose que `src/link.ts` demande à Claude.
 
 ### Modèle léger
 
-La phrase d'exemple et le défi sont demandés à un modèle plus léger (Réglages → « Modèle léger », `claude-haiku-5-5` par défaut, environ 20 fois moins cher) ; s'il échoue, le modèle principal prend le relais. La correction et le bilan restent sur le modèle principal. Le compteur de coût applique le tarif de chaque modèle (`src/usage.ts`).
+Le défi est demandé à un modèle plus léger (Réglages → « Modèle léger », `claude-haiku-5-5` par défaut, environ 20 fois moins cher) ; s'il échoue, le modèle principal prend le relais. La correction et le bilan restent sur le modèle principal. Le compteur de coût applique le tarif de chaque modèle (`src/usage.ts`).
 
 ### Bilan du mois
 
