@@ -1954,7 +1954,7 @@ button.fix-head {
 }
 
 .write-dock button.primary {
-  min-width: 150px;
+  min-width: 120px;
   min-height: 52px;
 }
 
@@ -1969,38 +1969,51 @@ button.fix-head {
   text-align: left;
 }
 
-/* Amorces de phrase (au-dessus de la barre Corriger, sous le pouce) */
+/* Amorces de phrase : sur demande (bouton « Amorces »), en une seule rangée qui défile pour ne pas manger l'écran */
 .starters {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
-  margin: 0 0 10px;
-}
-
-.starters-label {
-  margin: 0;
-  color: var(--pencil);
-  font-size: 0.95rem;
+  margin: 0 -16px 10px;
+  padding: 0 16px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 16px;
 }
 
 button.starter {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
+  min-width: 62%;
+  max-width: 88%;
   align-items: flex-start;
   min-height: 52px;
-  padding: 6px 16px;
+  padding: 6px 14px;
   text-align: left;
-  line-height: 1.4;
+  line-height: 1.35;
+  scroll-snap-align: start;
   cursor: pointer;
 }
 
 .starter-ja {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
 }
 
 .starter-fr {
   color: var(--pencil);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+button.dock-starters {
+  min-height: 44px;
+  padding: 4px 14px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button.dock-starters[aria-expanded='true'] {
+  background: var(--tape, #b6d3c1);
 }
 
 /* « Changer » : à côté du titre de la grammaire et des mots (le sujet ne bouge pas) */

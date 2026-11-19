@@ -4,7 +4,7 @@
 
 - S18.1 : audit à une main des écrans (largeur d'un S25). Constats et suites dans Notion : S18.4 (cibles de 44 px sur Historique, Stats, Exercices) et S18.5 (rappel de sauvegarde compact) ajoutées au backlog ; flèches de jour refusées (le balayage existe).
 - S18.2 : sur Écrire, le compteur et « Corriger » sont dans une barre fixe en bas ; clavier ouvert, les onglets s'effacent et la barre reste au-dessus du clavier (les onglets reviennent dès que le clavier se ferme). Pastilles de la semaine, carte « Idée du jour », « 思い出 » et « Photos et autocollants » passent à 44 px minimum.
-- S4.2 : trois amorces de phrase adaptées au thème du jour tant que l'entrée est vide ; un tap l'insère et place le curseur à la fin.
+- S4.2 : amorces de phrase adaptées au thème du jour, **sur demande seulement** (bouton « Amorces » dans la barre du bas, entrée vide) : une rangée de trois amorces qui défile, un tap l'insère et place le curseur à la fin. Première version renvoyée par Kora : trop de place prise quand elles s'affichaient d'elles-mêmes (décision D36).
 - S5.1 : « Changer » séparé pour la grammaire et pour les mots (le sujet reste) ; ce qui vient d'être proposé aujourd'hui ne revient pas ; « Tout changer » remplace « Autre idée ».
 - Coût API : 0 $ pour la barre, l'audit et les amorces. « Changer » relance en arrière-plan la phrase d'exemple du sujet, comme « Autre idée » le faisait déjà (même coût qu'avant, par tap).
 - Données : l'idée du jour garde, en plus, `prevGrammar` et `prevWords` (facultatifs). Le format des sauvegardes ne change pas : une ancienne sauvegarde s'importe comme avant.

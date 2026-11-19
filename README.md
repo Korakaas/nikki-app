@@ -49,10 +49,11 @@ boutons « Changer ») fait au moins 44 px.
 
 ### Amorces de phrase
 
-Tant que l'entrée est vide, trois amorces (début de phrase en japonais, sens en français) s'affichent au-dessus de « Corriger », adaptées au
-thème du sujet du jour (météo, repas, travail…), ou générales si le sujet est retiré. Un tap insère l'amorce dans l'entrée
-et place le curseur à la fin ; les amorces disparaissent dès qu'il y a du texte et reviennent si l'entrée est vidée. Elles sont dans
-`src/prompts/starters.ts` (six par thème, à compléter) : aucun appel API.
+Rien ne s'affiche de soi-même. Tant que l'entrée est vide, un bouton « Amorces » apparaît dans la barre du bas, entre le compteur et
+« Corriger ». Un tap ouvre une seule rangée de trois amorces (début de phrase en japonais, sens en français) qui défile de côté, adaptées au
+thème du sujet du jour (météo, repas, travail…), ou générales si le sujet est retiré. Un tap sur une amorce l'insère dans l'entrée, place
+le curseur à la fin et referme la rangée ; un second tap sur « Amorces » la referme sans rien insérer. Le bouton disparaît dès qu'il y a du texte.
+Les amorces sont dans `src/prompts/starters.ts` (six par thème, à compléter) : aucun appel API.
 
 ### Lien entre sujet, mots et grammaire
 

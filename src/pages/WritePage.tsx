@@ -60,6 +60,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const textRef = useRef(text)
   textRef.current = text
   const areaRef = useRef<HTMLTextAreaElement>(null)
+  // Les amorces ne s'affichent que si on les demande (bouton « Amorces »), jamais d'elles-mêmes.
+  const [showStarters, setShowStarters] = useState(false)
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
 
   // La feuille grandit avec le texte : la page défile, pas le champ.
@@ -83,6 +85,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       setPhotos(entry?.photos ?? [])
       setStickers(entry?.stickers ?? [])
       setLinkState('idle')
+      setShowStarters(false)
       setLoaded(true)
     })
   }, [id])
@@ -132,6 +135,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
 
   /** Insère une amorce dans l'entrée, puis place le curseur à la fin pour continuer à écrire. */
   function insertStarter(starter: string) {
+    setShowStarters(false)
     onChange(starter)
     requestAnimationFrame(() => {
       const area = areaRef.current
@@ -497,9 +501,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
 
       {/* Barre du bas : le compteur et « Corriger » restent sous le pouce, même quand la page défile. */}
       <div className="write-dock">
-        {!hasText && (
+        {!hasText && showStarters && (
           <div className="starters" lang="ja" role="group" aria-label="Amorces de phrase">
-            <p className="starters-label fr">Pour commencer (touche pour l'insérer)</p>
             {starters.map((st) => (
               <button
                 key={st.ja}
@@ -518,6 +521,17 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         )}
         <div className="dock-bar">
           <span className="counter muted">{countChars(text)} 文字</span>
+          {!hasText && (
+            <button
+              type="button"
+              className="sketch dock-starters fr"
+              aria-expanded={showStarters}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setShowStarters((v) => !v)}
+            >
+              Amorces
+            </button>
+          )}
           <button
             type="button"
             className="sketch primary"
