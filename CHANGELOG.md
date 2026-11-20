@@ -1,5 +1,14 @@
 # Journal des changements
 
+## Sprint 8 : les erreurs d'abord (2026-11-20)
+
+- S6.1 (réduite de 8 à 3 points, D46) : « Revoir mes erreurs » devient un quatrième type de question dans « J'ai 2 minutes » (dès 3 erreurs corrigées ; sinon la série se fait avec les trois autres types). Les réponses alimentent le même historique que le mini-quiz d'erreurs. Les anciens exercices restent dans l'onglet Exercices.
+- S6.4 : les fautes des 7 derniers jours passent en premier (mini-quiz d'erreurs, carte « après la correction » et série de 2 minutes). Une faute récente déjà réussie aujourd'hui ne passe plus devant ; sans faute récente, le tirage reste celui d'avant. Vérifié sur ta sauvegarde du 18/11 : 6 fautes récentes sur 69, toujours posées avant les autres sur 300 tirages.
+- S5.2 : le pont entre le thème et le mot ou la grammaire : une courte phrase au-dessus du défi (deux lignes au plus). Si Claude ne trouve aucun lien naturel, le sujet est changé une fois plutôt que de forcer.
+- S6.3 « Encore 5 » : déjà couverte par S6.2 (Fait).
+- Coût API : le pont s'ajoute à la requête du défi, sans appel de plus : environ 100 jetons d'entrée et 50 de sortie, soit moins de 0,0001 $ par idée au tarif du modèle léger. Un appel de plus seulement quand le lien est impossible (au plus un par jour). Le reste : 0 $.
+- Données : `lastSeen` (jour de la faute la plus récente) calculé à la volée, rien de nouveau n'est gardé ; `bridge` et `fits` facultatifs dans le défi de l'idée du jour. Le format des sauvegardes ne change pas.
+
 ## Sprint 7 : un bilan sur mesure et deux minutes pour réviser (2026-11-20)
 
 - S12.1 : « Copier pour Claude » (Stats → Bilans) remplace « Copier la semaine pour Claude » : par défaut du lendemain du dernier jour copié jusqu'à aujourd'hui (7 derniers jours la première fois), ou entre deux dates au choix, avec le nombre d'entrées, la taille et un avertissement si le texte est très long. Le dernier jour copié ne recule jamais ; « Faire le bilan » (API) ne le déplace pas.

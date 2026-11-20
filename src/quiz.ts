@@ -1,4 +1,5 @@
 import { plainText } from './furigana'
+import { addDays } from './format'
 import type { Entry, ErrorKind } from './types'
 
 export interface QuizItem {
@@ -13,6 +14,8 @@ export interface QuizItem {
   explanation: string
   /** Phrase d'origine où le passage a été remplacé par un blanc. */
   context?: string
+  /** Jour de l'entrée la plus récente où cette faute apparaît (AAAA-MM-JJ). */
+  lastSeen?: string
 }
 
 export interface QuizQuestion {
@@ -35,17 +38,20 @@ function sentenceWith(source: string, passage: string): string | undefined {
 
 /** Toutes les erreurs corrigées, une seule fois chacune. */
 export function collectItems(entries: Entry[]): QuizItem[] {
-  const seen = new Set<string>()
-  const items: QuizItem[] = []
+  const byKey = new Map<string, QuizItem>()
   for (const entry of entries) {
     for (const e of entry.correction?.errors ?? []) {
       const correctPlain = plainText(e.corrected).trim()
       const original = e.original.trim()
       if (!original || !correctPlain || original === correctPlain) continue
       const key = `${original}→${correctPlain}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      items.push({
+      const known = byKey.get(key)
+      if (known) {
+        // Même faute revue dans une autre entrée : on retient le jour le plus récent.
+        if (!known.lastSeen || entry.id > known.lastSeen) known.lastSeen = entry.id
+        continue
+      }
+      byKey.set(key, {
         key,
         entryId: entry.id,
         kind: e.kind,
@@ -54,10 +60,19 @@ export function collectItems(entries: Entry[]): QuizItem[] {
         correctPlain,
         explanation: e.explanation,
         context: sentenceWith(entry.correction!.sourceText, original),
+        lastSeen: entry.id,
       })
     }
   }
-  return items
+  return [...byKey.values()]
+}
+
+/** Nombre de jours (aujourd'hui compris) pendant lesquels une faute compte comme « récente ». */
+export const RECENT_DAYS = 7
+
+/** Premier jour (AAAA-MM-JJ) des fautes récentes, à passer à buildQuiz. */
+export function recentFromDay(today: string): string {
+  return addDays(today, -(RECENT_DAYS - 1))
 }
 
 function shuffle<T>(list: T[], rand: () => number): T[] {
@@ -92,25 +107,35 @@ export function buildQuiz(
   count = 5,
   rand: () => number = Math.random,
   now = Date.now(),
+  /** Si donné : les fautes vues depuis ce jour passent d'abord (S6.4), sauf celles déjà réussies aujourd'hui. */
+  recentFrom?: string,
 ): QuizQuestion[] {
   items = items.filter((it) => !history[it.key]?.hidden)
   const kindCounts = new Map<ErrorKind, number>()
   for (const it of items) kindCounts.set(it.kind, (kindCounts.get(it.kind) ?? 0) + 1)
 
+  const priority = (it: QuizItem): boolean => {
+    if (!recentFrom || (it.lastSeen ?? it.entryId) < recentFrom) return false
+    const h = history[it.key]
+    // Une faute qu'on vient de réussir n'a plus besoin de passer en premier.
+    return !(h && now - h.last < DAY * 0.8 && h.right >= h.wrong)
+  }
   const pool = [...items]
   const chosen: QuizItem[] = []
   while (chosen.length < count && pool.length > 0) {
-    const weights = pool.map((it) => weightOf(it, kindCounts, history, now))
+    // Fautes récentes d'abord ; quand il n'y en a plus, on pioche dans les autres.
+    const tier = pool.some(priority) ? pool.filter(priority) : pool
+    const weights = tier.map((it) => weightOf(it, kindCounts, history, now))
     let roll = rand() * weights.reduce((a, b) => a + b, 0)
-    let index = pool.length - 1
-    for (let i = 0; i < pool.length; i++) {
+    let index = tier.length - 1
+    for (let i = 0; i < tier.length; i++) {
       roll -= weights[i]
       if (roll < 0) {
         index = i
         break
       }
     }
-    chosen.push(pool.splice(index, 1)[0])
+    chosen.push(...pool.splice(pool.indexOf(tier[index]), 1))
   }
 
   return chosen.map((item) => {

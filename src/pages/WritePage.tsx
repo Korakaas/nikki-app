@@ -56,6 +56,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
   const [days, setDays] = useState<Set<string>>(() => new Set())
   const [reviewDone, setReviewDone] = useState(false)
+  // Changements de sujet automatiques faute de lien possible (1 au plus par jour, pour borner le coût).
+  const bridgeRetries = useRef(0)
   const [photos, setPhotos] = useState<EntryPhoto[]>([])
   const [stickers, setStickers] = useState<EntrySticker[]>([])
   const [linkState, setLinkState] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -201,11 +203,11 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
     setPrompt(idea)
     setLinkState('idle')
     await savePrompt(idea)
-    void fetchLink(idea)
+    void fetchLink(idea, !part)
   }
 
   /** Un défi de traduction qui relie le sujet, la grammaire et les mots (facultatif, en arrière-plan). */
-  async function fetchLink(idea: DailyPrompt) {
+  async function fetchLink(idea: DailyPrompt, mayChangeTopic = false) {
     if (!settings.apiKey || !navigator.onLine) return
     const same = (p?: DailyPrompt | null) =>
       !!p && p.variant === idea.variant && p.topic.ja === idea.topic.ja
@@ -213,6 +215,12 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
     try {
       const link = await requestLink(idea, settings)
       if (entryRef.current?.id !== id || !same(entryRef.current?.prompt)) return
+      // Pas de lien naturel : on change de sujet plutôt que de forcer (une seule fois par idée de départ).
+      if (link.fits === false && mayChangeTopic && bridgeRetries.current < 1 && !idea.themeOnly) {
+        bridgeRetries.current += 1
+        void suggest(idea.variant + 1)
+        return
+      }
       const withLink = { ...idea, link }
       setPrompt((p) => (same(p) ? withLink : p))
       setLinkState('idle')

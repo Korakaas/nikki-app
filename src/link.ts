@@ -15,6 +15,16 @@ const TOOL = {
         description:
           "Un défi de traduction : UNE phrase française (10 à 25 mots), à la première personne, sur le sujet du jour, dont la traduction naturelle en japonais emploie le point de grammaire et au moins un des mots. Pas de japonais dedans.",
       },
+      bridge: {
+        type: 'string',
+        description:
+          "Le pont : une courte phrase en français (70 caractères au plus) qui montre comment placer le point de grammaire et un mot dans ce sujet. Vide si fits est faux. Pas de japonais.",
+      },
+      fits: {
+        type: 'boolean',
+        description:
+          "Vrai si le point de grammaire et les mots s'emploient naturellement dans ce sujet ; faux s'il faudrait forcer le lien.",
+      },
     },
     required: ['challenge'],
   },
@@ -35,6 +45,8 @@ Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 ${levelLine(level)}
 
 On te donne le sujet du jour, un point de grammaire et des mots. Écris un défi de traduction : UNE phrase française, à la première personne, simple et naturelle, sur le sujet, que l'apprenant(e) traduira en japonais pour commencer son entrée. Sa traduction naturelle doit employer le point de grammaire et au moins un des mots (de préférence deux), à leur place, pas plaqués. Ne donne ni la traduction ni aucun japonais.
+
+Écris aussi le « pont » : une courte phrase en français (70 caractères au plus) qui montre comment placer le point de grammaire et un mot dans ce sujet, par exemple la situation où ils s'emploient naturellement. Si aucun lien naturel n'est possible entre le sujet et le point ou les mots, mets fits à faux et laisse le pont vide : il vaut mieux changer de sujet que forcer le lien.
 
 Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 }
@@ -82,5 +94,9 @@ async function requestLinkWith(prompt: DailyPrompt, settings: Settings, model: s
   const raw = obj(block.input)
   const challenge = str(raw.challenge)
   if (!challenge) throw new CorrectionFailure('format', 'La réponse est incomplète.')
-  return { challenge }
+  if (prompt.themeOnly) return { challenge }
+  const fits = raw.fits === false ? false : true
+  // Trop long pour tenir sur deux lignes : on n'affiche pas de pont plutôt que de le couper.
+  const bridge = str(raw.bridge).length <= 100 ? str(raw.bridge) : ''
+  return fits && bridge ? { challenge, bridge, fits } : { challenge, fits }
 }

@@ -142,6 +142,10 @@ export interface PromptLink {
   tip?: string
   /** Défi : une phrase en français à traduire en japonais avec le point de grammaire. */
   challenge?: string
+  /** Pont : une à deux phrases courtes qui montrent comment placer le point ou le mot dans le thème (S5.2). */
+  bridge?: string
+  /** Faux quand Claude n'a trouvé aucun lien naturel entre le thème et le point / les mots. */
+  fits?: boolean
 }
 
 /** Une phrase en plus que Claude propose d'ajouter à l'entrée, après la correction. */

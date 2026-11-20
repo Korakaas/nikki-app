@@ -5,14 +5,15 @@ import { deckVerbs } from '../conj/verbs'
 import { loadConj, loadQuizHistory, saveConj, saveQuizHistory, saveTwoMinutesDay, todayId } from '../db'
 import { fillPlan, MIXED_SIZE, planMixed, type MixedKind } from '../mixed'
 import { buildParticleDrill } from '../particles'
-import { recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
+import { buildQuiz, collectItems, recentFromDay, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import { buildTransitivityDrill, transitivityLinks } from '../transitivity'
 import type { AnkiLibrary, Entry, FuriganaFrom } from '../types'
+import { Jp } from '../furigana'
 import { Expected, VerbHead } from './ConjSession'
 import QuizCard from './QuizCard'
 
 type Step =
-  | { kind: 'particle' | 'transitivity'; question: QuizQuestion }
+  | { kind: 'errors' | 'particle' | 'transitivity'; question: QuizQuestion }
   | { kind: 'conjugation'; item: SessionItem }
 
 interface Props {
@@ -143,7 +144,15 @@ export default function MixedSeries({ entries, library, furigana, deck, onClose 
     async function build() {
       history.current = await loadQuizHistory().catch(() => ({}))
       conjState.current = verbs.length > 0 ? await loadConj().catch(() => null) : null
+      const errorItems = collectItems(entries)
       const pools: Record<MixedKind, Step[]> = {
+        // « Revoir mes erreurs » : il faut au moins 3 erreurs corrigées, comme pour le mini-quiz.
+        errors:
+          errorItems.length >= 3
+            ? buildQuiz(errorItems, history.current, MIXED_SIZE, Math.random, Date.now(), recentFromDay(todayId())).map(
+                (question) => ({ kind: 'errors' as const, question }),
+              )
+            : [],
         particle: buildParticleDrill(entries, history.current, MIXED_SIZE).map((question) => ({
           kind: 'particle' as const,
           question,
@@ -233,7 +242,17 @@ export default function MixedSeries({ entries, library, furigana, deck, onClose 
               <ul className="review-list">
                 {missed.map((m, i) => (
                   <li key={i}>
-                    {'question' in m ? (
+                    {m.kind === 'errors' ? (
+                      <p className="fix-line" lang="ja">
+                        <del className="fix-original">{m.question.item.original}</del>
+                        <span className="fix-arrow" aria-hidden="true">
+                          →
+                        </span>
+                        <span className="red-ink">
+                          <Jp text={m.question.item.corrected} furigana={furigana} />
+                        </span>
+                      </p>
+                    ) : 'question' in m ? (
                       <>
                         <p lang="ja">{(m.question.item.context ?? '').replace('＿＿＿', `【${m.question.item.correctPlain}】`)}</p>
                         {m.question.item.explanation && <p className="fix-why fr">{m.question.item.explanation}</p>}
@@ -288,11 +307,13 @@ export default function MixedSeries({ entries, library, furigana, deck, onClose 
           question={step.question}
           furigana={furigana}
           prompt={
-            step.kind === 'particle'
-              ? 'Quelle particule ?'
-              : step.question.item.key.endsWith('|c')
-                ? 'Transitif ou intransitif ?'
-                : 'Quel verbe ?'
+            step.kind === 'errors'
+              ? undefined
+              : step.kind === 'particle'
+                ? 'Quelle particule ?'
+                : step.question.item.key.endsWith('|c')
+                  ? 'Transitif ou intransitif ?'
+                  : 'Quel verbe ?'
           }
           caption={caption}
           onAnswer={(right) => void answerQuiz(step, right)}

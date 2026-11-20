@@ -135,6 +135,7 @@ export default function PromptNote({
             </h3>
             {challenge ? (
               <>
+                {prompt.link?.bridge && !themeOnly && <p className="fr note-bridge">{prompt.link.bridge}</p>}
                 <p className="fr note-challenge-text">« {challenge} »</p>
                 <p className="fr note-fr">Traduis cette phrase en japonais pour commencer ton entrée.</p>
               </>

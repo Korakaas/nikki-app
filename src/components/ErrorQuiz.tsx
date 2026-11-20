@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
-import { loadQuizHistory, saveQuizHistory } from '../db'
+import { loadQuizHistory, saveQuizHistory, todayId } from '../db'
 import { Jp } from '../furigana'
-import { buildQuiz, collectItems, hideItem, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
+import { buildQuiz, collectItems, hideItem, recentFromDay, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import QuizCard from './QuizCard'
 import type { Entry, FuriganaFrom } from '../types'
 
@@ -23,7 +23,7 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
 
   async function start() {
     history.current = await loadQuizHistory().catch(() => ({}))
-    setQuestions(buildQuiz(items, history.current, 5))
+    setQuestions(buildQuiz(items, history.current, 5, Math.random, Date.now(), recentFromDay(todayId())))
     setIndex(0)
     setScore(0)
     setMissed([])

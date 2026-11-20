@@ -4,7 +4,7 @@ import { deckVerbs } from '../conj/verbs'
 import { listEntries, loadAnki, loadConj, loadQuizHistory, saveQuizHistory, todayId } from '../db'
 import { Jp, plainText } from '../furigana'
 import { applyFixes, diffChars, squash } from '../rewrite'
-import { buildQuiz, collectItems, hideItem, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
+import { buildQuiz, collectItems, hideItem, recentFromDay, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import type { BonusSentence, Correction, FuriganaFrom } from '../types'
 import ConjSession from './ConjSession'
 import QuizCard from './QuizCard'
@@ -70,7 +70,7 @@ export function QuickReview({
       const items = collectItems(all.filter((e) => e.id !== currentId)).filter((i) => !here.has(i.key))
       if (items.length < 2) return
       history.current = await loadQuizHistory().catch(() => ({}))
-      if (!cancelled) setQuestion(buildQuiz(items, history.current, 1)[0] ?? null)
+      if (!cancelled) setQuestion(buildQuiz(items, history.current, 1, Math.random, Date.now(), recentFromDay(todayId()))[0] ?? null)
     })()
     return () => {
       cancelled = true

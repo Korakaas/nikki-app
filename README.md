@@ -114,7 +114,7 @@ Dans l'onglet Stats, « Faire le bilan » envoie à Claude les entrées des 7 de
 
 ### Revoir ses erreurs (quiz)
 
-Toujours dans Stats : 5 questions tirées des erreurs corrigées (ta phrase avec un blanc, quatre formes à choisir). Les types d'erreurs les plus fréquents et les erreurs ratées reviennent en priorité ; celles réussies hier sortent moins (`src/quiz.ts`). Aucun appel à l'API.
+Dans Exercices : 5 questions tirées des erreurs corrigées (ta phrase avec un blanc, quatre formes à choisir). **Les fautes des 7 derniers jours passent en premier** (jour de l'entrée la plus récente où la faute apparaît) ; une faute récente déjà réussie aujourd'hui ne passe plus devant. Quand il n'y a plus de faute récente, le tirage est celui d'avant : types d'erreurs fréquents et erreurs ratées en priorité, celles réussies hier moins (`src/quiz.ts`, `buildQuiz` avec `recentFrom`). Même règle dans la carte « après la correction » et dans « J'ai 2 minutes ». Aucun appel à l'API.
 
 ### Exercices de particules
 
@@ -149,7 +149,7 @@ Dans Stats → Bilans, « Copier pour Claude » met dans le presse-papiers tes e
 
 ### J'ai 2 minutes (série mélangée)
 
-Une série de 5 questions sans aucun réglage, mélange de conjugaison (si un deck Anki est importé), particules et transitif / intransitif,
+Une série de 5 questions sans aucun réglage, mélange de « Revoir mes erreurs » (dès 3 erreurs corrigées), conjugaison (si un deck Anki est importé), particules et transitif / intransitif,
 jamais deux du même type de suite quand c'est possible ; s'il manque un type, les autres le remplacent. Les réponses vont dans les mêmes
 historiques que les exercices habituels (`src/components/MixedSeries.tsx`, tirage dans `src/mixed.ts`) : quitter en cours ne fait rien perdre.
 Le bouton est collé en bas de l'écran Exercices ; la ligne « Révision » de la carte « Aujourd'hui » lance la même série.
@@ -163,7 +163,9 @@ Le jour de la dernière série terminée est gardé sur le téléphone (réglage
 
 ### Défi de traduction
 
-Une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge` de l'idée). C'est la seule chose que `src/link.ts` demande à Claude.
+Une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge` de l'idée), demandée à Claude par `src/link.ts` dans une seule requête avec :
+- **le pont** (`bridge`) : une courte phrase (70 caractères au plus, deux lignes au plus à l'écran) qui montre comment placer le point de grammaire et un mot dans le thème ; affiché au-dessus du défi, dans la carte ouverte. Jamais demandé avec « Juste le thème » ;
+- **`fits`** : faux quand le lien serait forcé. L'appli change alors de sujet (une seule fois par jour, et seulement pour une nouvelle idée ou « Tout changer », pas pour « Changer » les mots ou la grammaire) plutôt que de forcer. Si le second sujet n'a pas de lien non plus, le défi s'affiche sans pont.
 
 ### Modèle léger
 

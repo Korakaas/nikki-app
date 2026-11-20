@@ -1,5 +1,5 @@
-/** Les trois sortes d'exercices mélangés dans « J'ai 2 minutes ». */
-export type MixedKind = 'particle' | 'transitivity' | 'conjugation'
+/** Les quatre sortes d'exercices mélangés dans « J'ai 2 minutes ». */
+export type MixedKind = 'errors' | 'particle' | 'transitivity' | 'conjugation'
 
 export const MIXED_SIZE = 5
 
@@ -43,6 +43,7 @@ export function planMixed(
  */
 export function fillPlan<T extends { kind: MixedKind }>(plan: MixedKind[], pools: Record<MixedKind, T[]>): T[] {
   const left: Record<MixedKind, T[]> = {
+    errors: [...pools.errors],
     particle: [...pools.particle],
     transitivity: [...pools.transitivity],
     conjugation: [...pools.conjugation],
