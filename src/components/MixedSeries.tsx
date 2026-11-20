@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { conjugate, checkAnswer, explain, formInfo } from '../conj/engine'
 import { answerCard, buildSession, cardKey, GROUP_FORM, type ConjState, type SessionItem } from '../conj/srs'
 import { deckVerbs } from '../conj/verbs'
-import { loadConj, loadQuizHistory, saveConj, saveQuizHistory, todayId } from '../db'
+import { loadConj, loadQuizHistory, saveConj, saveQuizHistory, saveTwoMinutesDay, todayId } from '../db'
 import { fillPlan, MIXED_SIZE, planMixed, type MixedKind } from '../mixed'
 import { buildParticleDrill } from '../particles'
 import { recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
@@ -174,6 +174,12 @@ export default function MixedSeries({ entries, library, furigana, deck, onClose 
     // « round » relance une série.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round])
+
+  // Série terminée : la coche « fait aujourd'hui » apparaît sur la carte de l'écran Écrire.
+  const finished = steps !== null && steps.length > 0 && index >= steps.length
+  useEffect(() => {
+    if (finished) void saveTwoMinutesDay(todayId()).catch(() => undefined)
+  }, [finished])
 
   const heading = (
     <h2 className="part">

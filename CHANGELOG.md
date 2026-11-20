@@ -4,10 +4,10 @@
 
 - S12.1 : « Copier pour Claude » (Stats → Bilans) remplace « Copier la semaine pour Claude » : par défaut du lendemain du dernier jour copié jusqu'à aujourd'hui (7 derniers jours la première fois), ou entre deux dates au choix, avec le nombre d'entrées, la taille et un avertissement si le texte est très long. Le dernier jour copié ne recule jamais ; « Faire le bilan » (API) ne le déplace pas.
 - S6.2 : « J'ai 2 minutes » : 5 questions mélangées (conjugaison, particules, transitif / intransitif), sans réglage ; bouton fixe en bas de l'écran Exercices ; quitter garde les réponses déjà données ; sans deck Anki, pas de conjugaison. Décision D43.
-- S1.1 : carte « Aujourd'hui » sur Écrire : Thème, Entrée, Révision (la ligne Révision lance la série), 48 px par ligne, rien de rouge ni de « en retard ».
+- S1.1 : carte « Aujourd'hui » sur Écrire : Thème et Révision (la ligne Révision lance la série), 48 px par ligne, rien de rouge ni de « en retard ». Retouche demandée par Kora : pas de ligne « Entrée » (place perdue) ; une coche ✓ « Fait aujourd'hui » sur Révision quand une série a été terminée aujourd'hui.
 - S16.2 : déjà couverte par l'existant, fermée.
 - Coût API : 0 $ de plus (la copie et la série n'appellent jamais l'API).
-- Données : nouveau réglage `reviewExport` (dernier jour copié), hors sauvegarde ; le format des sauvegardes ne change pas.
+- Données : nouveaux réglages `reviewExport` (dernier jour copié) et `twoMinutes` (dernier jour de série terminée), hors sauvegarde ; le format des sauvegardes ne change pas.
 
 ## Sprint 6 : tout se touche facilement (2026-11-19)
 

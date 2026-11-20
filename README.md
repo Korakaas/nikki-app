@@ -156,9 +156,10 @@ Le bouton est collé en bas de l'écran Exercices ; la ligne « Révision » de 
 
 ### Carte « Aujourd'hui »
 
-Sur Écrire (jour courant), sous la bande de la semaine : trois lignes à toucher (Thème, Entrée, Révision), sans rouge ni retard.
-Thème montre le sujet du jour (ou propose une idée), Entrée place le curseur dans le champ (« Écrite · N 文字 ✓ » quand c'est fait),
-Révision lance « J'ai 2 minutes ».
+Sur Écrire (jour courant), sous la bande de la semaine : deux lignes à toucher, sans rouge ni retard.
+Thème montre le sujet du jour (ou propose une idée) ; Révision lance « J'ai 2 minutes » et affiche une petite coche ✓
+(« Fait aujourd'hui ») dès qu'une série a été terminée aujourd'hui. Quitter une série en cours ne donne pas la coche.
+Le jour de la dernière série terminée est gardé sur le téléphone (réglage `twoMinutes`, hors sauvegarde).
 
 ### Défi de traduction
 

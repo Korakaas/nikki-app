@@ -283,3 +283,15 @@ export async function loadReviewExportDay(): Promise<string | null> {
 export async function saveReviewExportDay(day: string): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: REVIEW_EXPORT_KEY, day }))
 }
+
+const TWO_MIN_KEY = 'twoMinutes'
+
+/** Dernier jour où une série « J'ai 2 minutes » a été terminée (hors sauvegarde). */
+export async function loadTwoMinutesDay(): Promise<string | null> {
+  const row = await run<{ day?: unknown } | undefined>(SETTINGS, 'readonly', (s) => s.get(TWO_MIN_KEY))
+  return typeof row?.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.day) ? row.day : null
+}
+
+export async function saveTwoMinutesDay(day: string): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: TWO_MIN_KEY, day }))
+}

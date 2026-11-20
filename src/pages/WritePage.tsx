@@ -8,7 +8,7 @@ import PromptNote from '../components/PromptNote'
 import TodayCard from '../components/TodayCard'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
-import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
+import { getEntry, listEntries, loadAnki, loadReviews, loadTwoMinutesDay, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
@@ -55,6 +55,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
   const [missingKey, setMissingKey] = useState(false)
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
   const [days, setDays] = useState<Set<string>>(() => new Set())
+  const [reviewDone, setReviewDone] = useState(false)
   const [photos, setPhotos] = useState<EntryPhoto[]>([])
   const [stickers, setStickers] = useState<EntrySticker[]>([])
   const [linkState, setLinkState] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -77,6 +78,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
 
   useEffect(() => {
     void listEntries().then((all) => setDays(writtenDays(all)))
+    void loadTwoMinutesDay()
+      .then((d) => setReviewDone(d === todayId()))
+      .catch(() => undefined)
   }, [])
 
   useEffect(() => {
@@ -406,17 +410,13 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
       {isToday && loaded && (
         <TodayCard
           prompt={prompt}
-          chars={countChars(text)}
+          reviewDone={reviewDone}
           onTheme={() => {
             if (!prompt) {
               void suggest(0)
               return
             }
             document.querySelector('.note-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }}
-          onEntry={() => {
-            areaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            areaRef.current?.focus()
           }}
           onReview={onStartSeries}
         />
