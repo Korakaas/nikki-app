@@ -12,6 +12,8 @@ export const KIND_LABEL: Record<string, string> = {
   'correction-courte': 'corrections courtes',
   review: 'bilans',
   link: 'défis de traduction',
+  unblock: 'coups de pouce',
+  phrases: '« Comment dit-on… ? »',
   autre: 'autres',
 }
 

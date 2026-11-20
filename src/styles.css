@@ -2005,6 +2005,7 @@ button.starter {
   font-size: 0.85rem;
 }
 
+button.dock-help,
 button.dock-starters {
   min-height: 44px;
   padding: 4px 14px;
@@ -2012,6 +2013,7 @@ button.dock-starters {
   cursor: pointer;
 }
 
+button.dock-help[aria-expanded='true'],
 button.dock-starters[aria-expanded='true'] {
   background: var(--tape, #b6d3c1);
 }
@@ -2231,4 +2233,148 @@ button.sketch.two-min {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+
+/* Aide : feuille du bas (« Comment dit-on… ? », « Je bloque », amorces) */
+.help-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.help-sheet {
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 10px 14px 12px;
+  background: var(--paper);
+  border: 1.5px dashed var(--blue);
+  border-radius: 14px 5px 16px 6px / 6px 16px 5px 14px;
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.help-sheet:focus {
+  outline: none;
+}
+
+.help-sheet h2 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.help-sub {
+  margin: 0 0 6px;
+  color: var(--pencil);
+  font-size: 0.85rem;
+}
+
+.help-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-top: 1px dotted var(--rule);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.help-row:first-of-type {
+  border-top: 0;
+}
+
+.help-key {
+  flex: none;
+  width: 2.4rem;
+  color: var(--blue);
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.help-label b {
+  display: block;
+}
+
+.help-label small {
+  display: block;
+  color: var(--pencil);
+  font-size: 0.85rem;
+  line-height: 1.15;
+}
+
+.help-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--rule);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  resize: none;
+}
+
+.help-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.help-actions button {
+  min-height: 48px;
+}
+
+.help-close .link {
+  min-height: 44px;
+}
+
+.help-quote {
+  margin: 4px 0 8px;
+  font-size: 1.15rem;
+}
+
+.help-card {
+  padding: 8px 0;
+  border-top: 1px dotted var(--rule);
+}
+
+.help-card button {
+  min-height: 44px;
+  margin-top: 4px;
+}
+
+.help-ja {
+  display: block;
+  font-size: 1.3rem;
+}
+
+.help-reading {
+  display: block;
+  color: var(--pencil);
+  font-size: 0.85rem;
+}
+
+.help-level {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  color: var(--blue);
+  font-size: 0.75rem;
+}
+
+.help-error {
+  margin: 8px 0 0;
 }

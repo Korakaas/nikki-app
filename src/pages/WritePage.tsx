@@ -3,6 +3,7 @@ import MemoryCard from '../components/MemoryCard'
 import { BonusCard, ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
+import HelpSheet from '../components/HelpSheet'
 import Chevron from '../components/Chevron'
 import PromptNote from '../components/PromptNote'
 import TodayCard from '../components/TodayCard'
@@ -68,6 +69,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
   const areaRef = useRef<HTMLTextAreaElement>(null)
   // Les amorces ne s'affichent que si on les demande (bouton « Amorces »), jamais d'elles-mêmes.
   const [showStarters, setShowStarters] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
 
   // La feuille grandit avec le texte : la page défile, pas le champ.
@@ -151,6 +153,20 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
       if (!area) return
       area.focus()
       area.setSelectionRange(starter.length, starter.length)
+    })
+  }
+
+  /** Place une phrase à la fin de l'entrée (sur une nouvelle ligne si l'entrée n'est pas vide), curseur après. */
+  function appendPhrase(phrase: string) {
+    const current = textRef.current
+    const next = current.trim() === '' ? phrase : current + (current.endsWith('\n') ? '' : '\n') + phrase
+    setShowStarters(false)
+    onChange(next)
+    requestAnimationFrame(() => {
+      const area = areaRef.current
+      if (!area) return
+      area.focus()
+      area.setSelectionRange(next.length, next.length)
     })
   }
 
@@ -559,17 +575,16 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
         )}
         <div className="dock-bar">
           <span className="counter muted">{countChars(text)} 文字</span>
-          {!hasText && (
-            <button
-              type="button"
-              className="sketch dock-starters fr"
-              aria-expanded={showStarters}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setShowStarters((v) => !v)}
-            >
-              Amorces
-            </button>
-          )}
+          <button
+            type="button"
+            className="sketch dock-help fr"
+            aria-haspopup="dialog"
+            aria-expanded={showHelp}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setShowHelp(true)}
+          >
+            Aide
+          </button>
           <button
             type="button"
             className="sketch primary"
@@ -589,6 +604,19 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
           </button>
         </div>
       </div>
+      {showHelp && (
+        <HelpSheet
+          settings={settings}
+          text={text}
+          topic={prompt ? `${plainText(prompt.topic.ja)} (${prompt.topic.fr})` : undefined}
+          canStarters={!hasText}
+          startersOpen={showStarters}
+          onClose={() => setShowHelp(false)}
+          onAppend={appendPhrase}
+          onStarters={() => setShowStarters((v) => !v)}
+          onOpenSettings={onOpenSettings}
+        />
+      )}
     </section>
   )
 }

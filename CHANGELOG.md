@@ -1,5 +1,14 @@
 # Journal des changements
 
+## Sprint 9 : de l'aide pour écrire (2026-11-20)
+
+- Nouveau bouton « Aide » dans la barre du bas (compteur | Aide | Corriger), toujours visible, même quand il y a du texte. Il ouvre la feuille « Besoin d'aide ? » : Comment dit-on… ?, Je bloque, Amorces de phrase. Le bouton « Amorces » de la barre y est rangé (la rangée d'amorces fonctionne comme avant).
+- S4.1 « Comment dit-on… ? » (8 points) : une phrase en français → une à trois formulations japonaises avec lecture et niveau approximatif ; un tap sur « Ajouter à l'entrée » la place à la fin de l'entrée.
+- S4.3 « Je bloque » (5 points) : une question guidée, puis une amorce ; on peut s'arrêter à tout moment sans toucher au texte ; rien n'est évalué.
+- Modèle léger d'abord, modèle principal en secours ; chaque appel est compté dans le mois (nouvelles lignes « coups de pouce » et « Comment dit-on… ? » dans la consommation).
+- Coût API (mesuré avec le modèle léger) : environ 0,0001 $ par « Je bloque » (un seul appel pour les deux étapes), environ 0,00015 $ par « Comment dit-on… ? » ; moins de 0,05 $ par mois à 10 usages par jour.
+- Données : rien de nouveau n'est gardé ; le format des sauvegardes ne change pas.
+
 ## Sprint 8 : les erreurs d'abord (2026-11-20)
 
 - S6.1 (réduite de 8 à 3 points, D46) : « Revoir mes erreurs » devient un quatrième type de question dans « J'ai 2 minutes » (dès 3 erreurs corrigées ; sinon la série se fait avec les trois autres types). Les réponses alimentent le même historique que le mini-quiz d'erreurs. Les anciens exercices restent dans l'onglet Exercices.

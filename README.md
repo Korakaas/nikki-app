@@ -54,13 +54,15 @@ Dans la carte « Idée du jour », « Juste le thème » masque la grammaire et 
 ### Retour arrière
 Le geste « retour » d'Android revient à l'écran précédent (onglet ou entrée ouverte depuis l'Historique) au lieu de quitter l'appli.
 
-### Amorces de phrase
+### Aide (« Besoin d'aide ? »)
 
-Rien ne s'affiche de soi-même. Tant que l'entrée est vide, un bouton « Amorces » apparaît dans la barre du bas, entre le compteur et
-« Corriger ». Un tap ouvre une seule rangée de trois amorces (début de phrase en japonais, sens en français) qui défile de côté, adaptées au
-thème du sujet du jour (météo, repas, travail…), ou générales si le sujet est retiré. Un tap sur une amorce l'insère dans l'entrée, place
-le curseur à la fin et referme la rangée ; un second tap sur « Amorces » la referme sans rien insérer. Le bouton disparaît dès qu'il y a du texte.
-Les amorces sont dans `src/prompts/starters.ts` (six par thème, à compléter) : aucun appel API.
+Un bouton « Aide » est toujours dans la barre du bas, entre le compteur et « Corriger ». Il ouvre une feuille de trois lignes (jamais évaluées, jamais d'effet sur ton texte) :
+
+- **訳 Comment dit-on… ?** : tu écris une phrase ou une expression en français (200 caractères au plus) ; Claude rend une à trois façons de la dire en japonais, avec la lecture et un niveau approximatif (« N4 · poli », « N3 · plus soutenu »). « Ajouter à l'entrée » place la phrase à la fin de ton entrée (sur une nouvelle ligne si l'entrée n'est pas vide), curseur après, et ferme la feuille.
+- **困 Je bloque** : en deux étapes, à ton rythme. Étape 1 : une question guidée en français. Étape 2 : une amorce en japonais avec son sens. « Écrire à partir de là » l'ajoute à ton entrée ; « Arrêter » ferme tout sans toucher au texte, à chaque étape. Un seul appel à l'ouverture donne la question et l'amorce : l'étape 2 est locale. La fin de ton entrée sert de contexte pour ne pas répéter ce que tu as écrit.
+- **書 Amorces de phrase** (seulement tant que l'entrée est vide) : ouvre la rangée d'amorces d'avant (début de phrase en japonais, sens en français), adaptées au thème du jour. Un tap insère l'amorce, place le curseur à la fin et referme la rangée. Les amorces sont dans `src/prompts/starters.ts` : aucun appel API.
+
+Les appels utilisent le modèle léger d'abord, puis le modèle principal s'il échoue, et sont comptés dans le mois (« coups de pouce » et « Comment dit-on… ? » dans Réglages → consommation). Sans clé API, sans réseau ou en cas d'échec : un message lisible, le texte reste intact. Rien n'est gardé : ni sauvegarde ni réglage de plus. Code : `src/components/HelpSheet.tsx`, `src/unblock.ts`, `src/say.ts`, `src/aiTool.ts`.
 
 ### Lien entre sujet, mots et grammaire
 
@@ -251,6 +253,8 @@ src/
   furigana.tsx       balisage {kanji|lecture|niveau} et affichage filtré
   stats.ts           séries de jours, grammaire déjà bien employée
   review.ts          bilan de la semaine (appel à Claude)
+  aiTool.ts          appel d'un outil Claude : modèle léger d'abord, puis principal
+  say.ts, unblock.ts « Comment dit-on… ? » et « Je bloque » (feuille Aide)
   quiz.ts            mini-quiz d'erreurs
   transitivity.ts    paires 自動詞 / 他動詞 et exercices
   conj/              moteur de conjugaison, verbes du deck, révision espacée
