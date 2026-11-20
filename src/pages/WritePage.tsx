@@ -5,6 +5,7 @@ import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import Chevron from '../components/Chevron'
 import PromptNote from '../components/PromptNote'
+import TodayCard from '../components/TodayCard'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
@@ -23,6 +24,8 @@ interface Props {
   onChangeDay: (id: string) => void
   settings: Settings
   onOpenSettings: () => void
+  /** Lance la série « J'ai 2 minutes » (ligne Révision de la carte « Aujourd'hui »). */
+  onStartSeries: () => void
 }
 
 type SaveState = 'idle' | 'saving' | 'saved'
@@ -41,7 +44,7 @@ function metaOf(entry?: Entry): Meta {
   }
 }
 
-export default function WritePage({ id, onChangeDay, settings, onOpenSettings }: Props) {
+export default function WritePage({ id, onChangeDay, settings, onOpenSettings, onStartSeries }: Props) {
   const today = todayId()
   const isToday = id === today
   const [text, setText] = useState('')
@@ -399,6 +402,25 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           </button>
         )}
       </header>
+
+      {isToday && loaded && (
+        <TodayCard
+          prompt={prompt}
+          chars={countChars(text)}
+          onTheme={() => {
+            if (!prompt) {
+              void suggest(0)
+              return
+            }
+            document.querySelector('.note-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+          onEntry={() => {
+            areaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            areaRef.current?.focus()
+          }}
+          onReview={onStartSeries}
+        />
+      )}
 
       {isToday && loaded && (
         <WelcomeBack

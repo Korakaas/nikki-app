@@ -271,3 +271,15 @@ export async function loadAchievementStore(): Promise<AchievementStore> {
 export async function saveAchievementStore(store: AchievementStore): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: ACHIEVEMENTS_KEY, ...store }))
 }
+
+const REVIEW_EXPORT_KEY = 'reviewExport'
+
+/** Dernier jour copié « pour Claude » dans un bilan (AAAA-MM-JJ), ou null. Gardé hors sauvegarde. */
+export async function loadReviewExportDay(): Promise<string | null> {
+  const row = await run<{ key: string; day?: string } | undefined>(SETTINGS, 'readonly', (s) => s.get(REVIEW_EXPORT_KEY))
+  return typeof row?.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.day) ? row.day : null
+}
+
+export async function saveReviewExportDay(day: string): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: REVIEW_EXPORT_KEY, day }))
+}

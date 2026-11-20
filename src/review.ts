@@ -72,7 +72,7 @@ Règles :
 Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 
 
-interface Window {
+export interface Window {
   from: string
   to: string
   entries: Entry[]
@@ -213,23 +213,24 @@ function reviewContent(
   settings: Settings,
   today: string,
   alreadyTargeted: string[],
+  period?: Window,
 ) {
-  const win = reviewWindow(all, today)
+  const win = period ?? reviewWindow(all, today)
   if (win.entries.length === 0) {
     throw new CorrectionFailure('other', 'Écris au moins une entrée cette semaine pour faire le bilan.')
   }
-  const previous = between(all, addDays(today, -27), addDays(today, -7))
+  const previous = between(all, addDays(win.from, -21), addDays(win.from, -1))
   const taken = new Set(alreadyTargeted.map(patternKey))
   const candidates = focusCandidates(all, library, settings.targetLevel).filter(
     (c) => !taken.has(patternKey(c.pattern)),
   )
   const content = [
     `Niveau visé : JLPT ${settings.targetLevel}.`,
-    `Semaine à relire : du ${win.from} au ${win.to} (${win.entries.length} entrée(s)).`,
+    `Période à relire : du ${win.from} au ${win.to} (${win.entries.length} entrée(s)).`,
     '',
     describeEntries(win.entries),
     '',
-    `## Période précédente (${addDays(today, -27)} → ${addDays(today, -7)}), pour comparer`,
+    `## Période précédente (${addDays(win.from, -21)} → ${addDays(win.from, -1)}), pour comparer`,
     describePrevious(previous),
     '',
     '## Points déjà visés par les bilans précédents (à ne PAS reproposer)',
@@ -243,18 +244,26 @@ function reviewContent(
   return { win, taken, content }
 }
 
-/** La semaine mise en forme pour la coller dans une conversation avec Claude (sans passer par l'API). */
-export function weekForClaude(
+/** Les entrées d'une période (bornes comprises), avec leur nombre : sert à annoncer ce qui sera copié. */
+export function periodWindow(entries: Entry[], from: string, to: string): Window {
+  return { from, to, entries: between(entries, from, to) }
+}
+
+/** Les entrées d'une période mises en forme pour les coller dans une conversation avec Claude (sans passer par l'API). */
+export function periodForClaude(
   all: Entry[],
   library: AnkiLibrary | null,
   settings: Settings,
   today: string,
+  from: string,
+  to: string,
   alreadyTargeted: string[] = [],
 ): string {
-  const { content } = reviewContent(all, library, settings, today, alreadyTargeted)
+  const win = periodWindow(all, from, to)
+  const { content } = reviewContent(all, library, settings, today, alreadyTargeted, win)
   const rules = SYSTEM.replace(/^Tu es le professeur[^\n]*\n\n/, '').replace(/\n\nRéponds uniquement[^\n]*$/, '')
   return [
-    "Voici ma semaine d'entrées de journal en japonais, avec leurs corrections. Fais-moi le bilan : résumé, erreurs qui reviennent (avec une phrase fautive et sa version corrigée), ce qui progresse, et UN point de grammaire à viser la semaine suivante (avec phrase d'exemple et traduction).",
+    `Voici mes entrées de journal en japonais du ${from} au ${to}, avec leurs corrections. Fais-moi le bilan : résumé, erreurs qui reviennent (avec une phrase fautive et sa version corrigée), ce qui progresse, et UN point de grammaire à viser ensuite (avec phrase d'exemple et traduction).`,
     '',
     rules,
     '',

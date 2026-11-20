@@ -2097,3 +2097,124 @@ button.note-change {
 .backup-reminder .row button {
   min-height: 44px;
 }
+
+/* Sprint 7 (S12.1) : copie du bilan pour Claude, depuis le dernier export ou entre deux dates */
+.copy-claude {
+  margin: 10px 0 8px;
+  padding: 8px 12px;
+  border: 1.5px dashed var(--blue, #3b5bb5);
+  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
+}
+
+.copy-claude p {
+  margin: 4px 0;
+}
+
+.copy-title {
+  font-weight: 700;
+}
+
+.copy-dates {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+
+.copy-dates input[type='date'] {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font: inherit;
+}
+
+.copy-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.copy-actions button {
+  min-height: 44px;
+}
+
+/* « J'ai 2 minutes » : barre collée en bas de l'écran Exercices, à portée du pouce */
+.two-min-bar {
+  position: sticky;
+  bottom: -32px; /* colle au bas de l'écran, malgré le retrait de .content */
+  z-index: 2;
+  margin: 24px -16px -32px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+button.sketch.two-min {
+  width: 100%;
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+
+/* Carte « Aujourd'hui » sur Écrire */
+.today-card {
+  margin: 10px 0 12px;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--blue);
+  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.today-title {
+  margin: 2px 0;
+  font-size: 1.05rem;
+}
+
+.today-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.today-rows li + li {
+  border-top: 1px dotted var(--rule);
+}
+
+.today-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.today-key {
+  flex: none;
+  width: 2.4rem;
+  color: var(--blue);
+}
+
+.today-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.today-name {
+  display: block;
+  font-weight: 600;
+}
+
+.today-text small {
+  display: block;
+  opacity: 0.7;
+  font-size: 0.85rem;
+  line-height: 1.15;
+}
+

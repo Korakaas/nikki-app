@@ -21,7 +21,7 @@ function choiceOf(group: Group): 'godan' | 'ichidan' | 'irregular' {
   return group === 'godan' || group === 'ichidan' ? group : 'irregular'
 }
 
-function VerbHead({ verb }: { verb: Verb }) {
+export function VerbHead({ verb }: { verb: Verb }) {
   return (
     <p className="conj-verb-line">
       <span className="conj-verb" lang="ja">
@@ -38,7 +38,7 @@ function VerbHead({ verb }: { verb: Verb }) {
 }
 
 /** Forme attendue, telle qu'on l'affiche après la réponse. */
-function Expected({ verb, form }: { verb: Verb; form: SessionItem['form'] }) {
+export function Expected({ verb, form }: { verb: Verb; form: SessionItem['form'] }) {
   if (form === GROUP_FORM) return null
   const c = conjugate(verb, form)
   if (!c) return null

@@ -14,7 +14,8 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
     fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
     Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
-- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats).
+- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats), et une barre fixe en bas
+  « J'ai 2 minutes · 5 questions » (voir ci-dessous).
 
 ## Correction
 
@@ -135,9 +136,29 @@ L'Historique marque « pas corrigée » les entrées sans correction, avec un bo
 
 Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → « Consommation de l'API » montre l'estimation en dollars du mois en cours et du mois dernier (tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change). Le compteur n'est pas dans la sauvegarde. Un plafond du mois (2,50 $ par défaut, modifiable dans les mêmes réglages) alimente la barre de consommation ; à 80 %, un message doux s'affiche une seule fois par mois (`src/components/CapNotice.tsx`). Rien n'est jamais bloqué.
 
-### Copier la semaine pour Claude
+### Copier pour Claude (bilan sans API)
 
-Dans le bilan (Stats), « Copier la semaine pour Claude » met dans le presse-papiers tes 7 derniers jours avec leurs corrections et les consignes du bilan, à coller dans une conversation avec Claude : un bilan sans appel à l'API.
+Dans Stats → Bilans, « Copier pour Claude » met dans le presse-papiers tes entrées avec leurs corrections et les consignes du bilan,
+à coller dans une conversation avec Claude : un bilan sans appel à l'API.
+- Par défaut, la copie va **du lendemain du dernier jour déjà copié jusqu'à aujourd'hui** (la première fois : les 7 derniers jours).
+  Le dernier jour copié est gardé sur le téléphone (réglage `reviewExport`, hors sauvegarde). Il n'avance que quand tu copies, jamais en arrière,
+  et « Faire le bilan » (qui utilise l'API) ne le déplace pas.
+- « Choisir les dates » : deux dates au choix, avec le nombre d'entrées et la taille du texte ; un avertissement s'affiche si le texte est très long.
+- S'il n'y a rien de nouveau, le bouton est grisé et le dit.
+- La clé API n'est jamais dans le texte copié.
+
+### J'ai 2 minutes (série mélangée)
+
+Une série de 5 questions sans aucun réglage, mélange de conjugaison (si un deck Anki est importé), particules et transitif / intransitif,
+jamais deux du même type de suite quand c'est possible ; s'il manque un type, les autres le remplacent. Les réponses vont dans les mêmes
+historiques que les exercices habituels (`src/components/MixedSeries.tsx`, tirage dans `src/mixed.ts`) : quitter en cours ne fait rien perdre.
+Le bouton est collé en bas de l'écran Exercices ; la ligne « Révision » de la carte « Aujourd'hui » lance la même série.
+
+### Carte « Aujourd'hui »
+
+Sur Écrire (jour courant), sous la bande de la semaine : trois lignes à toucher (Thème, Entrée, Révision), sans rouge ni retard.
+Thème montre le sujet du jour (ou propose une idée), Entrée place le curseur dans le champ (« Écrite · N 文字 ✓ » quand c'est fait),
+Révision lance « J'ai 2 minutes ».
 
 ### Défi de traduction
 
