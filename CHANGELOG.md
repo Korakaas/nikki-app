@@ -1,5 +1,14 @@
 # Journal des changements
 
+## Sprint 10 : poser une question sur une correction (2026-11-23)
+
+- S10.1 « Une question ? » (8 points) : un fil sous la correction, ouvert par un bouton ou par le lien d'une faute dépliée (la faute est alors rappelée). Réponse en français avec exemples japonais lisibles ; Claude connaît l'entrée, la correction et les échanges précédents.
+- S10.2 « Plafond et compteur » (3 points) : « Échange n sur 3 », phrase d'explication au dernier échange, réglage « Échanges par correction » (1 à 5) dans Réglages.
+- S10.3 « Échanges conservés » (3 points) : le fil est rangé dans la correction, relu replié sous elle (Écrire et Historique), compris dans la sauvegarde ; la clé API n'y est jamais.
+- S7.3 (autocollants) retourne au backlog (D51).
+- Coût API (modèle léger, mesuré sur des réponses simulées de 1 800 jetons envoyés et 350 reçus) : ≈ 0,0004 $ par échange, ≈ 0,0012 $ par fil de 3. Le modèle principal (secours) coûterait ≈ 0,007 $ par échange.
+- Données : `thread` facultatif dans la correction, `threadLimit` dans les réglages (valeur absente = 3). Le format des sauvegardes ne change pas (version 2) ; les anciennes sauvegardes s'importent sans fil.
+
 ## Sprint 9 : de l'aide pour écrire (2026-11-20)
 
 - Nouveau bouton « Aide » dans la barre du bas (compteur | Aide | Corriger), toujours visible, même quand il y a du texte. Il ouvre la feuille « Besoin d'aide ? » : Comment dit-on… ?, Je bloque, Amorces de phrase. Le bouton « Amorces » de la barre y est rangé (la rangée d'amorces fonctionne comme avant).

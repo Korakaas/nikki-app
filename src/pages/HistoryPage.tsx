@@ -130,6 +130,8 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                       correction={entry.correction}
                       furigana={settings.furiganaFrom}
                       stale={entry.correction.sourceText !== entry.text}
+                      entryId={entry.id}
+                      settings={settings}
                     />
                   )}
                   {!entry.correction && entry.text.trim() !== '' && (

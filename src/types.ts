@@ -30,6 +30,8 @@ export interface Settings {
   monthlyCap: number
   /** Correction complète (par défaut) ou courte : la faute, sa correction et une phrase d'explication. */
   correctionMode: 'full' | 'short'
+  /** Nombre d'échanges au plus par correction (S10.2) : de 1 à 5. */
+  threadLimit: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -41,6 +43,17 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'light',
   monthlyCap: 2.5,
   correctionMode: 'full',
+  threadLimit: 3,
+}
+
+export const THREAD_LIMIT_MIN = 1
+export const THREAD_LIMIT_MAX = 5
+
+/** Plafond d'échanges valable, même si la valeur lue (ancienne sauvegarde, réglage) est absente ou hors limites. */
+export function threadLimitOf(settings: { threadLimit?: number }): number {
+  const n = Math.round(Number(settings.threadLimit))
+  if (!Number.isFinite(n)) return DEFAULT_SETTINGS.threadLimit
+  return Math.min(THREAD_LIMIT_MAX, Math.max(THREAD_LIMIT_MIN, n))
 }
 
 export type ErrorKind =
@@ -105,6 +118,20 @@ export interface Correction {
   bonus?: BonusSentence
   model: string
   createdAt: number
+  /** Questions posées sur cette correction et réponses (S10) : rangées avec elle, dans la sauvegarde. */
+  thread?: ThreadTurn[]
+}
+
+/** Un échange du fil : ta question et la réponse. */
+export interface ThreadTurn {
+  q: string
+  /** Réponse en français. */
+  a: string
+  /** Exemples japonais (balisage de furigana) avec leur sens. */
+  examples: { ja: string; fr: string }[]
+  /** La faute concernée, « avant → après » (facultatif : question sur toute la correction). */
+  about?: string
+  at: number
 }
 
 /** Idée du jour proposée à l'apprenant(e) : sujet, point de grammaire, mots. */

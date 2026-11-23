@@ -70,6 +70,15 @@ Les appels utilisent le modèle léger d'abord, puis le modèle principal s'il �
 - Dès qu'une idée est tirée, Claude écrit en arrière-plan un défi de traduction qui relie le sujet, le point de grammaire et des mots du jour (`src/link.ts`, outil `submit_link`). Il s'affiche dans la carte, section « Défi de traduction », et se garde avec l'entrée ; un bouton permet de le redemander s'il a échoué ou si tu étais hors ligne. Il n'y a plus de phrase d'exemple « Tout ensemble » (retirée au Sprint 5, les anciennes ne sont plus affichées).
 - Les mots du jour sont cochés pendant que tu écris (`src/words.ts`, la forme conjuguée compte). Les statistiques gardent combien de fois chaque mot a été proposé et employé ; ceux jamais employés reviennent plus souvent, ceux déjà employés moins.
 
+### Une question sur la correction
+
+Sous une correction ouverte, le bouton « Une question ? » ouvre un fil (dans une faute dépliée, « Une question sur cette faute ? » l'ouvre avec la faute rappelée en haut ; le « × » la retire pour poser une question sur toute la correction). Tu poses ta question en français (300 caractères au plus) ; Claude connaît ton entrée, la version plus naturelle, les fautes corrigées et la grammaire, et répond en français avec jusqu'à trois exemples japonais (furigana selon ton niveau) et leur sens. Les échanges déjà faits sont renvoyés à chaque question pour que la suite ait du sens.
+
+- Le fil compte au plus 3 échanges par correction (compteur « Échange 2 sur 3 »). Au dernier, une phrase explique que le plafond garde les coûts bas, avec un lien vers Réglages. Réglages → « Échanges par correction » (de 1 à 5, 3 par défaut) ; si tu l'abaisses sous le nombre d'échanges déjà faits, tu peux les relire mais plus en ajouter.
+- Le fil est rangé dans la correction de l'entrée (`correction.thread`) : il suit la sauvegarde et la restauration, jamais la clé API. Plus tard (Écrire ou Historique), il se relit replié : « Questions sur cette correction · 3 échanges ». Refaire la correction repart d'un fil vide.
+- Modèle léger d'abord, modèle principal s'il échoue ; chaque appel est compté dans le mois (« questions sur la correction »). Sans clé API, le bouton n'est pas proposé. En cas d'échec ou sans réseau : un message lisible, la question reste dans le champ et aucun échange n'est compté.
+- Code : `src/components/CorrectionThread.tsx`, `src/ask.ts` (requête), `src/thread.ts` (enregistrement).
+
 ### Après la correction
 
 Sous la correction : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste, puis une « révision éclair » : une question tirée de tes fautes des autres jours (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
@@ -255,6 +264,7 @@ src/
   review.ts          bilan de la semaine (appel à Claude)
   aiTool.ts          appel d'un outil Claude : modèle léger d'abord, puis principal
   say.ts, unblock.ts « Comment dit-on… ? » et « Je bloque » (feuille Aide)
+  ask.ts, thread.ts  questions sur une correction : requête, enregistrement du fil
   quiz.ts            mini-quiz d'erreurs
   transitivity.ts    paires 自動詞 / 他動詞 et exercices
   conj/              moteur de conjugaison, verbes du deck, révision espacée

@@ -4,7 +4,7 @@ import { backupStatus, canShareFile, exportBackup, importBackup } from '../backu
 import { clearAnki, listEntries, loadAnki, loadUsage, saveAnki, type UsageLog } from '../db'
 import CapNotice from '../components/CapNotice'
 import { CAP_ALERT_SHARE, CORRECTIONS_PER_MONTH, capShare, correctionCosts, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
-import type { AnkiLibrary, FuriganaFrom, Settings, Theme } from '../types'
+import { THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type FuriganaFrom, type Settings, type Theme } from '../types'
 
 interface Props {
   settings: Settings
@@ -409,6 +409,35 @@ export default function SettingsPage({ settings, onChange }: Props) {
             </>
           )
         })()}
+      </div>
+
+      <div className="field">
+        <span className="label" id="thread-limit-label">Échanges par correction</span>
+        <p className="hint">
+          Combien de questions tu peux poser sur chaque correction (de {THREAD_LIMIT_MIN} à {THREAD_LIMIT_MAX}). Chaque échange
+          coûte environ 0,0004 $ avec le modèle léger.
+        </p>
+        <div className="stepper" role="group" aria-labelledby="thread-limit-label">
+          <button
+            type="button"
+            className="sketch"
+            aria-label="Un échange de moins"
+            disabled={threadLimitOf(settings) <= THREAD_LIMIT_MIN}
+            onClick={() => patch({ threadLimit: threadLimitOf(settings) - 1 })}
+          >
+            −
+          </button>
+          <output className="stepper-value" aria-live="polite">{threadLimitOf(settings)}</output>
+          <button
+            type="button"
+            className="sketch"
+            aria-label="Un échange de plus"
+            disabled={threadLimitOf(settings) >= THREAD_LIMIT_MAX}
+            onClick={() => patch({ threadLimit: threadLimitOf(settings) + 1 })}
+          >
+            +
+          </button>
+        </div>
       </div>
 
       <div className="field">

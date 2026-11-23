@@ -526,6 +526,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
           correction={meta.correction}
           furigana={settings.furiganaFrom}
           stale={stale}
+          entryId={id}
+          settings={settings}
+          onOpenSettings={onOpenSettings}
         />
       )}
 

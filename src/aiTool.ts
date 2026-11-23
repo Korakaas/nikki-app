@@ -1,6 +1,11 @@
 import { CorrectionFailure, postApi } from './api'
 import type { Settings } from './types'
 
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 interface ToolDef {
   name: string
   description: string
@@ -16,7 +21,7 @@ export async function callTool(
   settings: Settings,
   tool: ToolDef,
   system: string,
-  userContent: string,
+  userContent: string | ChatMessage[],
   maxTokens: number,
 ): Promise<unknown> {
   const light = settings.lightModel?.trim()
@@ -35,7 +40,7 @@ async function callWith(
   model: string,
   tool: ToolDef,
   system: string,
-  userContent: string,
+  userContent: string | ChatMessage[],
   maxTokens: number,
 ): Promise<unknown> {
   const body = (retry: boolean) => ({
@@ -46,7 +51,7 @@ async function callWith(
       (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${tool.name}, sans autre texte.` : ''),
     tools: [tool],
     tool_choice: { type: 'auto' },
-    messages: [{ role: 'user', content: userContent }],
+    messages: typeof userContent === 'string' ? [{ role: 'user', content: userContent }] : userContent,
   })
   const find = (r: Awaited<ReturnType<typeof postApi>>) =>
     r.content?.find((b) => b.type === 'tool_use' && b.name === tool.name)

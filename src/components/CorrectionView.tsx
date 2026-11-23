@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Jp, plainText } from '../furigana'
 import Chevron from './Chevron'
-import type { Correction, CorrectionItem, FuriganaFrom } from '../types'
+import CorrectionThread from './CorrectionThread'
+import type { Correction, CorrectionItem, FuriganaFrom, Settings } from '../types'
 
 interface Props {
   correction: Correction
@@ -10,6 +11,10 @@ interface Props {
   stale?: boolean
   /** Ouvert au départ (par défaut : replié, un tap sur le titre le déplie). */
   startOpen?: boolean
+  /** Pour poser des questions sur la correction (S10) : l'entrée, les réglages (clé, plafond). */
+  entryId?: string
+  settings?: Settings
+  onOpenSettings?: () => void
 }
 
 /** Une faute a-t-elle des explications à déplier ? */
@@ -17,11 +22,15 @@ function hasDetails(e: CorrectionItem): boolean {
   return Boolean(e.explanation || e.context || e.otherUse)
 }
 
-export default function CorrectionView({ correction, furigana, stale, startOpen }: Props) {
+export default function CorrectionView({ correction, furigana, stale, startOpen, entryId, settings, onOpenSettings }: Props) {
   const { summary, praise, natural, errors, grammarGood, grammarReview } = correction
   const [open, setOpen] = useState(Boolean(startOpen))
   // Fautes dont les explications sont dépliées (repliées au départ).
   const [opened, setOpened] = useState<Set<number>>(new Set())
+  // Fil de questions : ouvert ou non, et faute concernée par la prochaine question.
+  const [threadOpen, setThreadOpen] = useState(false)
+  const [about, setAbout] = useState<string | null>(null)
+  const canAsk = Boolean(entryId && settings?.apiKey)
   const foldable = errors.map((e, i) => (hasDetails(e) ? i : -1)).filter((i) => i >= 0)
   const allOpen = foldable.length > 0 && foldable.every((i) => opened.has(i))
   const toggleFault = (i: number) =>
@@ -153,6 +162,18 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
                   {e.otherUse && (
                     <FixPart label="Dans quel autre cas l’employer" text={e.otherUse} furigana={furigana} />
                   )}
+                  {canAsk && (
+                    <button
+                      type="button"
+                      className="link fix-ask fr"
+                      onClick={() => {
+                        setAbout(`${plainText(e.original)} → ${plainText(e.corrected)}`)
+                        setThreadOpen(true)
+                      }}
+                    >
+                      Une question sur cette faute ?
+                    </button>
+                  )}
                 </div>
               )}
             </li>
@@ -208,6 +229,25 @@ export default function CorrectionView({ correction, furigana, stale, startOpen 
             ))}
           </ul>
         </>
+      )}
+
+      {entryId && settings && (
+        <CorrectionThread
+          key={correction.createdAt}
+          entryId={entryId}
+          correction={correction}
+          settings={settings}
+          furigana={furigana}
+          open={threadOpen}
+          onOpen={() => setThreadOpen(true)}
+          onClose={() => {
+            setThreadOpen(false)
+            setAbout(null)
+          }}
+          about={about}
+          onClearAbout={() => setAbout(null)}
+          onOpenSettings={onOpenSettings}
+        />
       )}
         </>
       )}
