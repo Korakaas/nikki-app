@@ -103,7 +103,7 @@ Sous une correction ouverte, le bouton « Une question ? » ouvre un fil (dans u
 
 ### Après la correction
 
-Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : « Réécrire sans regarder » (la phrase bonus n'est plus affichée : le champ `bonus` reste dans les anciennes corrections)  ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
+Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : « Réécrire sans regarder » (la phrase bonus n'est plus demandée à Claude ni affichée ; le champ `bonus` des anciennes corrections est conservé tel quel)  ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
 ### Succès
 

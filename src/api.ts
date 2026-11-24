@@ -118,34 +118,16 @@ const TOOL = {
           required: ['point', 'note', 'example'],
         },
       },
-      bonus: {
-        type: 'object',
-        description:
-          "Une phrase de plus que l'apprenant(e) pourrait ajouter à son entrée, dans la suite de ce qu'elle raconte (même sujet, mêmes personnes, mêmes lieux). Elle fait travailler le point de grammaire visé s'il n'apparaît pas encore, sinon un point à revoir ou un point utile du niveau.",
-        properties: {
-          ja: { type: 'string', description: 'La phrase en japonais, tous les kanji balisés {漢字|かんじ}.' },
-          fr: { type: 'string', description: 'Sa traduction française.' },
-          why: {
-            type: 'string',
-            description: 'En français, une phrase : le point de grammaire ou le mot que cette phrase fait travailler.',
-          },
-        },
-        required: ['ja', 'fr', 'why'],
-      },
     },
     required: ['praise', 'natural', 'errors', 'grammar_good', 'grammar_review'],
   },
 }
 
-/** Outil de la correction courte : on retire ce qui coûte cher en réponse (contexte, autre emploi, points à revoir, phrase bonus). */
+/** Outil de la correction courte : on retire ce qui coûte cher en réponse (contexte, autre emploi, points à revoir). */
 function shortTool() {
   const items = TOOL.input_schema.properties.errors.items
   const { context: _c, other_use: _o, ...keep } = items.properties
-  const {
-    grammar_review: _r,
-    bonus: _b,
-    ...properties
-  } = TOOL.input_schema.properties
+  const { grammar_review: _r, ...properties } = TOOL.input_schema.properties
   return {
     ...TOOL,
     input_schema: {
@@ -174,7 +156,7 @@ function shortTool() {
 
 const SHORT_MODE = `
 
-MODE COURT (choisi par l'apprenant(e) pour lire moins et dépenser moins) : l'outil n'a pas les champs « context », « other_use », « grammar_review » ni « bonus » : n'en produis aucun. Chaque « explanation » tient en UNE phrase courte. Garde « praise » (l'encouragement reste), « natural », les fautes (« original » et « corrected ») et « grammar_good ». Les règles d'honnêteté, de furigana et de fautes à ne pas signaler restent les mêmes.`
+MODE COURT (choisi par l'apprenant(e) pour lire moins et dépenser moins) : l'outil n'a pas les champs « context », « other_use », « grammar_review » : n'en produis aucun. Chaque « explanation » tient en UNE phrase courte. Garde « praise » (l'encouragement reste), « natural », les fautes (« original » et « corrected ») et « grammar_good ». Les règles d'honnêteté, de furigana et de fautes à ne pas signaler restent les mêmes.`
 
 export function levelLine(level: string): string {
   if (level === 'N2')
@@ -185,7 +167,7 @@ export function levelLine(level: string): string {
 function systemPrompt(level: string): string {
   return `Tu es un professeur de japonais qui corrige l'entrée de journal d'un(e) apprenant(e) francophone.
 
-${levelLine(level)} Les champs « natural », « corrected », « point », « note », « example » et « bonus.ja » sont en japonais, sans français. Les champs « praise », « explanation », « context », « other_use » (et « bonus.fr », « bonus.why ») sont en français.
+${levelLine(level)} Les champs « natural », « corrected », « point », « note », « example » sont en japonais, sans français. Les champs « praise », « explanation », « context », « other_use » sont en français.
 
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
@@ -201,8 +183,6 @@ Principes de correction :
 - Si le texte est déjà correct, laisse « errors » vide et dis-le dans « praise ».
 - Sois honnête et exact : ne félicite pas ce qui est faux, ne cherche pas de défauts là où il n'y en a pas, et si tu n'es pas sûr d'une règle, dis-en moins plutôt que d'inventer une explication.
 - Si le texte n'est pas principalement en japonais, laisse « errors » vide, écris dans « natural » une version japonaise simple du sens, et dis-le gentiment dans « praise ».
-
-Phrase bonus : dans « bonus », propose UNE phrase qui prolonge l'entrée (même histoire, même ton, première personne), au niveau ${level}, que l'apprenant(e) pourra recopier ou adapter. Elle emploie le point de grammaire visé s'il n'apparaît pas dans le texte, sinon un point de grammar_review, sinon un point utile du niveau. Ne reprends pas une phrase déjà écrite. Si le texte n'est pas principalement en japonais, omets « bonus ».
 
 Furigana : dans TOUS les textes japonais que tu écris (natural, corrected, point, note, example, et les phrases japonaises citées dans praise, explanation, context, other_use), balise CHAQUE groupe de kanji, sans exception, même les plus simples (人, 私, 何, 日, 今, 使, 言, 前…) : {kanji|lecture en hiragana}. L'application masque elle-même les lectures trop faciles selon son réglage, donc ne décide pas à sa place. Exemples : 食べる s'écrit {食|た}べる ; 面白かった s'écrit {面白|おもしろ}かった ; 今日 s'écrit {今日|きょう} ; 大丈夫 s'écrit {大丈夫|だいじょうぶ} ; 私たちは s'écrit {私|わたし}たちは. Les okurigana et les mots sans kanji restent hors des accolades. Avant de répondre, relis chaque champ pour vérifier qu'aucun kanji n'est resté sans balise. N'utilise PAS de balisage dans le champ « original ».
 

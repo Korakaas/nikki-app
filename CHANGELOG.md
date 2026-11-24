@@ -2,6 +2,7 @@
 
 ## Lot 2 : Écrire, Historique et numéro de version (2026-11-24)
 
+- La phrase bonus n'est plus demandée à Claude (D71) : la réponse de correction est un peu plus courte, donc un peu moins chère. Les anciennes corrections gardent leur phrase bonus dans les données et les sauvegardes.
 - Historique : entrées resserrées (jour | aperçu | pastille et nombre de caractères sur la même ligne, environ 80 px au lieu de 200).
 - Retouches demandées par Kora après essai (même jour) : une pastille 褒 devant l'encouragement ; dans la correction dépliée, les erreurs d'abord (explications dépliées), puis la version plus naturelle ; la grammaire est repliée (ligne « Grammaire … 1 ○ 1 △ ») ; la ligne « Une phrase bonus » disparaît de « Pour continuer ».
 
