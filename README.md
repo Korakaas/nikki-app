@@ -47,7 +47,7 @@ enregistrement, `src/stamps.ts`). Un seul grand tampon par entrée, le plus beau
 - **よくできました** : la correction juge le point de grammaire du jour bien employé ;
 - **花丸** : en plus, au moins un mot du jour est employé ;
 - **二分** : sur l'encart « J'ai 2 minutes » (Exercices), quand la série du jour est faite.
-Écrire montre le tampon en haut de la page (à droite de « Enregistré… », visible sans défiler) une fois l'entrée corrigée ; l'Historique le montre dans l'entrée ouverte et marque les entrées corrigées d'un petit sceau 添.
+Écrire montre le tampon en haut à droite du texte, juste sous le thème du jour (il peut recouvrir légèrement le texte), une fois l'entrée corrigée ; l'Historique le montre dans l'entrée ouverte et marque les entrées corrigées d'un petit sceau 添.
 Les anciennes sauvegardes s'importent sans rien changer (pas de champ `stamp` : il se calcule à la prochaine ouverture de l'entrée).
 
 ### Couleurs et blocs

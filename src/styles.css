@@ -3559,16 +3559,11 @@ button.fix-ask {
   margin-top: 2px;
 }
 
-/* Tampon en haut de l'écran Écrire, à droite de la ligne « Enregistré… » */
-.header-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 24px;
-}
-.header-status .header-stamp {
-  margin: 2px 6px 4px 0;
+.sheet-wrap .sheet-stamp-top {
+  top: -40px;
+  bottom: auto;
+  right: 2px;
+  z-index: 1;
 }
 /* Thème du jour plié complètement : seulement la ligne du titre */
 .theme-block:not(:has(.theme-body)) {
