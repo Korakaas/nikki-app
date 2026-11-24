@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { loadAnki, listEntries } from '../db'
+import { useCallback, useEffect, useState } from 'react'
+import { loadAnki, listEntries, loadTwoMinutesDay, todayId } from '../db'
 import { deckVerbs } from '../conj/verbs'
 import { writtenDays } from '../stats'
+import Chevron from '../components/Chevron'
 import ConjSection from '../components/ConjSection'
 import ErrorQuiz from '../components/ErrorQuiz'
 import MixedSeries from '../components/MixedSeries'
@@ -9,32 +10,31 @@ import ParticleDrill from '../components/ParticleDrill'
 import TransitivityDrill from '../components/TransitivityDrill'
 import type { AnkiLibrary, Entry, Settings } from '../types'
 
-/** Onglet Exercices : quiz d'erreurs, particules, conjugaison et transitivité (avant dans Stats). */
+/** Onglet Exercices : « J'ai 2 minutes » en tête, puis quiz d'erreurs, particules, conjugaison et transitivité (avant dans Stats). */
 interface Props {
   settings: Settings
-  /** Lance tout de suite la série « J'ai 2 minutes » (depuis la carte « Aujourd'hui »). */
-  autostart?: boolean
-  onAutostartDone?: () => void
 }
 
-export default function PracticePage({ settings, autostart, onAutostartDone }: Props) {
+export default function PracticePage({ settings }: Props) {
   const [mixed, setMixed] = useState(false)
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
+  // Une série « J'ai 2 minutes » a été terminée aujourd'hui (jamais en retard ni en rouge : juste une coche).
+  const [seriesDone, setSeriesDone] = useState(false)
 
-  useEffect(() => {
-    if (autostart) {
-      setMixed(true)
-      onAutostartDone?.()
-    }
-  }, [autostart, onAutostartDone])
+  const refreshSeriesDone = useCallback(() => {
+    void loadTwoMinutesDay()
+      .then((d) => setSeriesDone(d === todayId()))
+      .catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     void listEntries().then(setEntries)
     void loadAnki()
       .then(setLibrary)
       .catch(() => setLibrary(null))
-  }, [])
+    refreshSeriesDone()
+  }, [refreshSeriesDone])
 
   if (!entries) return null
 
@@ -59,7 +59,10 @@ export default function PracticePage({ settings, autostart, onAutostartDone }: P
           library={library}
           furigana={settings.furiganaFrom}
           deck={deckSet}
-          onClose={() => setMixed(false)}
+          onClose={() => {
+            setMixed(false)
+            refreshSeriesDone()
+          }}
         />
       </section>
     )
@@ -70,15 +73,30 @@ export default function PracticePage({ settings, autostart, onAutostartDone }: P
       <header className="page-header">
         <h1>Exercices</h1>
       </header>
+      <button type="button" className="two-min-card" onClick={() => setMixed(true)}>
+        <span className="two-min-key" lang="ja" aria-hidden="true">
+          二分
+        </span>
+        <span className="two-min-text">
+          <span className="two-min-name fr">
+            J'ai 2 minutes
+            {seriesDone && (
+              <span className="green-ink" role="img" aria-label="Fait aujourd'hui">
+                {' '}
+                ✓
+              </span>
+            )}
+          </span>
+          <small className="fr">
+            {seriesDone ? "Fait aujourd'hui · encore 5 questions ?" : '5 questions, sans réglage'}
+          </small>
+        </span>
+        <Chevron dir="right" size={22} />
+      </button>
       <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
       <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
       <ConjSection library={library} />
       <TransitivityDrill entries={entries} furigana={settings.furiganaFrom} deck={deckSet} />
-      <div className="two-min-bar">
-        <button type="button" className="sketch primary two-min" onClick={() => setMixed(true)}>
-          <span lang="ja">二分</span> J'ai 2 minutes · 5 questions
-        </button>
-      </div>
     </section>
   )
 }

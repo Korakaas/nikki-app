@@ -34,9 +34,6 @@ export default function App() {
   // Clavier du téléphone ouvert : la hauteur de l'écran rétrécit (viewport « interactive-widget=resizes-content »).
   const [keyboard, setKeyboard] = useState(false)
   const checking = useRef(false)
-  // Demande de lancer « J'ai 2 minutes » dès l'arrivée sur Exercices (depuis la carte « Aujourd'hui »).
-  const [autoSeries, setAutoSeries] = useState(false)
-  const clearAuto = useCallback(() => setAutoSeries(false), [])
 
   // Retour arrière (geste Android) : revient à l'écran précédent au lieu de quitter l'appli.
   const tabRef = useRef<Tab>('write')
@@ -184,10 +181,6 @@ export default function App() {
             onChangeDay={setDay}
             settings={settings}
             onOpenSettings={() => go('settings')}
-            onStartSeries={() => {
-              setAutoSeries(true)
-              go('practice')
-            }}
           />
         )}
         {tab === 'history' && <HistoryPage
@@ -198,7 +191,7 @@ export default function App() {
             }}
           />}
         {tab === 'stats' && <StatsPage settings={settings} />}
-        {tab === 'practice' && <PracticePage settings={settings} autostart={autoSeries} onAutostartDone={clearAuto} />}
+        {tab === 'practice' && <PracticePage settings={settings} />}
         {tab === 'settings' && (
           <SettingsPage settings={settings} onChange={updateSettings} />
         )}

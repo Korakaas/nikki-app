@@ -14,8 +14,8 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
     fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
     Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
-- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats), et une barre fixe en bas
-  « J'ai 2 minutes · 5 questions » (voir ci-dessous).
+- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats), et, tout en haut,
+  l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous).
 
 ## Correction
 
@@ -56,7 +56,7 @@ Le geste « retour » d'Android revient à l'écran précédent (onglet ou entr�
 
 ### Aide (« Besoin d'aide ? »)
 
-Un bouton « Aide » est toujours dans la barre du bas, entre le compteur et « Corriger ». Il ouvre une feuille de trois lignes (jamais évaluées, jamais d'effet sur ton texte) :
+Un bouton « Aide » est dans la barre du bas, entre le compteur et « Corriger » (la barre disparaît quand l'entrée est déjà corrigée et que le texte n'a pas changé : elle revient dès que tu modifies le texte). Il ouvre une feuille de trois lignes (jamais évaluées, jamais d'effet sur ton texte) :
 
 - **訳 Comment dit-on… ?** : tu écris une phrase ou une expression en français (200 caractères au plus) ; Claude rend une à trois façons de la dire en japonais, avec la lecture et un niveau approximatif (« N4 · poli », « N3 · plus soutenu »). « Ajouter à l'entrée » place la phrase à la fin de ton entrée (sur une nouvelle ligne si l'entrée n'est pas vide), curseur après, et ferme la feuille.
 - **困 Je bloque** : en deux étapes, à ton rythme. Étape 1 : une question guidée en français. Étape 2 : une amorce en japonais avec son sens. « Écrire à partir de là » l'ajoute à ton entrée ; « Arrêter » ferme tout sans toucher au texte, à chaque étape. Un seul appel à l'ouverture donne la question et l'amorce : l'étape 2 est locale. La fin de ton entrée sert de contexte pour ne pas répéter ce que tu as écrit.
@@ -163,14 +163,10 @@ Dans Stats → Bilans, « Copier pour Claude » met dans le presse-papiers tes e
 Une série de 5 questions sans aucun réglage, mélange de « Revoir mes erreurs » (dès 3 erreurs corrigées), conjugaison (si un deck Anki est importé), particules et transitif / intransitif,
 jamais deux du même type de suite quand c'est possible ; s'il manque un type, les autres le remplacent. Les réponses vont dans les mêmes
 historiques que les exercices habituels (`src/components/MixedSeries.tsx`, tirage dans `src/mixed.ts`) : quitter en cours ne fait rien perdre.
-Le bouton est collé en bas de l'écran Exercices ; la ligne « Révision » de la carte « Aujourd'hui » lance la même série.
-
-### Carte « Aujourd'hui »
-
-Sur Écrire (jour courant), sous la bande de la semaine : deux lignes à toucher, sans rouge ni retard.
-Thème montre le sujet du jour (ou propose une idée) ; Révision lance « J'ai 2 minutes » et affiche une petite coche ✓
-(« Fait aujourd'hui ») dès qu'une série a été terminée aujourd'hui. Quitter une série en cours ne donne pas la coche.
+L'encart (pointillés verts, 二分) est le premier bloc de l'écran Exercices, sous le titre. Il affiche une petite coche ✓
+(« Fait aujourd'hui ») dès qu'une série a été terminée aujourd'hui ; on peut en refaire une. Quitter une série en cours ne donne pas la coche.
 Le jour de la dernière série terminée est gardé sur le téléphone (réglage `twoMinutes`, hors sauvegarde).
+L'ancienne carte « Aujourd'hui » de l'écran Écrire a été retirée (S18.8) : le thème du jour reste dans « Idée du jour » / « Besoin d'une idée ? ».
 
 ### Défi de traduction
 

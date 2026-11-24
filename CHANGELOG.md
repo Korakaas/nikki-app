@@ -1,5 +1,12 @@
 # Journal des changements
 
+## Lot ergonomie : moins de bruit sur Écrire (2026-11-24)
+
+- S18.6 « Barre du bas qui s'efface » (2 points) : quand l'entrée du jour est déjà corrigée et que le texte n'a pas changé, la barre du bas (compteur, « Aide », « Corriger de nouveau ») disparaît complètement. Elle revient dès que tu modifies le texte, et reste présente s'il n'y a pas de correction (ou si une correction est en cours, en attente ou en erreur).
+- S18.8 « Fin de la carte Aujourd'hui » (2 points) : la carte « Aujourd'hui » de l'écran Écrire est retirée, sans remplacement. L'encart « J'ai 2 minutes » (5 questions, avec ✓ « Fait aujourd'hui ») devient le premier bloc de l'écran Exercices ; l'ancienne barre fixe en bas d'Exercices disparaît.
+- S18.7 écartée (D55). S18.9 (lisibilité des écrans, étude avec maquettes) reste à faire : rien n'est codé tant que tu n'as pas validé les maquettes.
+- Coût API : 0 € (aucun appel ajouté). Données : rien ne change, le format des sauvegardes reste celui d'avant (version 2).
+
 ## Sprint 10 : poser une question sur une correction (2026-11-23)
 
 - S10.1 « Une question ? » (8 points) : un fil sous la correction, ouvert par un bouton ou par le lien d'une faute dépliée (la faute est alors rappelée). Réponse en français avec exemples japonais lisibles ; Claude connaît l'entrée, la correction et les échanges précédents.

@@ -6,10 +6,9 @@ import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
 import Chevron from '../components/Chevron'
 import PromptNote from '../components/PromptNote'
-import TodayCard from '../components/TodayCard'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
-import { getEntry, listEntries, loadAnki, loadReviews, loadTwoMinutesDay, saveEntry, todayId } from '../db'
+import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
@@ -25,8 +24,6 @@ interface Props {
   onChangeDay: (id: string) => void
   settings: Settings
   onOpenSettings: () => void
-  /** Lance la série « J'ai 2 minutes » (ligne Révision de la carte « Aujourd'hui »). */
-  onStartSeries: () => void
 }
 
 type SaveState = 'idle' | 'saving' | 'saved'
@@ -45,7 +42,7 @@ function metaOf(entry?: Entry): Meta {
   }
 }
 
-export default function WritePage({ id, onChangeDay, settings, onOpenSettings, onStartSeries }: Props) {
+export default function WritePage({ id, onChangeDay, settings, onOpenSettings }: Props) {
   const today = todayId()
   const isToday = id === today
   const [text, setText] = useState('')
@@ -56,7 +53,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
   const [missingKey, setMissingKey] = useState(false)
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
   const [days, setDays] = useState<Set<string>>(() => new Set())
-  const [reviewDone, setReviewDone] = useState(false)
   // Changements de sujet automatiques faute de lien possible (1 au plus par jour, pour borner le coût).
   const bridgeRetries = useRef(0)
   const [photos, setPhotos] = useState<EntryPhoto[]>([])
@@ -82,9 +78,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
 
   useEffect(() => {
     void listEntries().then((all) => setDays(writtenDays(all)))
-    void loadTwoMinutesDay()
-      .then((d) => setReviewDone(d === todayId()))
-      .catch(() => undefined)
   }, [])
 
   useEffect(() => {
@@ -378,6 +371,10 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
 
   const hasText = text.trim() !== ''
   const stale = meta.correction ? meta.correction.sourceText !== text : false
+  // S18.6 : une entrée corrigée dont le texte n'a pas bougé n'a plus besoin de la barre du bas
+  // (compteur, « Aide », « Corriger de nouveau ») : elle revient dès qu'on modifie le texte,
+  // ou si une correction est en cours, en attente ou en erreur.
+  const showDock = !(meta.correction && hasText && !stale && !busy && !meta.pending && !meta.error)
 
   return (
     <section
@@ -430,21 +427,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
           </button>
         )}
       </header>
-
-      {isToday && loaded && (
-        <TodayCard
-          prompt={prompt}
-          reviewDone={reviewDone}
-          onTheme={() => {
-            if (!prompt) {
-              void suggest(0)
-              return
-            }
-            document.querySelector('.note-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }}
-          onReview={onStartSeries}
-        />
-      )}
 
       {isToday && loaded && (
         <WelcomeBack
@@ -556,7 +538,9 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
 
       {meta.correction && hasText && <ConjDaily correctionKey={meta.correction.createdAt} />}
 
-      {/* Barre du bas : le compteur et « Corriger » restent sous le pouce, même quand la page défile. */}
+      {/* Barre du bas : le compteur et « Corriger » restent sous le pouce, même quand la page défile.
+          Masquée quand l'entrée est corrigée et que le texte n'a pas changé (showDock). */}
+      {showDock && (
       <div className="write-dock">
         {!hasText && showStarters && (
           <div className="starters" lang="ja" role="group" aria-label="Amorces de phrase">
@@ -607,6 +591,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings, o
           </button>
         </div>
       </div>
+      )}
       {showHelp && (
         <HelpSheet
           settings={settings}
