@@ -3226,3 +3226,37 @@ button.fix-ask {
 .grammar[hidden] {
   display: none;
 }
+
+/* Historique : entrées compactes (retouche de Kora) — jour | aperçu | pastille + nombre de caractères sur une même ligne */
+.month-group .entry {
+  padding: 0;
+}
+.month-group .entry-head {
+  flex-direction: row;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 10px 0;
+  gap: 10px;
+}
+.month-group .ed {
+  width: 2.2rem;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.month-group .ep {
+  line-height: 1.45;
+  font-size: 0.98rem;
+}
+.month-group .em {
+  gap: 4px;
+  padding-top: 2px;
+}
+.month-group .em .pill {
+  min-width: 1.7rem;
+  height: 1.7rem;
+  padding: 0 0.35rem;
+  font-size: 0.9rem;
+}
+.month-group .entry-body {
+  padding-bottom: 12px;
+}
