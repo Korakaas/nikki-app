@@ -39,7 +39,7 @@ export default function ConjSection({ library }: { library: AnkiLibrary | null }
       <>
         {heading}
         <p className="fr empty">
-          Aucun verbe repéré : importe ton deck Anki dans les réglages (et active les paquets de vocabulaire).
+          Aucun verbe repéré : importe ton deck Anki dans les réglages.
         </p>
       </>
     )

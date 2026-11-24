@@ -48,14 +48,11 @@ export default function ParticleDrill({ entries, furigana }: Props) {
       <>
         {heading}
         <p className="fr empty">
-          10 questions « quelle particule ? »{' '}
-          {own > 0
-            ? `: ${own} viennent de tes propres fautes, le reste est une liste de verbes à particule fixe.`
-            : ': une liste de verbes à particule fixe (tes fautes de particule s’y ajouteront).'}
+          10 questions « quelle particule ? »{own > 0 ? ` (dont ${own} de tes fautes).` : '.'}
         </p>
         <div className="actions">
           <button type="button" className="sketch primary" onClick={() => void start()}>
-            Lancer les exercices
+            Lancer
           </button>
         </div>
       </>

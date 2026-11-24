@@ -285,8 +285,7 @@ export default function TransitivityDrill({ entries, furigana, deck }: Props) {
       <>
         {heading}
         <p className="fr empty">
-          {PAIRS.length} paires de verbes (ouvrir : 開く / 開ける…). Astuce : が + verbe qui se produit tout
-          seul (自動詞), を + verbe où quelqu'un agit (他動詞).
+          {PAIRS.length} paires de verbes (ouvrir : 開く / 開ける…).
           {links.length > 0 &&
             ` ${links.length} de tes fautes corrigées concernent ces verbes : elles reviennent en priorité.`}
         </p>
@@ -309,7 +308,10 @@ export default function TransitivityDrill({ entries, furigana, deck }: Props) {
           </button>
         </div>
         <details className="pair-list">
-          <summary className="fr">Voir toutes les paires</summary>
+          <summary className="fr">Astuce et liste des paires</summary>
+          <p className="fr">
+            Astuce : が + verbe qui se produit tout seul (自動詞), を + verbe où quelqu'un agit (他動詞).
+          </p>
           <ul lang="ja">
             {PAIRS.map((p) => (
               <li key={p.intr + p.tr}>

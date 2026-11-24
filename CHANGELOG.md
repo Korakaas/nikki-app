@@ -3,9 +3,9 @@
 ## Lot lisibilité : des blocs et des couleurs douces (2026-11-24)
 
 - S18.10 « Palettes et pastilles » (3 points) : chaque section devient un bloc au cadre fin neutre, avec une petite pastille colorée (vert = écrire, rose = correction, 3ᵉ couleur = s'entraîner, gris = réglages). Le texte reste noir. Trois palettes au choix dans Réglages → Couleurs : « Matcha et sakura » (par défaut), « Fruits », « Canard » ; clair et sombre.
-- S18.11 « Exercices en blocs » (2 points) : particules, conjugaison et transitif / intransitif en blocs ; « Revoir mes erreurs » passe en dernier ; « J'ai 2 minutes » reste tout en haut.
-- S18.12 « Réglages en quatre groupes » (3 points) : Écriture, Cartes Anki, Claude (plié par défaut, ouvert tant qu'il n'y a pas de clé API), Sauvegarde. Chaque réglage fonctionne comme avant.
-- S18.13 « Idée du jour pliée » (3 points) : le bloc est plié par défaut, en trois lignes (Sujet / Grammaire / Mots) ; plus aucun bouton visible, les actions (changer la grammaire, changer les mots, juste le thème, tout changer, retirer le sujet) sont dans un menu discret « ⋯ ».
+- S18.11 « Exercices en blocs » (2 points) : particules, conjugaison et transitif / intransitif en blocs, textes raccourcis et bouton « Lancer » comme sur la maquette ; « Revoir mes erreurs » passe en dernier ; « J'ai 2 minutes » reste tout en haut.
+- S18.12 « Réglages en quatre groupes » (3 points) : Écriture, Cartes Anki, Claude (plié par défaut, ouvert tant qu'il n'y a pas de clé API), Sauvegarde. Lignes compactes « libellé … valeur › » comme sur la maquette ; un tap déplie le réglage dessous. Chaque réglage fonctionne comme avant.
+- S18.13 « Thème du jour plié » (3 points) : le bloc est plié par défaut, en trois lignes (Sujet / Grammaire / Mots) ; déplié, une pastille par partie (題, 文法, 単語, 訳) et le défi de traduction se déplie. Plus aucun bouton visible : les actions (changer la grammaire, changer les mots, juste le thème, tout changer, retirer le sujet) sont dans un menu discret « ⋯ ».
 - Coût API : 0 € (aucun appel ajouté). Données : `palette` facultatif dans les réglages (absent = Matcha) ; le format des sauvegardes ne change pas (version 2), la clé API n'y est toujours pas.
 - Lot suivant (pas encore commencé) : S18.14 à S18.19 (Écrire, correction, Historique, Stats, Bilans, tampons).
 

@@ -51,7 +51,7 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
       <>
         {heading}
         <p className="fr empty">
-          Le quiz se débloque avec {MIN_ITEMS} erreurs corrigées (il y en a {items.length} pour l'instant).
+          Se débloque avec {MIN_ITEMS} erreurs corrigées ({items.length} pour l'instant).
         </p>
       </>
     )
@@ -62,11 +62,11 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
       <>
         {heading}
         <p className="fr empty">
-          5 questions tirées de tes propres fautes, celles qui reviennent le plus en premier.
+          5 questions tirées de tes propres fautes.
         </p>
         <div className="actions">
           <button type="button" className="sketch primary" onClick={() => void start()}>
-            Lancer le mini-quiz
+            Lancer
           </button>
         </div>
       </>

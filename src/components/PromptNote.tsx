@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Jp } from '../furigana'
-import Block from './Block'
+import Block, { Pill } from './Block'
+import Chevron from './Chevron'
 import type { DailyPrompt, FuriganaFrom } from '../types'
 import { wordUsed } from '../words'
 
@@ -44,6 +45,7 @@ export default function PromptNote({
   const themeOnly = Boolean(prompt.themeOnly)
   const [open, setOpen] = useState(false)
   const [menu, setMenu] = useState(false)
+  const [challengeOpen, setChallengeOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Le menu se ferme en touchant ailleurs ou avec Échap.
@@ -124,7 +126,7 @@ export default function PromptNote({
           <button type="button" role="menuitem" onClick={pick(onAnother)}>
             Tout changer
           </button>
-          <button type="button" role="menuitem" onClick={pick(onRemove)}>
+          <button type="button" role="menuitem" className="danger" onClick={pick(onRemove)}>
             Retirer le sujet
           </button>
         </div>
@@ -136,7 +138,7 @@ export default function PromptNote({
     <Block
       role="write"
       ja="題"
-      title="Idée du jour"
+      title="Thème du jour"
       className="theme-block"
       open={open}
       onToggle={() => setOpen((v) => !v)}
@@ -147,80 +149,88 @@ export default function PromptNote({
         <p className="theme-topic">
           <Jp text={topic.ja} furigana={furigana} />
         </p>
-        <p className="note-fr fr">{topic.fr}</p>
+        <p className="tfr fr">{topic.fr}</p>
 
         {!themeOnly && (
           <>
-            <h3 className="theme-part">
-              <span lang="ja">文法</span>
-              <span className="fr">
-                Grammaire {grammar.level}
-                {grammar.fromAnki ? ' · ton deck' : ''}
-                {grammar.fromReview ? ' · visé par ton bilan' : ''}
-              </span>
-            </h3>
-            <p className="theme-pattern">{grammar.pattern}</p>
-            <p className="note-fr fr">{grammar.fr}</p>
-            {grammar.example && (
-              <p className="note-example">
-                <Jp text={grammar.example} furigana={furigana} />
-              </p>
-            )}
-            {grammar.exampleFr && <p className="note-fr fr">{grammar.exampleFr}</p>}
+            <div className="trow">
+              <h3 className="trow-head">
+                <Pill role="write">文法</Pill>
+                <b className="fr">
+                  Grammaire · {grammar.level}
+                  {grammar.fromAnki ? ' · ton deck' : ''}
+                  {grammar.fromReview ? ' · visé par ton bilan' : ''}
+                </b>
+              </h3>
+              <p className="theme-pattern">{grammar.pattern}</p>
+              <p className="tnote fr">{grammar.fr}</p>
+              {grammar.example && (
+                <p className="tnote tex">
+                  <Jp text={grammar.example} furigana={furigana} />
+                </p>
+              )}
+              {grammar.exampleFr && <p className="tnote fr">{grammar.exampleFr}</p>}
+            </div>
 
-            <h3 className="theme-part">
-              <span lang="ja">単語</span>
-              <span className="fr">Mots</span>
-            </h3>
-            <ul className="note-words">
-              {words.map((w) => (
-                <li key={w.ja}>
-                  {wordUsed(w, text) && (
-                    <span className="word-done" role="img" aria-label="employé">
-                      ✓{' '}
-                    </span>
-                  )}
-                  {w.reading ? (
-                    <ruby>
-                      {w.ja}
-                      <rp>(</rp>
-                      <rt>{w.reading}</rt>
-                      <rp>)</rp>
-                    </ruby>
-                  ) : (
-                    <span>{w.ja}</span>
-                  )}
-                  <span className="fr"> — {w.fr}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="trow">
+              <h3 className="trow-head">
+                <Pill role="write">単語</Pill>
+                <b className="fr">Mots</b>
+              </h3>
+              <ul className="twords">
+                {words.map((w) => (
+                  <li key={w.ja}>
+                    {wordUsed(w, text) && (
+                      <span className="word-done" role="img" aria-label="employé">
+                        ✓{' '}
+                      </span>
+                    )}
+                    {w.reading ? (
+                      <ruby>
+                        {w.ja}
+                        <rp>(</rp>
+                        <rt>{w.reading}</rt>
+                        <rp>)</rp>
+                      </ruby>
+                    ) : (
+                      <span>{w.ja}</span>
+                    )}{' '}
+                    <small className="fr">{w.fr}</small>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </>
         )}
 
         {(challenge || linkState !== 'idle' || onLink) && (
-          <div className="note-link">
-            <div className="note-challenge">
-              <h3 className="theme-part">
-                <span lang="ja">訳</span>
-                <span className="fr">Défi de traduction</span>
-              </h3>
-              {challenge ? (
+          <div className="trow note-challenge">
+            <h3 className="trow-head trow-fold">
+              <button type="button" className="fold" aria-expanded={challengeOpen} onClick={() => setChallengeOpen((v) => !v)}>
+                <Pill role="write">訳</Pill>
+                <b className="fr">Défi de traduction</b>
+                <span className="fold-icon">
+                  <Chevron dir={challengeOpen ? 'down' : 'right'} size={20} />
+                </span>
+              </button>
+            </h3>
+            {challengeOpen &&
+              (challenge ? (
                 <>
                   {prompt.link?.bridge && !themeOnly && <p className="fr note-bridge">{prompt.link.bridge}</p>}
                   <p className="fr note-challenge-text">« {challenge} »</p>
-                  <p className="fr note-fr">Traduis cette phrase en japonais pour commencer ton entrée.</p>
+                  <p className="fr tnote">Traduis cette phrase en japonais pour commencer ton entrée.</p>
                 </>
               ) : linkState === 'loading' ? (
-                <p className="note-fr fr">Claude prépare un défi de traduction…</p>
+                <p className="tnote fr">Claude prépare un défi de traduction…</p>
               ) : (
-                <p className="note-fr fr">
+                <p className="tnote fr">
                   {linkState === 'error' && 'Pas réussi cette fois. '}
                   <button type="button" className="link" onClick={onLink}>
                     Voir un défi de traduction
                   </button>
                 </p>
-              )}
-            </div>
+              ))}
           </div>
         )}
       </div>

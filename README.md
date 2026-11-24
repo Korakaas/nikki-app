@@ -16,8 +16,10 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
 - **Exercices** : tout en haut, l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous), puis des blocs avec une pastille colorée :
   particules, conjugaison, transitif ou intransitif, et « Revoir mes erreurs » en dernier (verrouillé sous 3 erreurs corrigées).
-- **Réglages** en quatre blocs : Écriture (niveau visé, apparence, couleurs, furigana), Cartes Anki, Claude (clé API, modèles, mode de
-  correction, consommation, échanges ; plié par défaut, ouvert tant qu'il n'y a pas de clé) et Sauvegarde.
+- **Réglages** en quatre blocs de lignes compactes « libellé … valeur › » (un tap déplie le réglage dessous, un seul à la fois) :
+  Écriture (niveau visé, furigana, apparence, couleurs), Cartes Anki (paquets activés, réimporter), Claude (clé API, modèles, mode de
+  correction, échanges par correction, consommation ; plié par défaut, ouvert tant qu'il n'y a pas de clé, jauge du mois toujours visible)
+  et Sauvegarde (exporter, importer, dernière sauvegarde).
 
 ### Couleurs et blocs
 
@@ -43,7 +45,7 @@ furigana selon le réglage.
 ## Idées du jour
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
-N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Idée du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Aucun bouton n'est visible : le menu discret « ⋯ »
+N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Thème du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Déplié, chaque partie a sa pastille (題, 文法, 単語, 訳) ; le « Défi de traduction » est une ligne qui se déplie. Aucun bouton n'est visible : le menu discret « ⋯ »
 (en haut à droite du bloc) propose « Changer la grammaire » et « Changer les mots » (ne changent que cette partie, le sujet reste, et ne reprennent pas
 ce qui vient d'être proposé aujourd'hui), « Juste le thème », « Tout changer » (une idée entière nouvelle) et « Retirer le sujet ». Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
@@ -59,7 +61,7 @@ Tout ce qui se touche sur cet écran (pastilles de la semaine, carte « Idée du
 menu « ⋯ ») fait au moins 44 px.
 
 ### Juste le thème
-Dans le menu « ⋯ » de l'« Idée du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » (même menu) les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
+Dans le menu « ⋯ » du « Thème du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » (même menu) les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
 
 ### Retour arrière
 Le geste « retour » d'Android revient à l'écran précédent (onglet ou entrée ouverte depuis l'Historique) au lieu de quitter l'appli.
