@@ -486,7 +486,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         {meta.correction &&
           (() => {
             const kind = earnedStamp({ text, correction: meta.correction, prompt })
-            return kind ? <Stamp kind={kind} size={68} tilt={-9} className="sheet-stamp sheet-stamp-top" /> : null
+            return kind ? <Stamp kind={kind} size={64} tilt={-9} className="sheet-stamp sheet-stamp-top" /> : null
           })()}
       </div>
 
