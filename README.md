@@ -34,6 +34,10 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
   pour savoir si le téléphone a bien reçu la dernière mise à jour. Calculé à la construction (`vite.config.ts`, `src/version.ts`) ;
   le déploiement GitHub récupère tout l'historique (`fetch-depth: 0`) pour que le compte soit juste.
 
+### Thème du jour plié
+
+Le bloc « Thème du jour » est plié complètement par défaut : seulement sa ligne de titre (pastille 題, chevron et menu « ⋯ »). Un tap le déplie (sujet, grammaire, mots, défi de traduction) ; le choix plié ou déplié est gardé d'une fois sur l'autre (`nikki-theme-open`).
+
 ### Tampons de professeur
 
 Comme sur les copies au Japon : un tampon rouge encre, un peu de travers, posé sans bruit ni message (aucune notification). Jamais choisi d'après le
@@ -43,7 +47,7 @@ enregistrement, `src/stamps.ts`). Un seul grand tampon par entrée, le plus beau
 - **よくできました** : la correction juge le point de grammaire du jour bien employé ;
 - **花丸** : en plus, au moins un mot du jour est employé ;
 - **二分** : sur l'encart « J'ai 2 minutes » (Exercices), quand la série du jour est faite.
-Écrire montre le tampon sur la page une fois l'entrée corrigée ; l'Historique le montre dans l'entrée ouverte et marque les entrées corrigées d'un petit sceau 添.
+Écrire montre le tampon en haut de la page (à droite de « Enregistré… », visible sans défiler) une fois l'entrée corrigée ; l'Historique le montre dans l'entrée ouverte et marque les entrées corrigées d'un petit sceau 添.
 Les anciennes sauvegardes s'importent sans rien changer (pas de champ `stamp` : il se calcule à la prochaine ouverture de l'entrée).
 
 ### Couleurs et blocs

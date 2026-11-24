@@ -43,7 +43,23 @@ export default function PromptNote({
   const { topic, grammar, words } = prompt
   const challenge = prompt.link?.challenge
   const themeOnly = Boolean(prompt.themeOnly)
-  const [open, setOpen] = useState(false)
+  // Plié complètement par défaut (juste le titre) ; le choix de Kora est gardé d'une fois sur l'autre.
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem('nikki-theme-open') === '1'
+    } catch {
+      return false
+    }
+  })
+  const toggleOpen = () =>
+    setOpen((v) => {
+      try {
+        localStorage.setItem('nikki-theme-open', v ? '0' : '1')
+      } catch {
+        /* stockage indisponible : le choix ne sera pas gardé */
+      }
+      return !v
+    })
   const [menu, setMenu] = useState(false)
   const [challengeOpen, setChallengeOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -69,32 +85,6 @@ export default function PromptNote({
     setMenu(false)
     action()
   }
-
-  const summary = (
-    <>
-      <span className="theme-line">
-        <span className="theme-label">Sujet</span>
-        <span lang="ja">
-          <Jp text={topic.ja} furigana={furigana} />
-        </span>
-      </span>
-      {!themeOnly && (
-        <>
-          <span className="theme-line">
-            <span className="theme-label">Grammaire</span>
-            <span lang="ja">
-              {grammar.pattern}
-              {grammar.fromReview ? ' ★' : ''}
-            </span>
-          </span>
-          <span className="theme-line">
-            <span className="theme-label">Mots</span>
-            <span lang="ja">{words.map((w) => w.ja).join('・')}</span>
-          </span>
-        </>
-      )}
-    </>
-  )
 
   const menuButton = (
     <div className="more" ref={menuRef}>
@@ -141,8 +131,7 @@ export default function PromptNote({
       title="Thème du jour"
       className="theme-block"
       open={open}
-      onToggle={() => setOpen((v) => !v)}
-      summary={summary}
+      onToggle={toggleOpen}
       tail={menuButton}
     >
       <div className="theme-body" lang="ja">

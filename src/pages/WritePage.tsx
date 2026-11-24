@@ -411,11 +411,19 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
             <Chevron dir="right" />
           </button>
         </div>
-        <p className="muted">
-          {state === 'saving' && 'Enregistrement…'}
-          {state === 'saved' && 'Enregistré sur ce téléphone'}
-          {state === 'idle' && ' '}
-        </p>
+        <div className="header-status">
+          <p className="muted">
+            {state === 'saving' && 'Enregistrement…'}
+            {state === 'saved' && 'Enregistré sur ce téléphone'}
+            {state === 'idle' && ' '}
+          </p>
+          {/* Tampon de professeur (S18.19) : en haut de la page, visible sans défiler, sans bruit ni message. */}
+          {meta.correction &&
+            (() => {
+              const kind = earnedStamp({ text, correction: meta.correction, prompt })
+              return kind ? <Stamp kind={kind} size={60} tilt={-9} className="header-stamp" /> : null
+            })()}
+        </div>
         <WeekStrip
           today={today}
           selected={id}
@@ -482,11 +490,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           autoCapitalize="off"
           autoCorrect="off"
         />
-        {/* Tampon de professeur (S18.19) : posé sur la page une fois l'entrée corrigée, sans bruit ni message. */}
-        {meta.correction && (() => {
-          const kind = earnedStamp({ text, correction: meta.correction, prompt })
-          return kind ? <Stamp kind={kind} size={92} tilt={-9} className="sheet-stamp" /> : null
-        })()}
       </div>
 
       <Decor photos={photos} stickers={stickers} onChange={(p, s) => void saveDecor(p, s)} />
