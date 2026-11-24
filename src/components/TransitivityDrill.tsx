@@ -13,6 +13,7 @@ import {
 } from '../transitivity'
 import type { Entry, FuriganaFrom } from '../types'
 import QuizCard from './QuizCard'
+import { BlockTitle } from './Block'
 
 interface Props {
   entries: Entry[]
@@ -21,12 +22,7 @@ interface Props {
   deck: Set<string>
 }
 
-const heading = (
-  <h2 className="part">
-    <span lang="ja">自動詞・他動詞</span>
-    <span className="fr">Transitif ou intransitif</span>
-  </h2>
-)
+const heading = <BlockTitle role="train" ja="自他">Transitif ou intransitif</BlockTitle>
 
 /** Série écrite : on te donne la phrase (la tienne, si tu t'es trompée), tu tapes le verbe. */
 function WrittenSeries({

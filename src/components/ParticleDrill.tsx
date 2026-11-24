@@ -4,6 +4,7 @@ import { buildParticleDrill, ownParticleCount } from '../particles'
 import { hideItem, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import type { Entry, FuriganaFrom } from '../types'
 import QuizCard from './QuizCard'
+import { BlockTitle } from './Block'
 
 interface Props {
   entries: Entry[]
@@ -40,12 +41,7 @@ export default function ParticleDrill({ entries, furigana }: Props) {
     await saveQuizHistory(history.current).catch(() => undefined)
   }
 
-  const heading = (
-    <h2 className="part">
-      <span lang="ja">助詞</span>
-      <span className="fr">Exercices de particules</span>
-    </h2>
-  )
+  const heading = <BlockTitle role="train" ja="助詞">Particules</BlockTitle>
 
   if (!questions) {
     return (

@@ -15,13 +15,9 @@ import {
 import { loadConj, saveConj, todayId } from '../db'
 import type { AnkiLibrary } from '../types'
 import ConjSession from './ConjSession'
+import { BlockTitle } from './Block'
 
-const heading = (
-  <h2 className="part">
-    <span lang="ja">活用</span>
-    <span className="fr">Conjugaison</span>
-  </h2>
-)
+const heading = <BlockTitle role="train" ja="活用">Conjugaison</BlockTitle>
 
 /** Entraînement à la conjugaison, avec les verbes de ton deck Anki. */
 export default function ConjSection({ library }: { library: AnkiLibrary | null }) {

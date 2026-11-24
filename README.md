@@ -14,8 +14,18 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
     fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
     Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
-- **Exercices** : quiz d'erreurs, particules, conjugaison, transitif ou intransitif (avant dans Stats), et, tout en haut,
-  l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous).
+- **Exercices** : tout en haut, l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous), puis des blocs avec une pastille colorée :
+  particules, conjugaison, transitif ou intransitif, et « Revoir mes erreurs » en dernier (verrouillé sous 3 erreurs corrigées).
+- **Réglages** en quatre blocs : Écriture (niveau visé, apparence, couleurs, furigana), Cartes Anki, Claude (clé API, modèles, mode de
+  correction, consommation, échanges ; plié par défaut, ouvert tant qu'il n'y a pas de clé) et Sauvegarde.
+
+### Couleurs et blocs
+
+Chaque section est un bloc au cadre fin et neutre, avec une petite pastille colorée : vert = écrire (題, 書), rose = correction, 3ᵉ couleur = s'entraîner
+(復習, 助詞, 活用, 自他), gris = réglages. Seule la pastille porte la couleur ; le texte reste noir. Réglages → Couleurs propose trois palettes :
+« Matcha et sakura » (par défaut), « Fruits » et « Canard » ; le choix s'applique tout de suite, en clair comme en sombre. Il est gardé dans le
+réglage facultatif `palette` (absent = Matcha), donc les anciennes sauvegardes s'importent sans rien changer. Code : `src/components/Block.tsx`,
+variables de couleur au début de `src/styles.css`, application sur `<html data-palette>` dans `index.html` (avant le premier affichage) et `src/App.tsx`.
 
 ## Correction
 
@@ -33,9 +43,9 @@ furigana selon le réglage.
 ## Idées du jour
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
-N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Dans la carte ouverte, « Changer » à côté de la grammaire ou des mots
-ne change que cette partie (le sujet reste) et ne reprend pas ce qui vient d'être proposé aujourd'hui ; « Tout changer » en tire une
-idée entière nouvelle ; « Retirer le sujet » l'enlève. Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
+N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Idée du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Aucun bouton n'est visible : le menu discret « ⋯ »
+(en haut à droite du bloc) propose « Changer la grammaire » et « Changer les mots » (ne changent que cette partie, le sujet reste, et ne reprennent pas
+ce qui vient d'être proposé aujourd'hui), « Juste le thème », « Tout changer » (une idée entière nouvelle) et « Retirer le sujet ». Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
@@ -46,10 +56,10 @@ Sur l'écran Écrire, le compteur et le bouton « Corriger » sont dans une barr
 sous le pouce même quand la page défile. Quand le clavier du téléphone est ouvert, les onglets s'effacent et la barre reste
 au-dessus du clavier ; dès que le clavier se ferme (même avec le geste « retour »), les onglets reviennent.
 Tout ce qui se touche sur cet écran (pastilles de la semaine, carte « Idée du jour », « 思い出 », « Photos et autocollants »,
-boutons « Changer ») fait au moins 44 px.
+menu « ⋯ ») fait au moins 44 px.
 
 ### Juste le thème
-Dans la carte « Idée du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
+Dans le menu « ⋯ » de l'« Idée du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » (même menu) les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
 
 ### Retour arrière
 Le geste « retour » d'Android revient à l'écran précédent (onglet ou entrée ouverte depuis l'Historique) au lieu de quitter l'appli.

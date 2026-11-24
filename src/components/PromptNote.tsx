@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Jp } from '../furigana'
-import Chevron from './Chevron'
+import Block from './Block'
 import type { DailyPrompt, FuriganaFrom } from '../types'
 import { wordUsed } from '../words'
 
@@ -23,7 +23,10 @@ interface Props {
   onLink?: () => void
 }
 
-/** Petit mot collé en haut de la page : le sujet, un point de grammaire, trois mots. */
+/**
+ * Le thème du jour (S18.13) : un bloc plié par défaut, trois lignes (Sujet / Grammaire / Mots).
+ * Aucun bouton visible : les actions rares sont dans le menu discret « ⋯ ».
+ */
 export default function PromptNote({
   prompt,
   furigana,
@@ -40,132 +43,187 @@ export default function PromptNote({
   const challenge = prompt.link?.challenge
   const themeOnly = Boolean(prompt.themeOnly)
   const [open, setOpen] = useState(false)
-  return (
-    <aside className="note-card" lang="ja" aria-label="Idée du jour">
-      <span className="tape" aria-hidden="true" />
+  const [menu, setMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
-      <h2 className="note-title blue-ink">
-        <button
-          type="button"
-          className="fold"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span>今日のお題</span>
-          <span className="fr">Idée du jour</span>
-          <span className="fold-icon">
-            <Chevron dir={open ? 'down' : 'right'} size={22} />
-          </span>
-        </button>
-      </h2>
-      {!open && (
-        <p className="note-summary blue-ink">
+  // Le menu se ferme en touchant ailleurs ou avec Échap.
+  useEffect(() => {
+    if (!menu) return
+    const onDown = (e: Event) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menu])
+
+  const pick = (action: () => void) => () => {
+    setMenu(false)
+    action()
+  }
+
+  const summary = (
+    <>
+      <span className="theme-line">
+        <span className="theme-label">Sujet</span>
+        <span lang="ja">
           <Jp text={topic.ja} furigana={furigana} />
-          {!themeOnly && <span className="fr"> · {grammar.pattern}{grammar.fromReview ? ' ★' : ''}</span>}
-        </p>
-      )}
-      {open && (
-        <>
-      <p className="note-topic blue-ink">
-        <Jp text={topic.ja} furigana={furigana} />
-      </p>
-      <p className="note-fr fr">{topic.fr}</p>
-
+        </span>
+      </span>
       {!themeOnly && (
         <>
-      <h3 className="note-part blue-ink">
-        <span>文法</span>
-        <span className="fr">
-          Grammaire {grammar.level}
-          {grammar.fromAnki ? ' · ton deck' : ''}
-          {grammar.fromReview ? ' · visé par ton bilan' : ''}
-        </span>
-        <button type="button" className="sketch note-change fr" aria-label="Changer la grammaire" onClick={onChangeGrammar}>
-          Changer
-        </button>
-      </h3>
-      <p className="note-pattern green-ink">{grammar.pattern}</p>
-      <p className="note-fr fr">{grammar.fr}</p>
-      {grammar.example && (
-        <p className="note-example blue-ink">
-          <Jp text={grammar.example} furigana={furigana} />
-        </p>
-      )}
-      {grammar.exampleFr && <p className="note-fr fr">{grammar.exampleFr}</p>}
-
-      <h3 className="note-part blue-ink">
-        <span>単語</span>
-        <span className="fr">Mots</span>
-        <button type="button" className="sketch note-change fr" aria-label="Changer les mots" onClick={onChangeWords}>
-          Changer
-        </button>
-      </h3>
-      <ul className="note-words">
-        {words.map((w) => (
-          <li key={w.ja}>
-            {wordUsed(w, text) && (
-              <span className="word-done green-ink" role="img" aria-label="employé">
-                ✓{' '}
-              </span>
-            )}
-            {w.reading ? (
-              <ruby className="blue-ink">
-                {w.ja}
-                <rp>(</rp>
-                <rt>{w.reading}</rt>
-                <rp>)</rp>
-              </ruby>
-            ) : (
-              <span className="blue-ink">{w.ja}</span>
-            )}
-            <span className="fr"> — {w.fr}</span>
-          </li>
-        ))}
-      </ul>
-
+          <span className="theme-line">
+            <span className="theme-label">Grammaire</span>
+            <span lang="ja">
+              {grammar.pattern}
+              {grammar.fromReview ? ' ★' : ''}
+            </span>
+          </span>
+          <span className="theme-line">
+            <span className="theme-label">Mots</span>
+            <span lang="ja">{words.map((w) => w.ja).join('・')}</span>
+          </span>
         </>
       )}
+    </>
+  )
 
-      {(challenge || linkState !== 'idle' || onLink) && (
-        <div className="note-link">
-          <div className="note-challenge">
-            <h3 className="note-part blue-ink">
-              <span>訳</span>
-              <span className="fr">Défi de traduction</span>
-            </h3>
-            {challenge ? (
-              <>
-                {prompt.link?.bridge && !themeOnly && <p className="fr note-bridge">{prompt.link.bridge}</p>}
-                <p className="fr note-challenge-text">« {challenge} »</p>
-                <p className="fr note-fr">Traduis cette phrase en japonais pour commencer ton entrée.</p>
-              </>
-            ) : linkState === 'loading' ? (
-              <p className="note-fr fr">Claude prépare un défi de traduction…</p>
-            ) : (
-              <p className="note-fr fr">
-                {linkState === 'error' && 'Pas réussi cette fois. '}
-                <button type="button" className="link" onClick={onLink}>
-                  Voir un défi de traduction
-                </button>
-              </p>
-            )}
-          </div>
+  const menuButton = (
+    <div className="more" ref={menuRef}>
+      <button
+        type="button"
+        className="more-button"
+        aria-label="Plus d'actions"
+        aria-haspopup="menu"
+        aria-expanded={menu}
+        onClick={() => setMenu((v) => !v)}
+      >
+        <span aria-hidden="true">⋯</span>
+      </button>
+      {menu && (
+        <div className="more-menu fr" role="menu">
+          {!themeOnly && (
+            <>
+              <button type="button" role="menuitem" onClick={pick(onChangeGrammar)}>
+                Changer la grammaire
+              </button>
+              <button type="button" role="menuitem" onClick={pick(onChangeWords)}>
+                Changer les mots
+              </button>
+            </>
+          )}
+          <button type="button" role="menuitem" onClick={pick(onToggleThemeOnly)}>
+            {themeOnly ? 'Remettre mots et grammaire' : 'Juste le thème'}
+          </button>
+          <button type="button" role="menuitem" onClick={pick(onAnother)}>
+            Tout changer
+          </button>
+          <button type="button" role="menuitem" onClick={pick(onRemove)}>
+            Retirer le sujet
+          </button>
         </div>
       )}
+    </div>
+  )
 
-      <div className="note-actions" lang="fr">
-        <button type="button" className="link" aria-pressed={themeOnly} onClick={onToggleThemeOnly}>
-          {themeOnly ? 'Remettre mots et grammaire' : 'Juste le thème'}
-        </button>
-        <button type="button" className="link" onClick={onAnother}>
-          Tout changer
-        </button>
-        <button type="button" className="link" onClick={onRemove}>
-          Retirer le sujet
-        </button>
+  return (
+    <Block
+      role="write"
+      ja="題"
+      title="Idée du jour"
+      className="theme-block"
+      open={open}
+      onToggle={() => setOpen((v) => !v)}
+      summary={summary}
+      tail={menuButton}
+    >
+      <div className="theme-body" lang="ja">
+        <p className="theme-topic">
+          <Jp text={topic.ja} furigana={furigana} />
+        </p>
+        <p className="note-fr fr">{topic.fr}</p>
+
+        {!themeOnly && (
+          <>
+            <h3 className="theme-part">
+              <span lang="ja">文法</span>
+              <span className="fr">
+                Grammaire {grammar.level}
+                {grammar.fromAnki ? ' · ton deck' : ''}
+                {grammar.fromReview ? ' · visé par ton bilan' : ''}
+              </span>
+            </h3>
+            <p className="theme-pattern">{grammar.pattern}</p>
+            <p className="note-fr fr">{grammar.fr}</p>
+            {grammar.example && (
+              <p className="note-example">
+                <Jp text={grammar.example} furigana={furigana} />
+              </p>
+            )}
+            {grammar.exampleFr && <p className="note-fr fr">{grammar.exampleFr}</p>}
+
+            <h3 className="theme-part">
+              <span lang="ja">単語</span>
+              <span className="fr">Mots</span>
+            </h3>
+            <ul className="note-words">
+              {words.map((w) => (
+                <li key={w.ja}>
+                  {wordUsed(w, text) && (
+                    <span className="word-done" role="img" aria-label="employé">
+                      ✓{' '}
+                    </span>
+                  )}
+                  {w.reading ? (
+                    <ruby>
+                      {w.ja}
+                      <rp>(</rp>
+                      <rt>{w.reading}</rt>
+                      <rp>)</rp>
+                    </ruby>
+                  ) : (
+                    <span>{w.ja}</span>
+                  )}
+                  <span className="fr"> — {w.fr}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {(challenge || linkState !== 'idle' || onLink) && (
+          <div className="note-link">
+            <div className="note-challenge">
+              <h3 className="theme-part">
+                <span lang="ja">訳</span>
+                <span className="fr">Défi de traduction</span>
+              </h3>
+              {challenge ? (
+                <>
+                  {prompt.link?.bridge && !themeOnly && <p className="fr note-bridge">{prompt.link.bridge}</p>}
+                  <p className="fr note-challenge-text">« {challenge} »</p>
+                  <p className="fr note-fr">Traduis cette phrase en japonais pour commencer ton entrée.</p>
+                </>
+              ) : linkState === 'loading' ? (
+                <p className="note-fr fr">Claude prépare un défi de traduction…</p>
+              ) : (
+                <p className="note-fr fr">
+                  {linkState === 'error' && 'Pas réussi cette fois. '}
+                  <button type="button" className="link" onClick={onLink}>
+                    Voir un défi de traduction
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-        </>
-      )}
-    </aside>
+    </Block>
   )
 }

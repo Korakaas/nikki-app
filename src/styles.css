@@ -60,6 +60,45 @@
   --tape: #3f6b60;
 }
 
+/* Palettes des pastilles (S18.10) : écrire (w), correction (c), s'entraîner (t), réglages (s).
+   Matcha et sakura par défaut ; Fruits et Canard se choisissent dans Réglages.
+   « -d » = encre plus claire, pour le thème sombre. */
+:root {
+  --w-fill: #dbe6c4; --w-ink: #4a6320; --w-ink-d: #b8cf8a;
+  --c-fill: #f9d6df; --c-ink: #a3324f; --c-ink-d: #f0a3bb;
+  --t-fill: #f2e2c0; --t-ink: #7d5a1c; --t-ink-d: #e6c98a;
+  --s-fill: #e4e4e8; --s-ink: #555566; --s-ink-d: #bcbccc;
+  --block-bg: rgba(255, 255, 255, 0.4);
+}
+:root[data-palette='fruits'] {
+  --w-fill: #cfeadd; --w-ink: #2a6a52; --w-ink-d: #8fd6b8;
+  --c-fill: #f5cfd8; --c-ink: #a02a4f; --c-ink-d: #f08fab;
+  --t-fill: #fbdcc6; --t-ink: #9a4a1f; --t-ink-d: #f3b58a;
+  --s-fill: #e4daf0; --s-ink: #5a4a80; --s-ink-d: #c2b2e6;
+}
+:root[data-palette='canard'] {
+  --w-fill: #e0e6c5; --w-ink: #56611f; --w-ink-d: #c4d08a;
+  --c-fill: #f8d3c9; --c-ink: #a63f2e; --c-ink-d: #f2a08e;
+  --t-fill: #cde4e4; --t-ink: #27666a; --t-ink-d: #86cdd0;
+  --s-fill: #e1e4ea; --s-ink: #4f5868; --s-ink-d: #b4bccc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --w-ink: var(--w-ink-d); --w-fill: color-mix(in srgb, var(--w-ink-d) 26%, var(--paper));
+    --c-ink: var(--c-ink-d); --c-fill: color-mix(in srgb, var(--c-ink-d) 26%, var(--paper));
+    --t-ink: var(--t-ink-d); --t-fill: color-mix(in srgb, var(--t-ink-d) 26%, var(--paper));
+    --s-ink: var(--s-ink-d); --s-fill: color-mix(in srgb, var(--s-ink-d) 26%, var(--paper));
+    --block-bg: rgba(255, 255, 255, 0.04);
+  }
+}
+:root[data-theme='dark'] {
+  --w-ink: var(--w-ink-d); --w-fill: color-mix(in srgb, var(--w-ink-d) 26%, var(--paper));
+  --c-ink: var(--c-ink-d); --c-fill: color-mix(in srgb, var(--c-ink-d) 26%, var(--paper));
+  --t-ink: var(--t-ink-d); --t-fill: color-mix(in srgb, var(--t-ink-d) 26%, var(--paper));
+  --s-ink: var(--s-ink-d); --s-fill: color-mix(in srgb, var(--s-ink-d) 26%, var(--paper));
+  --block-bg: rgba(255, 255, 255, 0.04);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -2150,9 +2189,9 @@ button.two-min-card {
   min-height: 56px;
   margin: 4px 0 8px;
   padding: 8px 12px;
-  border: 1.5px dashed var(--green);
-  border-radius: 12px 4px 14px 5px / 5px 14px 4px 12px;
-  background: rgba(255, 255, 255, 0.35);
+  border: 1.5px dashed var(--t-ink);
+  border-radius: 14px;
+  background: var(--block-bg);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -2162,7 +2201,7 @@ button.two-min-card {
 .two-min-key {
   flex: none;
   width: 2.4rem;
-  color: var(--green);
+  color: var(--t-ink);
 }
 
 .two-min-text {
@@ -2186,7 +2225,7 @@ button.two-min-card {
 .two-min-card .chevron,
 .two-min-card svg {
   flex: none;
-  color: var(--green);
+  color: var(--t-ink);
 }
 
 /* Pont : deux lignes au plus au-dessus du défi */
@@ -2537,4 +2576,229 @@ button.fix-ask {
   min-width: 2rem;
   font-size: 1.3rem;
   text-align: center;
+}
+
+
+/* ===== Blocs et pastilles (S18.10) : cadre fin neutre ; seule la pastille porte la couleur ===== */
+.pill {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: 2.1rem;
+  height: 2.1rem;
+  padding: 0 0.45rem;
+  border-radius: 8px;
+  background: var(--pill-fill);
+  color: var(--pill-ink);
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.pill-write { --pill-fill: var(--w-fill); --pill-ink: var(--w-ink); }
+.pill-fix { --pill-fill: var(--c-fill); --pill-ink: var(--c-ink); }
+.pill-train { --pill-fill: var(--t-fill); --pill-ink: var(--t-ink); }
+.pill-set { --pill-fill: var(--s-fill); --pill-ink: var(--s-ink); }
+
+.block {
+  margin: 14px 0 0;
+  padding: 6px 12px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 14px;
+  background: var(--block-bg);
+}
+.block-top {
+  display: flex;
+  align-items: center;
+}
+.block-top .block-head {
+  flex: 1;
+}
+.block-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 0;
+  font-weight: 400;
+}
+.block-head .fold {
+  align-items: center;
+  min-height: 44px;
+  gap: 10px;
+}
+.block-title {
+  flex: 1;
+  font-family: var(--hand);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.block-sum {
+  margin: 0 0 2px;
+  padding-left: calc(2.1rem + 10px);
+}
+/* Dans un bloc, les boutons d'action sont à droite et les textes d'attente restent calmes */
+.block .actions {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.block .empty {
+  margin: 2px 0 4px;
+}
+/* Exercice verrouillé : texte seul, sans bouton, un peu estompé */
+.block:has(.empty):not(:has(button.sketch)) {
+  opacity: 0.72;
+}
+
+/* Choix de la palette (S18.10) */
+.palette-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.palette-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.palette-option.on {
+  border-color: var(--ink);
+}
+.palette-option .fr {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+.palette-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.palette-dots i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+.palette-dots[data-demo='matcha'] i:nth-child(1) { background: #dbe6c4; }
+.palette-dots[data-demo='matcha'] i:nth-child(2) { background: #f9d6df; }
+.palette-dots[data-demo='matcha'] i:nth-child(3) { background: #f2e2c0; }
+.palette-dots[data-demo='matcha'] i:nth-child(4) { background: #e4e4e8; }
+.palette-dots[data-demo='fruits'] i:nth-child(1) { background: #cfeadd; }
+.palette-dots[data-demo='fruits'] i:nth-child(2) { background: #f5cfd8; }
+.palette-dots[data-demo='fruits'] i:nth-child(3) { background: #fbdcc6; }
+.palette-dots[data-demo='fruits'] i:nth-child(4) { background: #e4daf0; }
+.palette-dots[data-demo='canard'] i:nth-child(1) { background: #e0e6c5; }
+.palette-dots[data-demo='canard'] i:nth-child(2) { background: #f8d3c9; }
+.palette-dots[data-demo='canard'] i:nth-child(3) { background: #cde4e4; }
+.palette-dots[data-demo='canard'] i:nth-child(4) { background: #e1e4ea; }
+
+/* Thème du jour (S18.13) : bloc plié, trois lignes, menu « ⋯ » discret */
+.theme-block {
+  margin-top: 8px;
+}
+.block-sum:has(.theme-line) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 0;
+  margin-bottom: 4px;
+}
+.theme-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.theme-label {
+  flex: none;
+  min-width: 5.2em;
+  color: var(--pencil);
+  font-family: var(--hand);
+  font-size: 1rem;
+}
+.theme-body {
+  line-height: 1.8;
+}
+.theme-topic {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--ink);
+}
+.theme-pattern {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+.theme-part {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+  margin: 12px 0 0;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+.theme-body .note-example,
+.theme-body .note-words {
+  color: var(--ink);
+}
+.more {
+  position: relative;
+  flex: none;
+}
+.more-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--pencil);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.more-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 14rem;
+  padding: 4px;
+  border: 1.5px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+}
+.more-menu button {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: left;
+  cursor: pointer;
+}
+.more-menu button:active {
+  background: var(--s-fill);
+}
+.theme-block {
+  margin-bottom: 14px;
 }

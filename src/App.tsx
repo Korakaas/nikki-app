@@ -4,7 +4,7 @@ import { DATA_EVENT, loadSettings, saveSettings, todayId } from './db'
 import { runAchievementSync } from './achievementsRun'
 import type { Achievement } from './achievements'
 import Celebration from './components/Celebration'
-import { DEFAULT_SETTINGS, type Settings } from './types'
+import { DEFAULT_SETTINGS, paletteOf, type Settings } from './types'
 import WritePage from './pages/WritePage'
 import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
@@ -161,6 +161,20 @@ export default function App() {
       document.head.prepend(meta)
     }
   }, [settings.theme])
+
+  // Palette des pastilles : posée sur <html> (le CSS s'en sert) et recopiée dans localStorage
+  // pour être appliquée avant l'affichage au prochain lancement.
+  useEffect(() => {
+    const root = document.documentElement
+    const palette = paletteOf(settings)
+    if (palette === 'matcha') delete root.dataset.palette
+    else root.dataset.palette = palette
+    try {
+      localStorage.setItem('nikki-palette', palette)
+    } catch {
+      /* stockage indisponible : la palette reste appliquée pour cette session */
+    }
+  }, [settings])
 
   function updateSettings(next: Settings) {
     setSettings(next)

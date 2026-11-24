@@ -4,6 +4,7 @@ import { Jp } from '../furigana'
 import { buildQuiz, collectItems, hideItem, recentFromDay, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import QuizCard from './QuizCard'
 import type { Entry, FuriganaFrom } from '../types'
+import { BlockTitle } from './Block'
 
 interface Props {
   entries: Entry[]
@@ -43,12 +44,7 @@ export default function ErrorQuiz({ entries, furigana }: Props) {
     await saveQuizHistory(history.current).catch(() => undefined)
   }
 
-  const heading = (
-    <h2 className="part">
-      <span lang="ja">復習</span>
-      <span className="fr">Revoir mes erreurs</span>
-    </h2>
-  )
+  const heading = <BlockTitle role="train" ja="復習">Revoir mes erreurs</BlockTitle>
 
   if (items.length < MIN_ITEMS) {
     return (

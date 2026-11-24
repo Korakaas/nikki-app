@@ -14,6 +14,15 @@ export type FuriganaFrom = 'all' | 'N3' | 'N2' | 'N1' | 'none'
 
 export type Theme = 'auto' | 'light' | 'dark'
 
+/** Palette des pastilles (S18.10) : Matcha et sakura (défaut), Fruits ou Canard. */
+export type Palette = 'matcha' | 'fruits' | 'canard'
+export const PALETTES: Palette[] = ['matcha', 'fruits', 'canard']
+
+/** Palette valable, même si la valeur lue (ancienne sauvegarde, réglage absent) est inconnue. */
+export function paletteOf(settings: { palette?: string }): Palette {
+  return PALETTES.includes(settings.palette as Palette) ? (settings.palette as Palette) : 'matcha'
+}
+
 export interface Settings {
   /** Clé API Claude, stockée uniquement sur ce téléphone. */
   apiKey: string
@@ -26,6 +35,8 @@ export interface Settings {
   furiganaFrom: FuriganaFrom
   /** Apparence : suit le téléphone, ou clair / sombre imposé. */
   theme: Theme
+  /** Couleurs des pastilles (S18.10). Facultatif : absent = Matcha et sakura. */
+  palette?: Palette
   /** Plafond de dépense mensuel en dollars : sert à la barre et au message doux à 80 %. Rien n'est jamais bloqué. */
   monthlyCap: number
   /** Correction complète (par défaut) ou courte : la faute, sa correction et une phrase d'explication. */
@@ -41,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   targetLevel: 'N3',
   furiganaFrom: 'N2',
   theme: 'light',
+  palette: 'matcha',
   monthlyCap: 2.5,
   correctionMode: 'full',
   threadLimit: 3,

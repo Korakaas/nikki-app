@@ -93,10 +93,19 @@ export default function PracticePage({ settings }: Props) {
         </span>
         <Chevron dir="right" size={22} />
       </button>
-      <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
-      <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
-      <ConjSection library={library} />
-      <TransitivityDrill entries={entries} furigana={settings.furiganaFrom} deck={deckSet} />
+      <div className="block">
+        <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
+      </div>
+      <div className="block">
+        <ConjSection library={library} />
+      </div>
+      <div className="block">
+        <TransitivityDrill entries={entries} furigana={settings.furiganaFrom} deck={deckSet} />
+      </div>
+      {/* « Revoir mes erreurs » est en dernier : il reste verrouillé tant qu'il y a moins de 3 erreurs corrigées. */}
+      <div className="block">
+        <ErrorQuiz entries={entries} furigana={settings.furiganaFrom} />
+      </div>
     </section>
   )
 }
