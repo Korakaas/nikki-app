@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import MemoryCard from '../components/MemoryCard'
 import { BonusCard, ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
+import Block from '../components/Block'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
@@ -66,6 +66,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   // Les amorces ne s'affichent que si on les demande (bouton « Amorces »), jamais d'elles-mêmes.
   const [showStarters, setShowStarters] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [continueOpen, setContinueOpen] = useState(false)
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
 
   // La feuille grandit avec le texte : la page défile, pas le champ.
@@ -466,8 +467,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         </button>
       )}
 
-      <MemoryCard id={id} />
-
       <textarea
         ref={areaRef}
         className="sheet editor"
@@ -514,29 +513,35 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         />
       )}
 
-      {meta.correction?.bonus && hasText && (
-        <BonusCard
-          bonus={meta.correction.bonus}
-          furigana={settings.furiganaFrom}
-          text={text}
-          onAdd={(sentence) => {
-            const base = text.trimEnd()
-            onChange(base + (/[。！？!?」』）)]$/.test(base) || base === '' ? '' : '。') + sentence)
-          }}
-        />
-      )}
-
-      {meta.correction && hasText && !stale && <RewriteCard correction={meta.correction} />}
-
+      {/* « Pour continuer » (S18.14) : replié ; chaque ligne fonctionne comme l'ancienne carte. Le bloc se cache tout seul s'il est vide. */}
       {meta.correction && hasText && (
-        <QuickReview
-          currentId={id}
-          correctionKey={meta.correction.createdAt}
-          furigana={settings.furiganaFrom}
-        />
+        <Block
+          role="train"
+          ja="習"
+          title="Pour continuer"
+          className="continue-block"
+          keepMounted
+          open={continueOpen}
+          onToggle={() => setContinueOpen((v) => !v)}
+        >
+          <ul className="rows">
+            {meta.correction.bonus && (
+              <BonusCard
+                bonus={meta.correction.bonus}
+                furigana={settings.furiganaFrom}
+                text={text}
+                onAdd={(sentence) => {
+                  const base = text.trimEnd()
+                  onChange(base + (/[。！？!?」』）)]$/.test(base) || base === '' ? '' : '。') + sentence)
+                }}
+              />
+            )}
+            {!stale && <RewriteCard correction={meta.correction} />}
+            <QuickReview currentId={id} correctionKey={meta.correction.createdAt} furigana={settings.furiganaFrom} />
+            <ConjDaily correctionKey={meta.correction.createdAt} />
+          </ul>
+        </Block>
       )}
-
-      {meta.correction && hasText && <ConjDaily correctionKey={meta.correction.createdAt} />}
 
       {/* Barre du bas : le compteur et « Corriger » restent sous le pouce, même quand la page défile.
           Masquée quand l'entrée est corrigée et que le texte n'a pas changé (showDock). */}

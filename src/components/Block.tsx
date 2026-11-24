@@ -35,11 +35,13 @@ interface BlockProps {
   /** À droite du titre (ex. le menu « ⋯ »). */
   tail?: ReactNode
   className?: string
+  /** Garde le contenu monté (caché) quand le bloc est replié : le bloc peut alors se cacher tout seul s'il est vide. */
+  keepMounted?: boolean
   children?: ReactNode
 }
 
 /** Un bloc de page : cadre fin neutre, pastille colorée, titre, contenu (S18.10). */
-export default function Block({ role, ja, title, summary, open, onToggle, tail, className, children }: BlockProps) {
+export default function Block({ role, ja, title, summary, open, onToggle, tail, className, keepMounted, children }: BlockProps) {
   const foldable = onToggle !== undefined
   return (
     <section className={`block${className ? ` ${className}` : ''}`} aria-label={title}>
@@ -62,7 +64,13 @@ export default function Block({ role, ja, title, summary, open, onToggle, tail, 
         {tail}
       </div>
       {summary && !open && <p className="block-sum fr">{summary}</p>}
-      {(!foldable || open) && children}
+      {keepMounted && foldable ? (
+        <div className="block-body" hidden={!open}>
+          {children}
+        </div>
+      ) : (
+        (!foldable || open) && children
+      )}
     </section>
   )
 }

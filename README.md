@@ -14,12 +14,21 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
     fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
     Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
+- **Écrire** : après la correction, deux blocs. « Correction » (rose) est ouvert d'un tap ; replié, il garde l'encouragement et un résumé
+  (« 2 erreurs · 1 ○ 1 △ »). « Pour continuer » (3ᵉ couleur) range en lignes la phrase bonus, « Réécrire sans regarder », la révision éclair
+  et la conjugaison éclair ; il disparaît s'il n'y a rien à proposer.
+- **Historique** : un bloc « En chiffres » (entrées, jours de suite, record, points de grammaire placés), le souvenir « Il y a un mois, tu
+  écrivais… » (voir ci-dessous), puis les entrées rangées par mois (le mois le plus récent est ouvert, les autres repliés). Chaque entrée
+  montre deux lignes de texte, une pastille 添 si elle est corrigée et son nombre de caractères ; un tap l'ouvre en entier.
 - **Exercices** : tout en haut, l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous), puis des blocs avec une pastille colorée :
   particules, conjugaison, transitif ou intransitif, et « Revoir mes erreurs » en dernier (verrouillé sous 3 erreurs corrigées).
 - **Réglages** en quatre blocs de lignes compactes « libellé … valeur › » (un tap déplie le réglage dessous, un seul à la fois) :
   Écriture (niveau visé, furigana, apparence, couleurs), Cartes Anki (paquets activés, réimporter), Claude (clé API, modèles, mode de
   correction, échanges par correction, consommation ; plié par défaut, ouvert tant qu'il n'y a pas de clé, jauge du mois toujours visible)
-  et Sauvegarde (exporter, importer, dernière sauvegarde).
+  et Sauvegarde (exporter, importer, dernière sauvegarde). Tout en bas, le **numéro de version** de l'appli
+  (« Version 34 · 24/11/2026 17:30 · abc1234 » : nombre de commits, date de construction à l'heure de Paris, code court du commit),
+  pour savoir si le téléphone a bien reçu la dernière mise à jour. Calculé à la construction (`vite.config.ts`, `src/version.ts`) ;
+  le déploiement GitHub récupère tout l'historique (`fetch-depth: 0`) pour que le compte soit juste.
 
 ### Couleurs et blocs
 
@@ -93,7 +102,7 @@ Sous une correction ouverte, le bouton « Une question ? » ouvre un fil (dans u
 
 ### Après la correction
 
-Sous la correction : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste, puis une « révision éclair » : une question tirée de tes fautes des autres jours (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
+Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste ; « Réécrire sans regarder » ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
 ### Succès
 
@@ -196,7 +205,7 @@ Dans Stats, sans appel à l'API : jours écrits, caractères par entrée, fautes
 
 ### Souvenir du jour
 
-Sous l'idée du jour, une ligne « Il y a un mois, tu écrivais… » (l'entrée la plus proche d'il y a 30 jours, d'au moins une semaine) qui se déplie pour relire le texte d'alors et le nombre de fautes relevées (`src/memory.ts`).
+Dans l'Historique (et plus sous l'idée du jour), sous « En chiffres » : un bloc « Il y a un mois, tu écrivais… » (l'entrée la plus proche d'il y a 30 jours, d'au moins une semaine) qui se déplie pour relire le texte d'alors et le nombre de fautes relevées ; il n'apparaît que s'il y a une telle entrée (`src/memory.ts`, `src/components/MemoryCard.tsx`).
 
 ### Conjugaison (活用)
 

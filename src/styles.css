@@ -2962,3 +2962,214 @@ button.fix-ask {
 .block:has(.pill-train) button.sketch:disabled {
   opacity: 0.5;
 }
+
+.version-line {
+  margin: 18px 0 8px;
+  color: var(--pencil);
+  font-family: var(--hand);
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Correction dans un bloc (S18.15) et « Pour continuer » (S18.14) */
+.continue-block:not(:has(.continue-row)) {
+  display: none;
+}
+.continue-block .rows {
+  margin-top: 2px;
+}
+.row-line .rk {
+  flex: none;
+  min-width: 5.2rem;
+  color: var(--t-ink);
+  font-size: 1.05rem;
+}
+.continue-panel {
+  padding: 0 0 12px;
+}
+.continue-panel .part {
+  display: none;
+}
+.block-sum:has(.praise) {
+  display: block;
+  padding-left: 0;
+}
+.praise {
+  display: block;
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+.tensaku-overview {
+  display: block;
+  margin: 0;
+}
+.tensaku-body {
+  font-size: 1.1rem;
+  line-height: 1.9;
+}
+.tensaku-body .part {
+  margin: 18px 0 6px;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid var(--rule);
+  font-size: 1.15rem;
+}
+.tensaku-body .part span:first-child {
+  color: var(--pencil);
+  font-size: 0.95rem;
+}
+.tensaku-body .part .fr {
+  color: var(--ink);
+  font-weight: 700;
+}
+.tensaku-body .natural {
+  color: var(--ink);
+}
+.tensaku-body .fixes {
+  gap: 0;
+}
+.tensaku-body .fix {
+  padding-left: 0;
+  border-left: 0;
+  border-top: 1px dotted var(--rule);
+}
+.tensaku-body .fix:first-child {
+  border-top: 0;
+}
+.tensaku-body .fix-head {
+  min-height: 48px;
+}
+.tensaku-body .fix-main {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 12px;
+}
+.tensaku-body .fix-kind {
+  flex: none;
+  width: 5rem;
+}
+.tensaku-body .fix-line {
+  flex: 1;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+.tensaku-body .grammar {
+  gap: 4px;
+}
+.tensaku-body .grammar-example {
+  color: var(--ink);
+}
+
+/* Historique par mois (S18.16) */
+.hist-figs {
+  margin-top: 4px;
+}
+.hist-figs .figs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 6px 10px;
+  padding: 2px 0 6px;
+}
+.fig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.5rem;
+  text-align: center;
+}
+.fig b {
+  font-family: var(--hand);
+  font-size: 2rem;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.fig small {
+  font-family: var(--hand);
+  font-size: 1rem;
+  color: var(--pencil);
+  line-height: 1.2;
+}
+.memory-block {
+  margin-top: 10px;
+}
+.month-head {
+  margin: 18px 0 0;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid var(--ink);
+  font-weight: 400;
+}
+.month-head .fold {
+  align-items: center;
+  min-height: 44px;
+  gap: 12px;
+}
+.month-head .month-name {
+  font-size: 1.5rem;
+}
+.month-head small {
+  margin-left: auto;
+  margin-right: 4px;
+  font-size: 1.05rem;
+}
+.month-head .fold-icon {
+  margin-left: 0;
+}
+.month-group .entry-list {
+  margin: 0;
+}
+.month-group .entry {
+  border-bottom: 1px dotted var(--rule);
+}
+.month-group .entry-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.month-group .ed {
+  flex: none;
+  width: 2.6rem;
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+.month-group .ep {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.6;
+}
+.month-group .ep-open {
+  -webkit-line-clamp: unset;
+  font-weight: 700;
+}
+.month-group .em {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.month-group .todo {
+  color: var(--pencil);
+  font-size: 1rem;
+}
+.month-group .entry-count {
+  color: var(--pencil);
+  font-size: 0.95rem;
+}

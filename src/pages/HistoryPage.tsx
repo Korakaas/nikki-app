@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
+import Block, { Pill } from '../components/Block'
+import Chevron from '../components/Chevron'
 import CorrectionView from '../components/CorrectionView'
+import MemoryCard from '../components/MemoryCard'
 import { DecorBoard } from '../components/Decor'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { activeLibrary } from '../anki'
@@ -21,6 +24,8 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [library, setLibrary] = useState<AnkiLibrary | null>(null)
   const [, bump] = useState(0)
+  // Mois ouverts ou fermés à la main ; sans choix, seul le mois le plus récent est ouvert (S18.16).
+  const [monthChoice, setMonthChoice] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     void loadAnki()
@@ -62,27 +67,81 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
   const candidates = [...own, ...GRAMMAR]
   const placed = candidates.filter((g) => timesUsed(g.pattern, good) > 0).length
 
+  const WEEK = ['日', '月', '火', '水', '木', '金', '土']
+  const months: { id: string; items: Entry[] }[] = []
+  for (const entry of entries) {
+    const m = entry.id.slice(0, 7)
+    const last = months[months.length - 1]
+    if (last && last.id === m) last.items.push(entry)
+    else months.push({ id: m, items: [entry] })
+  }
+  const monthLabel = (m: string) => `${m.slice(0, 4) !== thisYear ? `${m.slice(0, 4)}年` : ''}${Number(m.slice(5))}月`
+  const dayLabel = (id: string) => {
+    const [y, mo, d] = id.split('-').map(Number)
+    return { day: `${d}日`, week: WEEK[new Date(y, mo - 1, d).getDay()] }
+  }
+
   return (
     <section className="page">
       <header className="page-header">
         <h1>Historique</h1>
-        <p className="muted">
-          {entries.length === 0
-            ? 'Aucune entrée pour le moment. Écris la première dans l’onglet Écrire.'
-            : `${entries.length} entrée${entries.length > 1 ? 's' : ''}`}
-        </p>
-        {entries.length > 0 && (
-          <p className="muted stats-line">
-            Série : {streak.current} jour{streak.current > 1 ? 's' : ''}
-            {streak.paused ? ' (en pause)' : ''} · record : {streak.best}
-            {good.length > 0 && ` · grammaire bien placée : ${placed} point${placed > 1 ? 's' : ''}`}
-          </p>
-        )}
+        {entries.length === 0 && <p className="muted">Aucune entrée pour le moment. Écris la première dans l’onglet Écrire.</p>}
       </header>
 
+      {entries.length > 0 && (
+        <Block role="write" ja="記録" title="En chiffres" className="hist-figs">
+          <div className="figs">
+            <div className="fig">
+              <b>{entries.length}</b>
+              <small>entrée{entries.length > 1 ? 's' : ''}</small>
+            </div>
+            <div className="fig">
+              <b>{streak.current}</b>
+              <small>jour{streak.current > 1 ? 's' : ''} de suite{streak.paused ? ' (en pause)' : ''}</small>
+            </div>
+            <div className="fig">
+              <b>{streak.best}</b>
+              <small>record</small>
+            </div>
+            {good.length > 0 && (
+              <div className="fig">
+                <b>{placed}</b>
+                <small>point{placed > 1 ? 's' : ''} de grammaire placé{placed > 1 ? 's' : ''}</small>
+              </div>
+            )}
+          </div>
+        </Block>
+      )}
+
+      {entries.length > 0 && <MemoryCard id={today} />}
+
+      {months.map((month, mi) => {
+        const monthOpen = monthChoice[month.id] ?? mi === 0
+        return (
+          <div key={month.id} className="month-group">
+            <h2 className="month-head">
+              <button
+                type="button"
+                className="fold"
+                aria-expanded={monthOpen}
+                onClick={() => setMonthChoice((c) => ({ ...c, [month.id]: !monthOpen }))}
+              >
+                <span lang="ja" className="month-name">
+                  {monthLabel(month.id)}
+                </span>
+                <small className="fr">
+                  {month.items.length} entrée{month.items.length > 1 ? 's' : ''}
+                </small>
+                <span className="fold-icon">
+                  <Chevron dir={monthOpen ? 'down' : 'right'} size={20} />
+                </span>
+              </button>
+            </h2>
+            {monthOpen && (
       <ul className="entry-list">
-        {entries.map((entry) => {
+        {month.items.map((entry) => {
           const open = entry.id === openId
+          const dl = dayLabel(entry.id)
           return (
             <li key={entry.id} className="entry">
               <button
@@ -90,33 +149,29 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                 onClick={() => setOpenId(open ? null : entry.id)}
                 aria-expanded={open}
               >
-                <span className="entry-top">
-                  <span lang="ja" className="entry-date date-ink">
-                    {formatDateJa(entry.id, entry.id.slice(0, 4) !== thisYear)}
-                  </span>
-                  <span className="entry-meta">
-                    {entry.correction ? (
-                      <span lang="ja" className="red-ink entry-mark">
-                        添削
-                      </span>
-                    ) : entry.text.trim() !== '' ? (
-                      <span className="fr muted entry-mark entry-todo">pas corrigée</span>
-                    ) : null}
-                    <span className="entry-count">{countChars(entry.text)} 文字</span>
-                  </span>
+                <span lang="ja" className="ed">
+                  {dl.day}
+                  <br />
+                  {dl.week}
                 </span>
                 {/* L'aperçu fait partie du bouton : toute la ligne ouvre l'entrée. */}
-                {!open && (
-                  <span lang="ja" className="entry-preview">
-                    {entry.text}
-                  </span>
-                )}
+                <span lang="ja" className={open ? 'ep ep-open' : 'ep'}>
+                  {open ? formatDateJa(entry.id, entry.id.slice(0, 4) !== thisYear) : entry.text}
+                </span>
+                <span className="em">
+                  {entry.correction ? (
+                    <Pill role="fix">添</Pill>
+                  ) : entry.text.trim() !== '' ? (
+                    <span className="fr todo">pas corrigée</span>
+                  ) : null}
+                  <span className="entry-count">{countChars(entry.text)} 文字</span>
+                </span>
               </button>
               {!open && <DecorBoard small photos={entry.photos ?? []} stickers={entry.stickers ?? []} />}
               {open && (
                 <div className="entry-body">
                   {entry.prompt && (
-                    <p lang="ja" className="entry-topic blue-ink">
+                    <p lang="ja" className="entry-topic">
                       お題：<Jp text={entry.prompt.topic.ja} furigana={settings.furiganaFrom} />
                       {!entry.prompt.themeOnly && <span className="fr"> ・ {entry.prompt.grammar.pattern}</span>}
                     </p>
@@ -165,6 +220,10 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
           )
         })}
       </ul>
+            )}
+          </div>
+        )
+      })}
     </section>
   )
 }

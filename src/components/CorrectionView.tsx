@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Jp, plainText } from '../furigana'
+import Block from './Block'
 import Chevron from './Chevron'
 import CorrectionThread from './CorrectionThread'
 import type { Correction, CorrectionItem, FuriganaFrom, Settings } from '../types'
@@ -46,32 +47,29 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
       : ''
   }`
 
+  const praiseEl = praise ? (
+    <span className="praise fr" lang="fr">
+      <Jp text={praise} furigana={furigana} />
+    </span>
+  ) : null
+
   return (
-    <section className="tensaku" lang="ja" aria-label="Correction">
-      <h2 className="tensaku-title">
-        <button
-          type="button"
-          className="fold"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className="red-ink">添削</span>
-          <span className="fr">Correction</span>
-          <span className="fold-icon">
-            <Chevron dir={open ? 'down' : 'right'} size={22} />
-          </span>
-        </button>
-      </h2>
-
-      {praise && (
-        <p className="praise fr" lang="fr">
-          <Jp text={praise} furigana={furigana} />
-        </p>
-      )}
-
-      {!open && <p className="fr tensaku-overview">{overview}</p>}
-      {open && (
+    <Block
+      role="fix"
+      ja="添"
+      title="Correction"
+      className="tensaku-block"
+      open={open}
+      onToggle={() => setOpen((v) => !v)}
+      summary={
         <>
+          {praiseEl}
+          <span className="tensaku-overview fr">{overview}</span>
+        </>
+      }
+    >
+      <div className="tensaku-body" lang="ja">
+      {praiseEl}
 
       {stale && (
         <p className="stale" lang="fr">
@@ -80,7 +78,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
       )}
 
       {summary && !praise && (
-        <p className="teacher-note green-ink">
+        <p className="teacher-note">
           <Jp text={summary} furigana={furigana} />
         </p>
       )}
@@ -89,7 +87,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
         <span>もっと自然に</span>
         <span className="fr">Version plus naturelle</span>
       </h3>
-      <p className="natural blue-ink">
+      <p className="natural">
         <Jp text={natural} furigana={furigana} />
       </p>
 
@@ -107,7 +105,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
         )}
       </h3>
       {errors.length === 0 ? (
-        <p className="green-ink">まちがいは見つかりませんでした。</p>
+        <p>まちがいは見つかりませんでした。</p>
       ) : (
         <ul className="fixes">
           {errors.map((e, i) => (
@@ -220,7 +218,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
                     </p>
                   )}
                   {g.example && (
-                    <p className="grammar-example blue-ink">
+                    <p className="grammar-example">
                       <Jp text={g.example} furigana={furigana} />
                     </p>
                   )}
@@ -249,9 +247,8 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
           onOpenSettings={onOpenSettings}
         />
       )}
-        </>
-      )}
-    </section>
+      </div>
+    </Block>
   )
 }
 

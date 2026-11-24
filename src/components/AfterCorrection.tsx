@@ -6,8 +6,43 @@ import { Jp, plainText } from '../furigana'
 import { applyFixes, diffChars, squash } from '../rewrite'
 import { buildQuiz, collectItems, hideItem, recentFromDay, recordAnswer, type QuizHistory, type QuizQuestion } from '../quiz'
 import type { BonusSentence, Correction, FuriganaFrom } from '../types'
+import Chevron from './Chevron'
 import ConjSession from './ConjSession'
 import QuizCard from './QuizCard'
+
+
+/** Une ligne du bloc « Pour continuer » : mot japonais, titre, chevron ; un tap déplie le contenu dessous (S18.14). */
+function ContinueRow({
+  ja,
+  title,
+  value,
+  open,
+  onToggle,
+  children,
+}: {
+  ja: string
+  title: string
+  value?: string
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <li className="setting-row continue-row">
+      <button type="button" className="row-line" aria-expanded={open} onClick={onToggle}>
+        <span className="rk" lang="ja">
+          {ja}
+        </span>
+        <span className="rt">{title}</span>
+        {value ? <span className="rv">{value}</span> : null}
+        <span className="rc">
+          <Chevron dir={open ? 'down' : 'right'} size={18} />
+        </span>
+      </button>
+      {open && <div className="row-panel continue-panel">{children}</div>}
+    </li>
+  )
+}
 
 /** Une phrase de plus à ajouter à l'entrée, proposée par Claude avec la correction. */
 export function BonusCard({
@@ -24,27 +59,24 @@ export function BonusCard({
 }) {
   const sentence = plainText(bonus.ja).trim()
   const added = text.includes(sentence)
+  const [open, setOpen] = useState(false)
   return (
-    <section className="after-card bonus" aria-label="Phrase bonus">
-      <h2 className="part">
-        <span lang="ja">もう一文</span>
-        <span className="fr">Phrase bonus</span>
-      </h2>
-      <p className="bonus-ja blue-ink" lang="ja">
+    <ContinueRow ja="もう一文" title="Une phrase bonus" value={added ? 'ajoutée ✓' : undefined} open={open} onToggle={() => setOpen((v) => !v)}>
+      <p className="bonus-ja" lang="ja">
         <Jp text={bonus.ja} furigana={furigana} />
       </p>
       <p className="fr note-fr">{bonus.fr}</p>
       {bonus.why && <p className="fr bonus-why">{bonus.why}</p>}
       <div className="actions">
         {added ? (
-          <span className="fr green-ink">Ajoutée à ton entrée ✓</span>
+          <span className="fr">Ajoutée à ton entrée ✓</span>
         ) : (
           <button type="button" className="sketch" onClick={() => onAdd(sentence)}>
             Ajouter à mon entrée
           </button>
         )}
       </div>
-    </section>
+    </ContinueRow>
   )
 }
 
@@ -60,6 +92,7 @@ export function QuickReview({
   furigana: FuriganaFrom
 }) {
   const [question, setQuestion] = useState<QuizQuestion | null>(null)
+  const [open, setOpen] = useState(false)
   const history = useRef<QuizHistory>({})
 
   useEffect(() => {
@@ -79,11 +112,7 @@ export function QuickReview({
 
   if (!question) return null
   return (
-    <section className="after-card" aria-label="Révision éclair">
-      <h2 className="part">
-        <span lang="ja">復習</span>
-        <span className="fr">Révision éclair</span>
-      </h2>
+    <ContinueRow ja="復習" title="Révision éclair" open={open} onToggle={() => setOpen((v) => !v)}>
       <QuizCard
         key={question.item.key}
         question={question}
@@ -98,13 +127,14 @@ export function QuickReview({
           void saveQuizHistory(history.current).catch(() => undefined)
         }}
       />
-    </section>
+    </ContinueRow>
   )
 }
 
 /** Réécrire de mémoire la version corrigée, puis voir la différence caractère par caractère. */
 export function RewriteCard({ correction }: { correction: Correction }) {
   const target = squash(applyFixes(correction))
+  const [rowOpen, setRowOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState('')
   const [checked, setChecked] = useState(false)
@@ -121,11 +151,7 @@ export function RewriteCard({ correction }: { correction: Correction }) {
   const wrong = parts.filter((p) => p.type !== 'same').reduce((n, p) => n + [...p.text].length, 0)
 
   return (
-    <section className="after-card" aria-label="Réécrire sans regarder">
-      <h2 className="part">
-        <span lang="ja">書き直し</span>
-        <span className="fr">Réécrire sans regarder</span>
-      </h2>
+    <ContinueRow ja="書き直し" title="Réécrire sans regarder" open={rowOpen} onToggle={() => setRowOpen((v) => !v)}>
       {!open ? (
         <>
           <p className="fr note-fr">
@@ -163,7 +189,7 @@ export function RewriteCard({ correction }: { correction: Correction }) {
           {checked && (
             <div className="rewrite-result" lang="ja">
               {wrong === 0 ? (
-                <p className="green-ink">
+                <p>
                   <span lang="fr">Parfait, tout est juste !</span>
                 </p>
               ) : (
@@ -193,13 +219,14 @@ export function RewriteCard({ correction }: { correction: Correction }) {
           )}
         </>
       )}
-    </section>
+    </ContinueRow>
   )
 }
 
 /** Trois cartes de conjugaison (révisions dues d'abord) juste après la correction. */
 export function ConjDaily({ correctionKey }: { correctionKey: number }) {
   const [items, setItems] = useState<SessionItem[] | null>(null)
+  const [rowOpen, setRowOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [finished, setFinished] = useState<{ right: number; total: number } | null>(null)
 
@@ -223,16 +250,12 @@ export function ConjDaily({ correctionKey }: { correctionKey: number }) {
 
   if (!items) return null
   return (
-    <section className="after-card" aria-label="Conjugaison éclair">
-      <h2 className="part">
-        <span lang="ja">活用</span>
-        <span className="fr">Conjugaison éclair</span>
-      </h2>
+    <ContinueRow ja="活用" title="Conjugaison éclair" open={rowOpen} onToggle={() => setRowOpen((v) => !v)}>
       {finished ? (
         <p className="fr">
-          <span className="green-ink">
+          <strong>
             {finished.right} / {finished.total}
-          </span>{' '}
+          </strong>{' '}
           — la suite est dans Stats.
         </p>
       ) : open ? (
@@ -253,6 +276,6 @@ export function ConjDaily({ correctionKey }: { correctionKey: number }) {
           </div>
         </>
       )}
-    </section>
+    </ContinueRow>
   )
 }

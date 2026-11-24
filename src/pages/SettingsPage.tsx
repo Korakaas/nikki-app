@@ -6,6 +6,7 @@ import Block from '../components/Block'
 import CapNotice from '../components/CapNotice'
 import Chevron from '../components/Chevron'
 import SettingRow from '../components/SettingRow'
+import { VERSION_LABEL } from '../version'
 import { CAP_ALERT_SHARE, CORRECTIONS_PER_MONTH, capShare, correctionCosts, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
 import { paletteOf, THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type FuriganaFrom, type Palette, type Settings, type Theme } from '../types'
 
@@ -517,6 +518,10 @@ export default function SettingsPage({ settings, onChange }: Props) {
         {lastBackup && <p className="lead">{lastBackup}</p>}
         {message && <p className="notice">{message}</p>}
       </Block>
+
+      <p className="version-line" aria-label="Numéro de version">
+        {VERSION_LABEL}
+      </p>
     </section>
   )
 }

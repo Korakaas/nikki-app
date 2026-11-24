@@ -1,5 +1,15 @@
 # Journal des changements
 
+## Lot 2 : Écrire, Historique et numéro de version (2026-11-24)
+
+- S18.21 « Numéro de version » (1 point) : tout en bas de Réglages, « Version N · date · code ». N = nombre de commits, la date est celle de la construction (heure de Paris). Il est annoncé à chaque livraison pour vérifier que le téléphone a la bonne version. Le déploiement GitHub récupère tout l'historique pour que le compte soit juste.
+- S18.14 « Correction en bloc » (3 points) : la correction devient un bloc rose ouvert d'un tap ; replié, il garde l'encouragement (une correction commence par ce qui est réussi) et un résumé « 2 erreurs · 1 ○ 1 △ ». Le texte corrigé n'est plus en bleu.
+- S18.15 « Pour continuer » (2 points) : phrase bonus, réécrire sans regarder, révision éclair et conjugaison éclair sont rangées en lignes dans un seul bloc, sous la correction (il disparaît s'il n'y a rien à proposer). Chaque exercice marche comme avant.
+- S18.16 « Historique par mois » (3 points) : bloc « En chiffres », entrées rangées par mois (le dernier mois ouvert, les autres repliés), deux lignes de texte, pastille 添 et nombre de caractères ; ouvrir une entrée donne la même vue qu'avant (texte, décor, correction, Modifier, Supprimer).
+- S18.20 « Souvenir déplacé dans l'Historique » (1 point, décision D69) : « Il y a un mois, tu écrivais… » quitte l'écran Écrire et devient un bloc de l'Historique.
+- Coût API : 0 € (aucun appel ajouté). Données : rien ne change, le format des sauvegardes reste celui d'avant (version 2).
+- Lot suivant (pas encore commencé) : S18.17 (Stats), S18.18 (Bilans), S18.19 (tampons).
+
 ## Lot lisibilité : des blocs et des couleurs douces (2026-11-24)
 
 - S18.10 « Palettes et pastilles » (3 points) : chaque section devient un bloc au cadre fin neutre, avec une petite pastille colorée (vert = écrire, rose = correction, 3ᵉ couleur = s'entraîner, gris = réglages). Le texte reste noir. Trois palettes au choix dans Réglages → Couleurs : « Matcha et sakura » (par défaut), « Fruits », « Canard » ; clair et sombre.
@@ -7,7 +17,7 @@
 - S18.12 « Réglages en quatre groupes » (3 points) : Écriture, Cartes Anki, Claude (plié par défaut, ouvert tant qu'il n'y a pas de clé API), Sauvegarde. Lignes compactes « libellé … valeur › » comme sur la maquette ; un tap déplie le réglage dessous. Chaque réglage fonctionne comme avant.
 - S18.13 « Thème du jour plié » (3 points) : le bloc est plié par défaut, en trois lignes (Sujet / Grammaire / Mots) ; déplié, une pastille par partie (題, 文法, 単語, 訳) et le défi de traduction se déplie. Plus aucun bouton visible : les actions (changer la grammaire, changer les mots, juste le thème, tout changer, retirer le sujet) sont dans un menu discret « ⋯ ».
 - Coût API : 0 € (aucun appel ajouté). Données : `palette` facultatif dans les réglages (absent = Matcha) ; le format des sauvegardes ne change pas (version 2), la clé API n'y est toujours pas.
-- Lot suivant (pas encore commencé) : S18.14 à S18.19 (Écrire, correction, Historique, Stats, Bilans, tampons).
+- Lot suivant : voir « Lot 2 » ci-dessus.
 
 ## Lot ergonomie : moins de bruit sur Écrire (2026-11-24)
 
