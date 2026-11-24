@@ -103,7 +103,7 @@ Sous une correction ouverte, le bouton « Une question ? » ouvre un fil (dans u
 
 ### Après la correction
 
-Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : « Réécrire sans regarder » (la phrase bonus n'est plus demandée à Claude ni affichée ; le champ `bonus` des anciennes corrections est conservé tel quel)  ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
+Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : « Réécrire sans regarder » (la phrase bonus n'est plus demandée à Claude ni affichée ; le champ `bonus` des anciennes corrections est conservé tel quel) ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
 ### Succès
 
@@ -119,7 +119,7 @@ Quand un nouveau succès se débloque, une carte discrète s'affiche une fois : 
 
 ### Correction courte ou complète
 
-Réglages → Correction. « Complète » (par défaut) : chaque faute avec ses explications, l'encouragement, la grammaire bien placée et à revoir, la phrase bonus. « Courte » : l'encouragement, la faute, sa correction et une phrase d'explication, plus les points bien employés ; elle n'envoie plus le contexte, l'autre emploi, les points à revoir ni la phrase bonus, et demande une réponse plus petite. Le choix s'applique à la prochaine correction ; les anciennes gardent leur forme. Le coût d'une correction et le coût mensuel (une par jour) sont affichés pour les deux choix : mesurés d'après ta consommation dès 2 appels de chaque sorte, estimés avant (complète ≈ 0,027 $, courte ≈ 55 % de cela). Les corrections courtes sont comptées à part dans Consommation de l'API.
+Réglages → Correction. « Complète » (par défaut) : chaque faute avec ses explications, l'encouragement, la grammaire bien placée et à revoir. « Courte » : l'encouragement, la faute, sa correction et une phrase d'explication, plus les points bien employés ; elle ne demande plus le contexte, l'autre emploi ni les points à revoir, et demande une réponse plus petite. Le choix s'applique à la prochaine correction ; les anciennes gardent leur forme. Le coût d'une correction et le coût mensuel (une par jour) sont affichés pour les deux choix : mesurés d'après ta consommation dès 2 appels de chaque sorte, estimés avant (complète ≈ 0,027 $, courte ≈ 55 % de cela). Les corrections courtes sont comptées à part dans Consommation de l'API.
 
 ### Série douce
 
