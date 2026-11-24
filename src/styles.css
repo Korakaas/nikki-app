@@ -3173,3 +3173,56 @@ button.fix-ask {
   color: var(--pencil);
   font-size: 0.95rem;
 }
+
+/* Retouches de Kora (lot 2) : indicateur d'encouragement, grammaire repliable */
+.praise {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.praise-mark {
+  flex: none;
+  margin-top: 3px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--w-fill);
+  color: var(--w-ink);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+.praise-text {
+  min-width: 0;
+}
+.part-fold {
+  padding: 0;
+}
+.part-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.part-toggle .part-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-weight: normal;
+}
+.part-toggle .fold-icon {
+  align-self: center;
+}
+.grammar[hidden] {
+  display: none;
+}

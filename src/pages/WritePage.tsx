@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { BonusCard, ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
+import { ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
 import Block from '../components/Block'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
@@ -525,17 +525,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           onToggle={() => setContinueOpen((v) => !v)}
         >
           <ul className="rows">
-            {meta.correction.bonus && (
-              <BonusCard
-                bonus={meta.correction.bonus}
-                furigana={settings.furiganaFrom}
-                text={text}
-                onAdd={(sentence) => {
-                  const base = text.trimEnd()
-                  onChange(base + (/[。！？!?」』）)]$/.test(base) || base === '' ? '' : '。') + sentence)
-                }}
-              />
-            )}
             {!stale && <RewriteCard correction={meta.correction} />}
             <QuickReview currentId={id} correctionKey={meta.correction.createdAt} furigana={settings.furiganaFrom} />
             <ConjDaily correctionKey={meta.correction.createdAt} />

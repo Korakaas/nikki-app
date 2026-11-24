@@ -27,7 +27,12 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
   const { summary, praise, natural, errors, grammarGood, grammarReview } = correction
   const [open, setOpen] = useState(Boolean(startOpen))
   // Fautes dont les explications sont dépliées (repliées au départ).
-  const [opened, setOpened] = useState<Set<number>>(new Set())
+  // Dépliées au départ (retouche de Kora) : on voit tout de suite le pourquoi de chaque faute.
+  const [opened, setOpened] = useState<Set<number>>(
+    () => new Set(correction.errors.map((e, i) => (hasDetails(e) ? i : -1)).filter((i) => i >= 0)),
+  )
+  // La grammaire est repliée au départ.
+  const [grammarOpen, setGrammarOpen] = useState(false)
   // Fil de questions : ouvert ou non, et faute concernée par la prochaine question.
   const [threadOpen, setThreadOpen] = useState(false)
   const [about, setAbout] = useState<string | null>(null)
@@ -49,7 +54,12 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
 
   const praiseEl = praise ? (
     <span className="praise fr" lang="fr">
-      <Jp text={praise} furigana={furigana} />
+      <span className="praise-mark" lang="ja" aria-hidden="true">
+        褒
+      </span>
+      <span className="praise-text">
+        <Jp text={praise} furigana={furigana} />
+      </span>
     </span>
   ) : null
 
@@ -82,14 +92,6 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
           <Jp text={summary} furigana={furigana} />
         </p>
       )}
-
-      <h3 className="part">
-        <span>もっと自然に</span>
-        <span className="fr">Version plus naturelle</span>
-      </h3>
-      <p className="natural">
-        <Jp text={natural} furigana={furigana} />
-      </p>
 
       <h3 className="part part-row">
         <span>まちがい</span>
@@ -179,13 +181,34 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
         </ul>
       )}
 
+      <h3 className="part">
+        <span>もっと自然に</span>
+        <span className="fr">Version plus naturelle</span>
+      </h3>
+      <p className="natural">
+        <Jp text={natural} furigana={furigana} />
+      </p>
+
       {(grammarGood.length > 0 || grammarReview.length > 0) && (
         <>
-          <h3 className="part">
-            <span>文法</span>
-            <span className="fr">Grammaire</span>
+          <h3 className="part part-fold">
+            <button
+              type="button"
+              className="part-toggle"
+              aria-expanded={grammarOpen}
+              onClick={() => setGrammarOpen((v) => !v)}
+            >
+              <span>文法</span>
+              <span className="fr">Grammaire</span>
+              <span className="fr part-count">
+                {grammarGood.length} ○ {grammarReview.length} △
+              </span>
+              <span className="fold-icon">
+                <Chevron dir={grammarOpen ? 'down' : 'right'} size={20} />
+              </span>
+            </button>
           </h3>
-          <ul className="grammar">
+          <ul className="grammar" hidden={!grammarOpen}>
             {grammarGood.map((g, i) => (
               <li key={`g${i}`} className="grammar-item">
                 <span className="mark green-ink" aria-label="bien utilisé">

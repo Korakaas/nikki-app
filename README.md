@@ -14,8 +14,9 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
     fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
     Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
   - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
-- **Écrire** : après la correction, deux blocs. « Correction » (rose) est ouvert d'un tap ; replié, il garde l'encouragement et un résumé
-  (« 2 erreurs · 1 ○ 1 △ »). « Pour continuer » (3ᵉ couleur) range en lignes la phrase bonus, « Réécrire sans regarder », la révision éclair
+- **Écrire** : après la correction, deux blocs. « Correction » (rose) est ouvert d'un tap ; replié, il garde l'encouragement (marqué d'une pastille 褒) et un résumé
+  (« 2 erreurs · 1 ○ 1 △ »). Déplié : les erreurs d'abord, avec leurs explications dépliées, puis la version plus naturelle, puis la grammaire
+  (repliée ; un tap sur la ligne « Grammaire » l'ouvre). « Pour continuer » (3ᵉ couleur) range en lignes « Réécrire sans regarder », la révision éclair
   et la conjugaison éclair ; il disparaît s'il n'y a rien à proposer.
 - **Historique** : un bloc « En chiffres » (entrées, jours de suite, record, points de grammaire placés), le souvenir « Il y a un mois, tu
   écrivais… » (voir ci-dessous), puis les entrées rangées par mois (le mois le plus récent est ouvert, les autres repliés). Chaque entrée
@@ -102,7 +103,7 @@ Sous une correction ouverte, le bouton « Une question ? » ouvre un fil (dans u
 
 ### Après la correction
 
-Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : une « phrase bonus » proposée par Claude (dans le même appel que la correction, champ `bonus`), à ajouter à l'entrée d'un geste ; « Réécrire sans regarder » ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
+Sous la correction, le bloc « Pour continuer » (lignes qui se déplient une par une) : « Réécrire sans regarder » (la phrase bonus n'est plus affichée : le champ `bonus` reste dans les anciennes corrections)  ; une « révision éclair » : une question tirée de tes fautes des autres jours ; la conjugaison éclair quand elle est débloquée (`src/components/AfterCorrection.tsx`, même historique que le quiz des Stats).
 
 ### Succès
 

@@ -2,6 +2,8 @@
 
 ## Lot 2 : Écrire, Historique et numéro de version (2026-11-24)
 
+- Retouches demandées par Kora après essai (même jour) : une pastille 褒 devant l'encouragement ; dans la correction dépliée, les erreurs d'abord (explications dépliées), puis la version plus naturelle ; la grammaire est repliée (ligne « Grammaire … 1 ○ 1 △ ») ; la ligne « Une phrase bonus » disparaît de « Pour continuer ».
+
 - S18.21 « Numéro de version » (1 point) : tout en bas de Réglages, « Version N · date · code ». N = nombre de commits, la date est celle de la construction (heure de Paris). Il est annoncé à chaque livraison pour vérifier que le téléphone a la bonne version. Le déploiement GitHub récupère tout l'historique pour que le compte soit juste.
 - S18.14 « Correction en bloc » (3 points) : la correction devient un bloc rose ouvert d'un tap ; replié, il garde l'encouragement (une correction commence par ce qui est réussi) et un résumé « 2 erreurs · 1 ○ 1 △ ». Le texte corrigé n'est plus en bleu.
 - S18.15 « Pour continuer » (2 points) : phrase bonus, réécrire sans regarder, révision éclair et conjugaison éclair sont rangées en lignes dans un seul bloc, sous la correction (il disparaît s'il n'y a rien à proposer). Chaque exercice marche comme avant.
