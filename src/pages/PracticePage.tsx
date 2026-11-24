@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { loadAnki, listEntries, loadTwoMinutesDay, todayId } from '../db'
 import { deckVerbs } from '../conj/verbs'
 import { writtenDays } from '../stats'
+import Stamp from '../components/Stamp'
 import Chevron from '../components/Chevron'
 import ConjSection from '../components/ConjSection'
 import ErrorQuiz from '../components/ErrorQuiz'
@@ -80,18 +81,12 @@ export default function PracticePage({ settings }: Props) {
         <span className="two-min-text">
           <span className="two-min-name fr">
             J'ai 2 minutes
-            {seriesDone && (
-              <span className="green-ink" role="img" aria-label="Fait aujourd'hui">
-                {' '}
-                ✓
-              </span>
-            )}
           </span>
           <small className="fr">
             {seriesDone ? "Fait aujourd'hui · encore 5 questions ?" : '5 questions, sans réglage'}
           </small>
         </span>
-        <Chevron dir="right" size={22} />
+        {seriesDone ? <Stamp kind="nibun" size={62} tilt={-6} /> : <Chevron dir="right" size={22} />}
       </button>
       <div className="block">
         <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />

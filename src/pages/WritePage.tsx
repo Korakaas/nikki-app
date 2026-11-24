@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ConjDaily, QuickReview, RewriteCard } from '../components/AfterCorrection'
 import Block from '../components/Block'
+import Stamp from '../components/Stamp'
+import { earnedStamp } from '../stamps'
 import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
@@ -467,18 +469,25 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         </button>
       )}
 
-      <textarea
-        ref={areaRef}
-        className="sheet editor"
-        lang="ja"
-        value={text}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={isToday ? '今日はどんな一日でしたか？' : 'この日はどんな一日でしたか？'}
-        aria-label="Entrée du journal du jour"
-        spellCheck={false}
-        autoCapitalize="off"
-        autoCorrect="off"
-      />
+      <div className="sheet-wrap">
+        <textarea
+          ref={areaRef}
+          className="sheet editor"
+          lang="ja"
+          value={text}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={isToday ? '今日はどんな一日でしたか？' : 'この日はどんな一日でしたか？'}
+          aria-label="Entrée du journal du jour"
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
+        />
+        {/* Tampon de professeur (S18.19) : posé sur la page une fois l'entrée corrigée, sans bruit ni message. */}
+        {meta.correction && (() => {
+          const kind = earnedStamp({ text, correction: meta.correction, prompt })
+          return kind ? <Stamp kind={kind} size={92} tilt={-9} className="sheet-stamp" /> : null
+        })()}
+      </div>
 
       <Decor photos={photos} stickers={stickers} onChange={(p, s) => void saveDecor(p, s)} />
 

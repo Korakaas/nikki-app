@@ -1,4 +1,5 @@
 import type { Achievement } from '../achievements'
+import Block from './Block'
 
 const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
@@ -17,11 +18,7 @@ export default function AchievementsView({ achievements }: { achievements: Achie
     .sort((a, b) => ratio(b) - ratio(a))
 
   return (
-    <>
-      <h2 className="part">
-        <span lang="ja">達成</span>
-        <span className="fr">Succès · {done.length} sur {achievements.length}</span>
-      </h2>
+    <Block role="write" ja="達" title={`Succès · ${done.length} sur ${achievements.length}`} className="stat-block">
       <ul className="achievements" aria-label="Succès">
         {done.map((a) => (
           <li key={a.id} className="achievement done">
@@ -47,7 +44,7 @@ export default function AchievementsView({ achievements }: { achievements: Achie
           </li>
         ))}
       </ul>
-    </>
+    </Block>
   )
 }
 

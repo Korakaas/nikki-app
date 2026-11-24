@@ -10,6 +10,7 @@ import type { AchievementStore } from './achievements'
 import { normalizeConj, type ConjState } from './conj/srs'
 import { cleanEntry } from './trivial'
 import { costOf } from './usage'
+import { bestStamp, earnedStamp } from './stamps'
 
 const DB_NAME = 'nikki'
 const DB_VERSION = 1
@@ -79,7 +80,10 @@ function notifyChange(): void {
 }
 
 export async function saveEntry(entry: Entry): Promise<void> {
-  await run(ENTRIES, 'readwrite', (s) => s.put(entry))
+  // Le tampon gagné ne baisse jamais, même si le texte ou la correction changent ensuite.
+  const stamp = bestStamp(entry.stamp, earnedStamp(entry))
+  const toSave = stamp ? { ...entry, stamp } : entry
+  await run(ENTRIES, 'readwrite', (s) => s.put(toSave))
   notifyChange()
 }
 

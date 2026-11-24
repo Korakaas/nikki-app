@@ -207,6 +207,9 @@ export interface EntrySticker {
   kind: string
 }
 
+/** Tampon de professeur posé sur une entrée (S18.19). */
+export type StampKind = 'ganbari' | 'yoku' | 'hanamaru'
+
 export interface Entry {
   /** Date locale au format YYYY-MM-DD : une seule entrée par jour. */
   id: string
@@ -222,6 +225,8 @@ export interface Entry {
   pendingCorrection?: boolean
   /** Dernier échec de correction, à afficher sous le texte. */
   correctionError?: string
+  /** Plus beau tampon gagné par cette entrée : il ne baisse jamais (S18.19). Absent = pas encore. */
+  stamp?: StampKind
 }
 
 /** Notes importées depuis Anki (export texte), utilisées pour enrichir les idées du jour. */

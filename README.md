@@ -9,11 +9,14 @@ furigana filtrés selon un seuil de niveau).
 
 Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
 
-- **Stats** a deux onglets en bas de l'écran (au pouce), dont le dernier ouvert est mémorisé :
-  - **Progrès** : cinq chiffres clés visibles sans défiler (jours écrits, jours de suite, caractères écrits,
-    fautes pour 100 caractères, mots utilisés), puis mois par mois, erreurs, mots du jour et grammaire.
-    Chaque chiffre et chaque graphique a un « ? » qui explique le calcul en une phrase (un tap ailleurs le ferme).
-  - **Bilans** : le bilan de la semaine, replié par défaut (titre et ligne avec la semaine concernée), puis le bilan du mois.
+- **Stats** a trois onglets en haut de l'écran (Progrès, Bilans, Succès ; le dernier ouvert est mémorisé), chaque section est un bloc :
+  - **Progrès** : « Jours écrits » (jours, jours de suite, 文字, fautes pour 100 文字, mots utilisés), « Mois par mois », « Erreurs par type »
+    (avec les fautes semaine par semaine), puis « Mots du jour » et « Grammaire » repliés. Le « ? » de chaque bloc explique le calcul en une phrase.
+  - **Bilans** : le bilan de la semaine, replié (titre, période, et deux liens discrets « Refaire le bilan » et « Copier pour Claude » ; déplié, il
+    commence par ce qui progresse, puis ce qui revient, puis le point à viser), puis le bilan du mois : quatre cartes de chiffres (jours écrits,
+    caractères par entrée, fautes pour 100 caractères, mots du jour) comparées au mois d'avant, les fautes par type en barres (ce mois-ci / avant) et
+    trois listes (réussis pour la première fois, à revoir puis réussis, encore à revoir). Une flèche de progrès est verte ; une baisse reste grise, jamais rouge.
+  - **Succès** : les succès gagnés et à venir, dans un bloc.
 - **Écrire** : après la correction, deux blocs. « Correction » (rose) est ouvert d'un tap ; replié, il garde l'encouragement (marqué d'une pastille 褒) et un résumé
   (« 2 erreurs · 1 ○ 1 △ »). Déplié : les erreurs d'abord, avec leurs explications dépliées, puis la version plus naturelle, puis la grammaire
   (repliée ; un tap sur la ligne « Grammaire » l'ouvre). « Pour continuer » (3ᵉ couleur) range en lignes « Réécrire sans regarder », la révision éclair
@@ -31,13 +34,25 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
   pour savoir si le téléphone a bien reçu la dernière mise à jour. Calculé à la construction (`vite.config.ts`, `src/version.ts`) ;
   le déploiement GitHub récupère tout l'historique (`fetch-depth: 0`) pour que le compte soit juste.
 
+### Tampons de professeur
+
+Comme sur les copies au Japon : un tampon rouge encre, un peu de travers, posé sans bruit ni message (aucune notification). Jamais choisi d'après le
+nombre de fautes, et il ne s'enlève jamais : le meilleur tampon gagné est gardé dans l'entrée (champ facultatif `stamp`, comptabilisé à chaque
+enregistrement, `src/stamps.ts`). Un seul grand tampon par entrée, le plus beau gagne :
+- **がんばりました** : deux phrases écrites (ou 20 caractères) ;
+- **よくできました** : la correction juge le point de grammaire du jour bien employé ;
+- **花丸** : en plus, au moins un mot du jour est employé ;
+- **二分** : sur l'encart « J'ai 2 minutes » (Exercices), quand la série du jour est faite.
+Écrire montre le tampon sur la page une fois l'entrée corrigée ; l'Historique le montre dans l'entrée ouverte et marque les entrées corrigées d'un petit sceau 添.
+Les anciennes sauvegardes s'importent sans rien changer (pas de champ `stamp` : il se calcule à la prochaine ouverture de l'entrée).
+
 ### Couleurs et blocs
 
 Chaque section est un bloc au cadre fin et neutre, avec une petite pastille colorée : vert = écrire (題, 書), rose = correction, 3ᵉ couleur = s'entraîner
 (復習, 助詞, 活用, 自他), gris = réglages. Seule la pastille porte la couleur ; le texte reste noir. Réglages → Couleurs propose trois palettes :
 « Matcha et sakura » (par défaut), « Fruits » et « Canard » ; le choix s'applique tout de suite, en clair comme en sombre. Il est gardé dans le
 réglage facultatif `palette` (absent = Matcha), donc les anciennes sauvegardes s'importent sans rien changer. Code : `src/components/Block.tsx`,
-variables de couleur au début de `src/styles.css`, application sur `<html data-palette>` dans `index.html` (avant le premier affichage) et `src/App.tsx`.
+le bleu des anciens écrans a disparu (liens, anneau du jour, notes : encre neutre des palettes) ; variables de couleur au début de `src/styles.css`, application sur `<html data-palette>` dans `index.html` (avant le premier affichage) et `src/App.tsx`.
 
 ## Correction
 

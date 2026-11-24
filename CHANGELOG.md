@@ -1,5 +1,13 @@
 # Journal des changements
 
+## Lot 3 : Stats, Bilans et tampons de professeur (2026-11-24)
+
+- S18.17 « Stats en blocs » (3 points) : onglets Progrès, Bilans et Succès en haut de l'écran ; chaque section est un bloc avec sa pastille et son « ? » ; Mots du jour et Grammaire repliés ; graphiques aux couleurs des pastilles. Les cinq chiffres clés restent (jours, de suite, 文字, fautes pour 100 文字, mots).
+- S18.18 « Bilans plus lisibles » (5 points) : bilan de la semaine replié, avec « Refaire le bilan » et « Copier pour Claude » en liens discrets ; déplié, il commence par ce qui progresse. Bilan du mois en quatre cartes comparées au mois d'avant, fautes par type en barres, trois listes. Une baisse n'est jamais rouge. Aucun appel à l'API de plus.
+- S18.19 « Tampons de professeur » (5 points) : がんばりました (deux phrases écrites), よくできました (point de grammaire du jour bien employé), 花丸 (en plus, un mot du jour employé), 二分 (série « J'ai 2 minutes » faite). Un seul grand tampon par entrée, jamais d'après les fautes, sans son ni notification, jamais retiré. Posé sur la page dans Écrire et dans l'Historique ; petit sceau 添 pour les entrées corrigées ; 二分 sur l'encart des Exercices.
+- Le bleu des anciens écrans est remplacé par l'encre neutre des palettes.
+- Coût API : 0 € (aucun appel ajouté). Données : champ facultatif `stamp` sur les entrées ; le format des sauvegardes ne change pas (version 2), les anciennes sauvegardes s'importent sans rien changer.
+
 ## Lot 2 : Écrire, Historique et numéro de version (2026-11-24)
 
 - La phrase bonus n'est plus demandée à Claude (D71) : la réponse de correction est un peu plus courte, donc un peu moins chère. Les anciennes corrections gardent leur phrase bonus dans les données et les sauvegardes.

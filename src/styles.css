@@ -3260,3 +3260,301 @@ button.fix-ask {
 .month-group .entry-body {
   padding-bottom: 12px;
 }
+
+/* Tampons de professeur (S18.19) : rouge encre, un peu de travers, un peu transparents, sans animation ni son */
+:root {
+  --stamp: #b9362b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --stamp: #e07a6c;
+  }
+}
+:root[data-theme='dark'] {
+  --stamp: #e07a6c;
+}
+.stamp {
+  display: inline-block;
+  flex: none;
+  color: var(--stamp);
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  font-family: var(--hand, inherit);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .stamp {
+    mix-blend-mode: normal;
+    opacity: 0.8;
+  }
+}
+:root[data-theme='dark'] .stamp {
+  mix-blend-mode: normal;
+  opacity: 0.8;
+}
+.sheet-wrap {
+  position: relative;
+}
+.sheet-wrap .sheet-stamp {
+  position: absolute;
+  right: -2px;
+  bottom: 8px;
+}
+.two-min-card .stamp {
+  margin-left: auto;
+}
+/* Petit sceau 添 (entrée corrigée) dans l'Historique */
+.seal {
+  display: inline-grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border: 2px solid var(--stamp);
+  border-radius: 6px 5px 7px 5px;
+  color: var(--stamp);
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.85;
+  transform: rotate(-5deg);
+}
+
+/* ---------- Lot 3 : Stats en blocs, Bilans, plus de bleu (S18.17, S18.18) ---------- */
+/* Le bleu des anciens écrans prend la couleur d'encre neutre des palettes. */
+:root,
+:root:not([data-theme='light']),
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --blue: var(--s-ink);
+}
+.progress {
+  border-color: var(--w-ink);
+}
+.progress span {
+  background: var(--w-ink);
+}
+
+/* Onglets en haut, en pastille arrondie */
+.stats-pane .subtabs {
+  position: static;
+  margin: 0 0 14px;
+  padding: 3px;
+  gap: 2px;
+  border: 1.5px solid var(--rule);
+  border-radius: 14px;
+  background: var(--block-bg);
+}
+.stats-pane .subtab {
+  border: 0;
+  border-radius: 11px;
+  color: var(--pencil);
+}
+.stats-pane .subtab.active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+.stat-block {
+  margin-bottom: 12px;
+}
+.block-top .block-tip {
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+}
+.stat-block .tip-text {
+  margin: 0 0 10px;
+}
+.tip-inline {
+  margin: 12px 0 0;
+  color: var(--pencil);
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+/* Chiffres clés */
+.figs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.figs-2 {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dotted var(--rule);
+}
+.fig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+.fig-value {
+  color: var(--w-ink);
+  font-family: var(--pen);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.fig-label {
+  color: var(--pencil);
+  line-height: 1.2;
+}
+.fig-extra {
+  color: var(--pencil);
+  font-size: 0.85rem;
+}
+
+/* Graphiques aux couleurs des pastilles */
+.month-bar {
+  background: color-mix(in srgb, var(--w-ink) 45%, var(--paper));
+  opacity: 1;
+}
+.month-bar-wrap {
+  border-bottom-color: var(--rule);
+}
+.red-bar {
+  background: color-mix(in srgb, var(--c-ink) 45%, var(--paper));
+  opacity: 1;
+}
+.trend-bar {
+  background: color-mix(in srgb, var(--c-ink) 45%, var(--paper));
+  opacity: 1;
+}
+.bar-track {
+  background: var(--rule-soft);
+  border-radius: 8px;
+  height: 14px;
+  overflow: hidden;
+}
+.bar-track .bar {
+  height: 100%;
+  border-radius: 8px;
+}
+.bar-label {
+  width: 7.2em;
+}
+.bar-count {
+  width: auto;
+  min-width: 1.6em;
+  white-space: nowrap;
+}
+
+/* Bilan de la semaine */
+.week-block .block-sum {
+  margin-top: 4px;
+}
+.review-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 10px;
+}
+.review-links .link {
+  min-height: 40px;
+  padding: 0;
+  color: var(--pencil);
+  text-decoration: underline;
+}
+.week-block .review-line {
+  margin: 0 0 6px;
+}
+.week-block .sub {
+  margin: 16px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--rule-soft);
+  color: var(--pencil);
+  font-weight: 700;
+}
+.review-pattern {
+  font-size: 1.15rem;
+}
+.week-block .review-focus {
+  padding: 10px 12px;
+  border: 1px dotted var(--rule);
+  border-radius: 12px;
+  background: var(--block-bg);
+}
+
+/* Bilan du mois : quatre cartes de chiffres */
+.month-block .month-nav {
+  margin: 4px 0 10px;
+}
+.month-arrow {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+}
+.month-arrow:disabled {
+  opacity: 0.35;
+}
+.month-figs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.month-fig {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--block-bg);
+}
+.month-fig b {
+  font-family: var(--pen);
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.month-fig b i {
+  color: var(--pencil);
+  font-family: var(--hand, inherit);
+  font-size: 1rem;
+  font-style: normal;
+}
+.month-fig small {
+  color: var(--pencil);
+}
+.month-fig span {
+  line-height: 1.2;
+}
+.trend-good {
+  margin-left: 6px;
+  color: var(--w-ink);
+  font-size: 1.1rem;
+}
+.trend-flat {
+  margin-left: 6px;
+  color: var(--pencil);
+  font-size: 1.1rem;
+}
+.sub-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--rule-soft);
+  color: var(--pencil);
+  font-weight: 700;
+}
+.sub-line small {
+  font-weight: 400;
+}
+.month-bars {
+  margin-top: 2px;
+}

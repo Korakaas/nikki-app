@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import Block, { Pill } from '../components/Block'
+import Block from '../components/Block'
+import Stamp from '../components/Stamp'
+import { shownStamp } from '../stamps'
 import Chevron from '../components/Chevron'
 import CorrectionView from '../components/CorrectionView'
 import MemoryCard from '../components/MemoryCard'
@@ -160,7 +162,9 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                 </span>
                 <span className="em">
                   {entry.correction ? (
-                    <Pill role="fix">添</Pill>
+                    <span className="seal" lang="ja" role="img" aria-label="Corrigée">
+                      添
+                    </span>
                   ) : entry.text.trim() !== '' ? (
                     <span className="fr todo">pas corrigée</span>
                   ) : null}
@@ -176,9 +180,15 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
                       {!entry.prompt.themeOnly && <span className="fr"> ・ {entry.prompt.grammar.pattern}</span>}
                     </p>
                   )}
-                  <p lang="ja" className="sheet entry-text">
-                    {entry.text}
-                  </p>
+                  <div className="sheet-wrap">
+                    <p lang="ja" className="sheet entry-text">
+                      {entry.text}
+                    </p>
+                    {(() => {
+                      const kind = shownStamp(entry)
+                      return kind ? <Stamp kind={kind} size={76} tilt={-8} className="sheet-stamp" /> : null
+                    })()}
+                  </div>
                   <DecorBoard photos={entry.photos ?? []} stickers={entry.stickers ?? []} />
                   {entry.correction && (
                     <CorrectionView
