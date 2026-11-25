@@ -1,4 +1,5 @@
 import { plainText, shouldShowReading } from './furigana'
+import { formatById, type FormatId } from './formats'
 import { addUsage } from './db'
 import { dropOverlaps, isTrivialFix } from './trivial'
 import {
@@ -282,17 +283,26 @@ export interface ApiResponse {
 }
 
 /** Un appel à l'API. Les échecs sont convertis en messages lisibles. */
-function userMessage(text: string, prompt?: DailyPrompt | null): string {
-  if (!prompt) return `Voici mon entrée de journal :\n\n${text}`
+function formatLine(format?: FormatId | null): string[] {
+  const hint = formatById(format).hint
+  if (!hint) return []
+  // Un simple contexte pour comprendre l'intention : jamais une note sur le respect du format.
+  return [`Format d'écriture du jour : ${hint}. C'est seulement un contexte ; ne juge pas le respect du format.`]
+}
+
+function userMessage(text: string, prompt?: DailyPrompt | null, format?: FormatId | null): string {
+  const fmt = formatLine(format)
+  if (!prompt) return [...fmt, ...(fmt.length ? [''] : []), `Voici mon entrée de journal :\n\n${text}`].join('\n')
   if (prompt.themeOnly) {
     // « Juste le thème » : pas de grammaire ni de mots à viser ce jour-là.
-    return [`Sujet proposé : ${plainText(prompt.topic.ja)}`, '', `Voici mon entrée de journal :\n\n${text}`].join('\n')
+    return [`Sujet proposé : ${plainText(prompt.topic.ja)}`, ...fmt, '', `Voici mon entrée de journal :\n\n${text}`].join('\n')
   }
   const words = prompt.words.map((w) => (w.reading ? `${w.ja}（${w.reading}）` : w.ja)).join('、')
   return [
     `Sujet proposé : ${plainText(prompt.topic.ja)}`,
     `Point de grammaire visé : ${prompt.grammar.pattern} (${prompt.grammar.fr})`,
     `Mots proposés : ${words}`,
+    ...fmt,
     '',
     `Voici mon entrée de journal :\n\n${text}`,
   ].join('\n')
@@ -304,6 +314,7 @@ async function callApi(
   retry: boolean,
   prompt?: DailyPrompt | null,
   extraHint?: string,
+  format?: FormatId | null,
 ): Promise<ApiResponse> {
   const short = settings.correctionMode === 'short'
   return postApi(settings, {
@@ -320,7 +331,7 @@ async function callApi(
     // Certains modèles refusent qu'on impose l'outil : on laisse le choix
     // au modèle et on relance une fois s'il répond par du texte.
     tool_choice: { type: 'auto' },
-    messages: [{ role: 'user', content: userMessage(text, prompt) }],
+    messages: [{ role: 'user', content: userMessage(text, prompt, format) }],
   }, short ? 'correction-courte' : undefined)
 }
 
@@ -448,9 +459,10 @@ export async function requestCorrection(
   text: string,
   settings: Settings,
   prompt?: DailyPrompt | null,
+  format?: FormatId | null,
 ): Promise<Correction> {
-  let block = findCorrection(await callApi(text, settings, false, prompt))
-  if (!block) block = findCorrection(await callApi(text, settings, true, prompt))
+  let block = findCorrection(await callApi(text, settings, false, prompt, undefined, format))
+  if (!block) block = findCorrection(await callApi(text, settings, true, prompt, undefined, format))
   if (!block) {
     throw new CorrectionFailure('format', "La réponse n'a pas le bon format. Réessaie.")
   }
@@ -469,6 +481,7 @@ export async function requestCorrection(
         `ta réponse précédente a oublié les balises {kanji|lecture} sur : ${missing
           .slice(0, 10)
           .join('、')}. Renvoie la correction complète en balisant TOUS les kanji de tous les champs.`,
+        format,
       ),
     )
     if (again) {

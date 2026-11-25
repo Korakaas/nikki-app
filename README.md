@@ -188,6 +188,18 @@ L'Historique marque « pas corrigée » les entrées sans correction, avec un bo
 
 Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → bloc « Budget du mois » montre, toujours visible, l'estimation en dollars du mois en cours sur le plafond (avec sa barre), puis le coût **par fonction** : Correction, Idées et coups de pouce, Discussion sur la correction, Bilan (et « Autres » s'il y a des appels d'un type inconnu), avec le nombre d'appels. La somme des lignes est toujours égale au total (`costByFunction` dans `src/usage.ts`). Tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change. Le compteur n'est pas dans la sauvegarde. Le plafond du mois (2,50 $ par défaut, modifiable dans le même bloc) alimente la barre ; à 80 %, un message doux s'affiche une seule fois par mois (`src/components/CapNotice.tsx`). Rien n'est jamais bloqué.
 
+### Format du jour (S5.4a, S5.4b)
+
+Sous le thème du jour, le bloc « Format du jour » donne un format d'écriture (journal libre, lettre, avis, dialogue, description, opinion). Aucun choix à faire : le format ne dépend que de la date (le même toute la journée, jamais deux jours de suite le même, les six à tour de rôle). Il affiche une consigne, une mise en situation de la banque de textes (une lettre à laquelle répondre, une scène à décrire, une question sur ta vie…), une aide en français et deux amorces (insérées seulement si la page est vide). Tout est écrit dans l'appli, rien n'est envoyé à l'API. L'entrée garde son format ; la correction le reçoit comme simple contexte, et l'Historique montre une étiquette. Écrire autre chose reste toujours possible.
+
+### Banque de textes
+
+Les textes du format du jour sont dans `src/prompts/situations.ts` (une banque par mois : 6 textes par format, hors journal libre). Chaque mois : demander une nouvelle banque à Claude, qui l'ajoute à la liste `BANKS` (les anciens textes restent, dans l'ordre) et livre une nouvelle version. Une banque finie recommence au premier texte. Copie lisible dans les documents du projet Claude (`banque-textes/AAAA-MM.md`).
+
+### Point du jour (phrases à trous)
+
+Exercices → « Point du jour » : trois phrases d'exemple dont le passage de grammaire est caché, à écrire au clavier japonais. Les points viennent de la liste intégrée (selon la difficulté), de ton deck Anki et du point visé par le bilan. Le sens du point est donné en français ; « Indice » montre le point ; « Passer » n'enregistre rien. Les erreurs reviennent un autre jour (« À revoir ») dans l'historique des exercices, sans note ni série. Aucun appel à l'API.
+
 ### Difficulté (N3 / Mixte / N2)
 
 Réglages → Écriture → Difficulté : un curseur à trois positions, Mixte par défaut. Il influence la grammaire et les mots du jour (`src/prompts/pick.ts`), la longueur et le niveau des phrases japonaises écrites par Claude (`levelLine` dans `src/api.ts`) et les points proposés par le bilan. `difficultyOf` (`src/types.ts`) lit aussi les anciennes sauvegardes qui n'ont que « Niveau visé ».

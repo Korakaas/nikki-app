@@ -6,6 +6,7 @@ import Stamp from '../components/Stamp'
 import Chevron from '../components/Chevron'
 import ConjSection from '../components/ConjSection'
 import ErrorQuiz from '../components/ErrorQuiz'
+import GrammarFill from '../components/GrammarFill'
 import MixedSeries from '../components/MixedSeries'
 import ParticleDrill from '../components/ParticleDrill'
 import TransitivityDrill from '../components/TransitivityDrill'
@@ -88,6 +89,7 @@ export default function PracticePage({ settings }: Props) {
         </span>
         {seriesDone ? <Stamp kind="nibun" size={62} tilt={-6} /> : <Chevron dir="right" size={22} />}
       </button>
+      <GrammarFill settings={settings} />
       <div className="block">
         <ParticleDrill entries={entries} furigana={settings.furiganaFrom} />
       </div>

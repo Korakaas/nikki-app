@@ -7,11 +7,13 @@ import CorrectionView from '../components/CorrectionView'
 import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
 import Chevron from '../components/Chevron'
+import FormatBlock from '../components/FormatBlock'
 import PromptNote from '../components/PromptNote'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
+import { formatOfDay } from '../formats'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
 import { pickStarters } from '../prompts/starters'
@@ -125,6 +127,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       text: value,
       createdAt: previous?.createdAt ?? now,
       updatedAt: now,
+      format: previous?.format ?? formatOfDay(id),
     }
     await saveEntry(entry)
     entryRef.current = entry
@@ -468,6 +471,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           Besoin d'une idée ?
         </button>
       )}
+
+      <FormatBlock id={id} furigana={settings.furiganaFrom} text={text} onStarter={insertStarter} />
 
       <div className="sheet-wrap">
         <textarea

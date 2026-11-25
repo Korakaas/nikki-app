@@ -1,3 +1,5 @@
+import type { FormatId } from './formats'
+
 export type JlptLevel = 'N5' | 'N4' | 'N3' | 'N2' | 'N1'
 export type Level = JlptLevel
 
@@ -252,6 +254,8 @@ export interface Entry {
   correctionError?: string
   /** Plus beau tampon gagné par cette entrée : il ne baisse jamais (S18.19). Absent = pas encore. */
   stamp?: StampKind
+  /** Format d'écriture du jour de l'entrée (S5.4b). Absent sur les anciennes entrées = journal libre. */
+  format?: FormatId
 }
 
 /** Notes importées depuis Anki (export texte), utilisées pour enrichir les idées du jour. */

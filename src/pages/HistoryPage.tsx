@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import Block from '../components/Block'
+import Block, { Pill } from '../components/Block'
+import { formatById } from '../formats'
 import Stamp from '../components/Stamp'
 import { shownStamp } from '../stamps'
 import Chevron from '../components/Chevron'
@@ -174,6 +175,12 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
               {!open && <DecorBoard small photos={entry.photos ?? []} stickers={entry.stickers ?? []} />}
               {open && (
                 <div className="entry-body">
+                  {entry.format && entry.format !== 'journal' && (
+                    <p className="entry-format">
+                      <Pill role="write">{formatById(entry.format).ja}</Pill>
+                      <span className="fr">{formatById(entry.format).fr}</span>
+                    </p>
+                  )}
                   {entry.prompt && (
                     <p lang="ja" className="entry-topic">
                       お題：<Jp text={entry.prompt.topic.ja} furigana={settings.furiganaFrom} />

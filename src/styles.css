@@ -3596,3 +3596,136 @@ button.fix-ask {
 
 /* S16.1 : essai de sauvegarde automatique */
 .spike-list { margin: 4px 0 8px; padding-left: 1.1em; }
+
+/* Format du jour (S5.4a) */
+.format-body {
+  line-height: 1.6;
+}
+.format-name {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+.format-consigne {
+  margin: 2px 0 8px;
+  font-size: 1.05rem;
+}
+.format-situation {
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--rule);
+}
+.format-text {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  line-height: 1.8;
+  white-space: pre-line;
+  color: var(--ink);
+}
+.format-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  font-size: 1.1rem;
+}
+.format-words small {
+  font-size: 0.9rem;
+}
+.format-todo {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+.format-aide-button {
+  min-height: 44px;
+}
+.format-aide {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: var(--pencil);
+}
+.format-starters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+button.starter.format-starter {
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+}
+.entry-format {
+  margin: 0 0 6px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+}
+
+/* Point du jour : phrases à trous (S8.1a) */
+.fill-lead,
+.fill-title {
+  margin: 4px 0 8px;
+  font-size: 1.1rem;
+}
+.fill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fill-step {
+  color: var(--pencil);
+  font-size: 0.95rem;
+}
+.fill-point {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-left: 2px solid var(--rule);
+  font-size: 1.05rem;
+}
+.fill-level {
+  color: var(--pencil);
+  font-size: 0.9rem;
+}
+.fill-frame {
+  margin: 0 0 2px;
+  font-size: 1.3rem;
+  line-height: 1.9;
+  color: var(--ink);
+}
+.fill-fr {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--pencil);
+}
+.fill-hint {
+  margin: 0 0 8px;
+}
+.fill-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  font-size: 1.2rem;
+}
+.fill-feedback {
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+.fill-feedback p {
+  margin: 0 0 4px;
+}
+.fill-full {
+  font-size: 1.15rem;
+}
+.fill-note {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+}

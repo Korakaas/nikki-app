@@ -311,3 +311,21 @@ export async function loadSpikeHandle(): Promise<unknown | null> {
   const row = await run<{ key: string; handle?: unknown } | undefined>(SETTINGS, 'readonly', (s) => s.get(SPIKE_HANDLE_KEY))
   return row?.handle ?? null
 }
+
+const FILL_KEY = 'fill-day'
+
+/** Les phrases à trous de la journée (S8.1a) : gardées pour que le point du jour ne change pas en cours de route. */
+export interface FillDay {
+  day: string
+  keys: string[]
+  done: boolean
+}
+
+export async function loadFillDay(): Promise<FillDay | null> {
+  const row = await run<{ key: string; state?: FillDay } | undefined>(SETTINGS, 'readonly', (s) => s.get(FILL_KEY))
+  return row?.state ?? null
+}
+
+export async function saveFillDay(state: FillDay): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: FILL_KEY, state }))
+}

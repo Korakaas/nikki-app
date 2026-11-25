@@ -24,7 +24,7 @@ export async function runCorrection(id: string, settings: Settings): Promise<voi
 
     let patch: Partial<typeof entry>
     try {
-      const correction = await requestCorrection(entry.text, settings, entry.prompt)
+      const correction = await requestCorrection(entry.text, settings, entry.prompt, entry.format)
       patch = { correction, pendingCorrection: false, correctionError: undefined }
     } catch (e) {
       const message =
