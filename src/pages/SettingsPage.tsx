@@ -3,12 +3,13 @@ import { emptyLibrary, mergeExport, parseAnkiExport } from '../anki'
 import { backupStatus, canShareFile, exportBackup, importBackup } from '../backup'
 import { clearAnki, listEntries, loadAnki, loadUsage, saveAnki, type UsageLog } from '../db'
 import Block from '../components/Block'
-import CapNotice from '../components/CapNotice'
+import AutoBackupTest from '../components/AutoBackupTest'
+import BudgetBlock from '../components/BudgetBlock'
 import Chevron from '../components/Chevron'
 import SettingRow from '../components/SettingRow'
 import { VERSION_LABEL } from '../version'
-import { CAP_ALERT_SHARE, CORRECTIONS_PER_MONTH, capShare, correctionCosts, formatCost, KIND_LABEL, monthId, monthUsage, previousMonthId } from '../usage'
-import { paletteOf, THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type FuriganaFrom, type Palette, type Settings, type Theme } from '../types'
+import { CORRECTIONS_PER_MONTH, correctionCosts } from '../usage'
+import { DIFFICULTIES, difficultyOf, paletteOf, THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type Difficulty, type FuriganaFrom, type Palette, type Settings, type Theme } from '../types'
 
 interface Props {
   settings: Settings
@@ -22,6 +23,13 @@ const FURIGANA_OPTIONS: { value: FuriganaFrom; label: string }[] = [
   { value: 'N1', label: 'Mots N1 uniquement' },
   { value: 'none', label: 'Jamais' },
 ]
+
+const DIFFICULTY_LABEL: Record<Difficulty, string> = { n3: 'N3', mixed: 'Mixte', n2: 'N2' }
+const DIFFICULTY_HINT: Record<Difficulty, string> = {
+  n3: 'Des mots et des points de grammaire plus simples, des phrases courtes. Le N4 revient pour consolider.',
+  mixed: 'Surtout du N3, un peu de N4 pour consolider et un peu de N2 pour s\'ouvrir. Des phrases de longueur moyenne.',
+  n2: 'Des mots et des points N3 et N2, des phrases un peu plus longues et nuancées.',
+}
 
 const PALETTE_OPTIONS: { value: Palette; label: string }[] = [
   { value: 'matcha', label: 'Matcha et sakura' },
@@ -156,7 +164,7 @@ export default function SettingsPage({ settings, onChange }: Props) {
       }
       // Téléphone neuf (pas encore de clé API) : on reprend aussi les réglages de la sauvegarde.
       if (result.settings && !settings.apiKey) {
-        onChange({ ...settings, ...result.settings, apiKey: '' })
+        onChange({ ...settings, ...result.settings, difficulty: difficultyOf(result.settings), apiKey: '' })
         parts.push('Réglages restaurés (remets ta clé API).')
       }
       setMessage(parts.join(' '))
@@ -165,14 +173,11 @@ export default function SettingsPage({ settings, onChange }: Props) {
     }
   }
 
-  const level = settings.targetLevel
+  const difficulty = difficultyOf(settings)
   const furiganaShort: Record<FuriganaFrom, string> = { all: 'Tous', N3: 'N3 et plus', N2: 'N2 et plus', N1: 'N1', none: 'Jamais' }
   const themeShort: Record<Theme, string> = { auto: 'Auto', light: 'Clair', dark: 'Sombre' }
   const paletteLabel = PALETTE_OPTIONS.find((o) => o.value === paletteOf(settings))?.label ?? ''
   const enabledDecks = anki ? anki.decks.filter((d) => d.enabled).length : 0
-  const nowUsage = monthUsage(usage, monthId())
-  const lastUsage = monthUsage(usage, previousMonthId())
-  const capPct = capShare(nowUsage.cost, settings.monthlyCap)
 
   return (
     <section className="page">
@@ -182,18 +187,33 @@ export default function SettingsPage({ settings, onChange }: Props) {
 
       <Block role="set" ja="書" title="Écriture">
         <ul className="rows">
-          <SettingRow id="level" label="Niveau visé" value={level} open={isOpen('level')} onToggle={() => toggleRow('level')}>
-            <select
+          <SettingRow id="level" label="Difficulté" value={DIFFICULTY_LABEL[difficulty]} open={isOpen('level')} onToggle={() => toggleRow('level')}>
+            <input
               id="level"
-              aria-label="Niveau visé"
-              value={settings.targetLevel}
-              onChange={(e) => patch({ targetLevel: e.target.value as Settings['targetLevel'] })}
-            >
-              <option value="N4">N4</option>
-              <option value="N3">N3</option>
-              <option value="N2">N2</option>
-            </select>
-            <p className="hint">Utilisé pour les prompts du jour et la difficulté des explications.</p>
+              className="difficulty-range"
+              type="range"
+              min={0}
+              max={DIFFICULTIES.length - 1}
+              step={1}
+              value={DIFFICULTIES.indexOf(difficulty)}
+              aria-label="Difficulté"
+              aria-valuetext={DIFFICULTY_LABEL[difficulty]}
+              onChange={(e) => patch({ difficulty: DIFFICULTIES[Number(e.target.value)] })}
+            />
+            <div className="difficulty-stops" role="group" aria-label="Choisir la difficulté">
+              {DIFFICULTIES.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={d === difficulty ? 'on' : ''}
+                  aria-pressed={d === difficulty}
+                  onClick={() => patch({ difficulty: d })}
+                >
+                  {DIFFICULTY_LABEL[d]}
+                </button>
+              ))}
+            </div>
+            <p className="hint">{DIFFICULTY_HINT[difficulty]} Ça joue sur les mots, la grammaire du jour et la longueur des phrases que Claude écrit.</p>
           </SettingRow>
           <SettingRow id="furigana" label="Furigana" value={furiganaShort[settings.furiganaFrom]} open={isOpen('furigana')} onToggle={() => toggleRow('furigana')}>
             <select
@@ -433,48 +453,10 @@ export default function SettingsPage({ settings, onChange }: Props) {
               </button>
             </div>
           </SettingRow>
-          <SettingRow id="usage" label="Consommation" value={nowUsage.calls > 0 ? `≈ ${formatCost(nowUsage.cost)}` : undefined} open={isOpen('usage')} onToggle={() => toggleRow('usage')}>
-            {nowUsage.calls === 0 && lastUsage.calls === 0 ? (
-              <p className="hint">Rien de compté pour l'instant : chaque appel (correction, bilan, phrase d'exemple) s'ajoutera ici.</p>
-            ) : (
-              <>
-                <CapNotice settings={settings} />
-                <p className="hint">
-                  {nowUsage.byKind.map(([k, c]) => `${c.calls} ${KIND_LABEL[k] ?? k}`).join(', ')} ·{' '}
-                  {nowUsage.input.toLocaleString('fr-FR')} jetons envoyés, {nowUsage.output.toLocaleString('fr-FR')} reçus.
-                </p>
-                {lastUsage.calls > 0 && (
-                  <p className="hint">
-                    Mois dernier : ≈ {formatCost(lastUsage.cost)} ({lastUsage.calls} appels).
-                  </p>
-                )}
-              </>
-            )}
-            <CapField value={settings.monthlyCap} onCommit={(v) => patch({ monthlyCap: v })} />
-            <p className="hint">
-              Estimation d'après les tarifs publiés (Sonnet 5.5 : 2 $ / 10 $ par million de jetons ; Haiku 5.5 : 0,10 $ / 0,50 $) ; elle
-              ne compte que les appels faits depuis ce téléphone. Le chiffre exact est sur console.anthropic.com.
-            </p>
-          </SettingRow>
         </ul>
-        {nowUsage.calls > 0 && (
-          <>
-            <p className="lead">
-              Ce mois-ci : <strong>≈ {formatCost(nowUsage.cost)}</strong> sur {formatCost(settings.monthlyCap)}
-            </p>
-            <div
-              className={`cap-bar${capPct >= CAP_ALERT_SHARE ? ' near' : ''}`}
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.min(100, Math.round(capPct * 100))}
-              aria-label="Part du plafond du mois"
-            >
-              <i style={{ width: `${Math.min(100, capPct * 100)}%` }} />
-            </div>
-          </>
-        )}
       </Block>
+
+      <BudgetBlock settings={settings} usage={usage} onChange={onChange} />
 
       <Block role="set" ja="保存" title="Sauvegarde">
         <ul className="rows">
@@ -494,6 +476,9 @@ export default function SettingsPage({ settings, onChange }: Props) {
               c'est en sécurité. Le fichier contient tes entrées, photos, bilans, résultats du quiz, cartes Anki et réglages, pas ta clé
               API. L'appli te le rappelle chaque semaine.
             </p>
+          </SettingRow>
+          <SettingRow id="autotest" label="Essai : sauvegarde automatique" open={isOpen('autotest')} onToggle={() => toggleRow('autotest')}>
+            <AutoBackupTest />
           </SettingRow>
           <li className="setting-row">
             <button type="button" className="row-line" onClick={() => fileInput.current?.click()}>
@@ -527,28 +512,3 @@ export default function SettingsPage({ settings, onChange }: Props) {
 }
 
 /** Plafond mensuel en dollars : on tape librement, la valeur est enregistrée en quittant le champ. */
-function CapField({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
-  const [text, setText] = useState(String(value).replace('.', ','))
-  const commit = () => {
-    const v = Number(text.replace(',', '.'))
-    if (Number.isFinite(v) && v > 0) onCommit(Math.round(v * 100) / 100)
-    else setText(String(value).replace('.', ','))
-  }
-  return (
-    <div className="cap-field">
-      <label htmlFor="monthly-cap">Plafond du mois</label>
-      <input
-        id="monthly-cap"
-        type="text"
-        inputMode="decimal"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur()
-        }}
-      />
-      <span>$</span>
-    </div>
-  )
-}

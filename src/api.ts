@@ -9,7 +9,9 @@ import {
   type GrammarGood,
   type GrammarReview,
   type DailyPrompt,
+  type Difficulty,
   type Settings,
+  difficultyOf,
 } from './types'
 
 export type FailureCode =
@@ -158,16 +160,23 @@ const SHORT_MODE = `
 
 MODE COURT (choisi par l'apprenant(e) pour lire moins et dépenser moins) : l'outil n'a pas les champs « context », « other_use », « grammar_review » : n'en produis aucun. Chaque « explanation » tient en UNE phrase courte. Garde « praise » (l'encouragement reste), « natural », les fautes (« original » et « corrected ») et « grammar_good ». Les règles d'honnêteté, de furigana et de fautes à ne pas signaler restent les mêmes.`
 
-export function levelLine(level: string): string {
-  if (level === 'N2')
-    return "Niveau de l'apprenant(e) : JLPT N2 (a le N3 et prépare le N2). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3–N2, phrases claires, sans tournures N1."
-  return `Niveau de l'apprenant(e) : JLPT ${level} (prépare le N3 en partant du N4). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N4–N3, phrases courtes.`
+export function levelLine(difficulty: Difficulty): string {
+  if (difficulty === 'n2')
+    return "Niveau de l'apprenant(e) : JLPT N2 (a le N3 et prépare le N2). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3–N2, phrases un peu plus longues et nuancées, sans tournures N1."
+  if (difficulty === 'mixed')
+    return "Niveau de l'apprenant(e) : JLPT N3 solide, qui s'ouvre au N2. Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N3, avec quelques tournures N2 courantes quand elles sont naturelles, phrases de longueur moyenne."
+  return "Niveau de l'apprenant(e) : JLPT N3 (prépare le N3 en partant du N4). Écris tout le japonais de ta réponse à ce niveau : vocabulaire et grammaire N4–N3, phrases courtes."
 }
 
-function systemPrompt(level: string): string {
+/** Le niveau en quelques mots, pour les textes envoyés à Claude. */
+export function levelName(difficulty: Difficulty): string {
+  return difficulty === 'n2' ? 'N2' : difficulty === 'mixed' ? 'N3 solide, ouvert au N2' : 'N3'
+}
+
+function systemPrompt(difficulty: Difficulty): string {
   return `Tu es un professeur de japonais qui corrige l'entrée de journal d'un(e) apprenant(e) francophone.
 
-${levelLine(level)} Les champs « natural », « corrected », « point », « note », « example » sont en japonais, sans français. Les champs « praise », « explanation », « context », « other_use » sont en français.
+${levelLine(difficulty)} Les champs « natural », « corrected », « point », « note », « example » sont en japonais, sans français. Les champs « praise », « explanation », « context », « other_use » sont en français.
 
 Principes de correction :
 - Garde le sens, la voix et le registre de l'apprenant(e). Ne réécris pas ce qui est correct.
@@ -177,7 +186,7 @@ Principes de correction :
 - Deux éléments de « errors » ne doivent jamais se recouvrir : « original » reste un passage court, jamais la phrase entière recopiée.
 - Regroupe les fautes qui se répètent en un seul élément. Maximum 6 éléments, les plus utiles d'abord.
 - « original » recopie le passage fautif tel quel (court, quelques mots). « corrected » donne le passage corrigé et DOIT être différent de « original ». Un simple conseil de contenu (« ajoute un détail ») n'est pas une erreur : ne le mets pas dans « errors ».
-- La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Seules exceptions : corrige-y sans les signaler les fautes de frappe évidentes, et garde la ponctuation de l'apprenant(e) telle quelle. Elle reste au niveau ${level} autant que possible.
+- La version « natural » ne change QUE les passages listés dans « errors » : tout changement fait dans « natural » doit apparaître dans « errors ». Sinon recopie le texte tel quel. Seules exceptions : corrige-y sans les signaler les fautes de frappe évidentes, et garde la ponctuation de l'apprenant(e) telle quelle. Elle reste au niveau ${levelName(difficulty)} autant que possible.
 - « praise » vient en premier et dit ce qui est réussi : cite une phrase ou une tournure réelle de l'entrée (recopiée en japonais, kanji balisés), et dis ce qu'elle a de bien. Pas d'encouragement générique, pas de comparaison à un objectif, pas de sévérité. Ne félicite que ce qui est vrai. Il ne contient aucun conseil et ne parle pas des fautes.
 - Pour chaque faute : « explanation » dit pourquoi c'est faux ; « context » dit dans quel contexte ce mot ou cette forme est impossible ; « other_use » dit dans quel autre cas on pourrait l'employer. OMETS « context » et « other_use » quand ils n'apportent rien de précis : ne remplis jamais par des généralités.
 - Si le texte est déjà correct, laisse « errors » vide et dis-le dans « praise ».
@@ -301,7 +310,7 @@ async function callApi(
     model: settings.model,
     max_tokens: short ? 2048 : 4096,
     system:
-      systemPrompt(settings.targetLevel) +
+      systemPrompt(difficultyOf(settings)) +
       (short ? SHORT_MODE : '') +
       (retry
         ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant l'outil ${TOOL_NAME}, sans autre texte.`

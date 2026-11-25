@@ -18,6 +18,51 @@ export const KIND_LABEL: Record<string, string> = {
   autre: 'autres',
 }
 
+/** Les fonctions de l'appli, pour le budget visible (S12.3) : chaque type d'appel compté appartient à l'une d'elles. */
+export const FUNCTIONS: { id: string; label: string; kinds: string[] }[] = [
+  { id: 'correction', label: 'Correction', kinds: ['correction', 'correction-courte'] },
+  { id: 'idees', label: 'Idées et coups de pouce', kinds: ['link', 'unblock', 'phrases'] },
+  { id: 'discussion', label: 'Discussion sur la correction', kinds: ['answer'] },
+  { id: 'bilan', label: 'Bilan', kinds: ['review'] },
+]
+
+export interface FunctionCost {
+  id: string
+  label: string
+  calls: number
+  cost: number
+}
+
+/**
+ * Le coût du mois réparti par fonction. Tout appel compté entre dans une ligne : ceux qu'on ne
+ * connaît pas vont dans « Autres » (ligne rendue seulement s'il y en a), donc le total est toujours juste.
+ */
+export function costByFunction(log: UsageLog, month: string): FunctionCost[] {
+  const slot = log[month] ?? {}
+  const known = new Set(FUNCTIONS.flatMap((f) => f.kinds))
+  const costOfCounter = (c: UsageCounter) => c.cost ?? costOf(c.input, c.output)
+  const rows: FunctionCost[] = FUNCTIONS.map((f) => {
+    let calls = 0
+    let cost = 0
+    for (const k of f.kinds) {
+      const c = slot[k]
+      if (!c) continue
+      calls += c.calls
+      cost += costOfCounter(c)
+    }
+    return { id: f.id, label: f.label, calls, cost }
+  })
+  let calls = 0
+  let cost = 0
+  for (const [k, c] of Object.entries(slot)) {
+    if (known.has(k)) continue
+    calls += c.calls
+    cost += costOfCounter(c)
+  }
+  if (calls > 0) rows.push({ id: 'autres', label: 'Autres', calls, cost })
+  return rows
+}
+
 export interface MonthUsage {
   month: string
   calls: number

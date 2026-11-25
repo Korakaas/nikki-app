@@ -27,7 +27,7 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
 - **Exercices** : tout en haut, l'encart « J'ai 2 minutes · 5 questions » (voir ci-dessous), puis des blocs avec une pastille colorée :
   particules, conjugaison, transitif ou intransitif, et « Revoir mes erreurs » en dernier (verrouillé sous 3 erreurs corrigées).
 - **Réglages** en quatre blocs de lignes compactes « libellé … valeur › » (un tap déplie le réglage dessous, un seul à la fois) :
-  Écriture (niveau visé, furigana, apparence, couleurs), Cartes Anki (paquets activés, réimporter), Claude (clé API, modèles, mode de
+  Écriture (difficulté, furigana, apparence, couleurs), Cartes Anki (paquets activés, réimporter), Claude (clé API, modèles, mode de
   correction, échanges par correction, consommation ; plié par défaut, ouvert tant qu'il n'y a pas de clé, jauge du mois toujours visible)
   et Sauvegarde (exporter, importer, dernière sauvegarde). Tout en bas, le **numéro de version** de l'appli
   (« Version 34 · 24/11/2026 17:30 · abc1234 » : nombre de commits, date de construction à l'heure de Paris, code court du commit),
@@ -74,7 +74,7 @@ furigana selon le réglage.
 ## Idées du jour
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
-N4, N3 ou N2 (selon Réglages → Niveau visé) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Thème du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Déplié, chaque partie a sa pastille (題, 文法, 単語, 訳) ; le « Défi de traduction » est une ligne qui se déplie. Aucun bouton n'est visible : le menu discret « ⋯ »
+N4, N3 ou N2 (selon Réglages → Difficulté) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Thème du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Déplié, chaque partie a sa pastille (題, 文法, 単語, 訳) ; le « Défi de traduction » est une ligne qui se déplie. Aucun bouton n'est visible : le menu discret « ⋯ »
 (en haut à droite du bloc) propose « Changer la grammaire » et « Changer les mots » (ne changent que cette partie, le sujet reste, et ne reprennent pas
 ce qui vient d'être proposé aujourd'hui), « Juste le thème », « Tout changer » (une idée entière nouvelle) et « Retirer le sujet ». Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
@@ -138,7 +138,7 @@ Quand un nouveau succès se débloque, une carte discrète s'affiche une fois : 
 
 ### Correction courte ou complète
 
-Réglages → Correction. « Complète » (par défaut) : chaque faute avec ses explications, l'encouragement, la grammaire bien placée et à revoir. « Courte » : l'encouragement, la faute, sa correction et une phrase d'explication, plus les points bien employés ; elle ne demande plus le contexte, l'autre emploi ni les points à revoir, et demande une réponse plus petite. Le choix s'applique à la prochaine correction ; les anciennes gardent leur forme. Le coût d'une correction et le coût mensuel (une par jour) sont affichés pour les deux choix : mesurés d'après ta consommation dès 2 appels de chaque sorte, estimés avant (complète ≈ 0,027 $, courte ≈ 55 % de cela). Les corrections courtes sont comptées à part dans Consommation de l'API.
+Réglages → Correction. « Complète » (par défaut) : chaque faute avec ses explications, l'encouragement, la grammaire bien placée et à revoir. « Courte » : l'encouragement, la faute, sa correction et une phrase d'explication, plus les points bien employés ; elle ne demande plus le contexte, l'autre emploi ni les points à revoir, et demande une réponse plus petite. Le choix s'applique à la prochaine correction ; les anciennes gardent leur forme. Le coût d'une correction et le coût mensuel (une par jour) sont affichés pour les deux choix : mesurés d'après ta consommation dès 2 appels de chaque sorte, estimés avant (complète ≈ 0,027 $, courte ≈ 55 % de cela). Les corrections courtes sont comptées à part dans le Budget du mois.
 
 ### Série douce
 
@@ -184,9 +184,21 @@ Sous la correction : tu retapes ton texte corrigé de mémoire, l'appli compare 
 
 L'Historique marque « pas corrigée » les entrées sans correction, avec un bouton « Corriger maintenant ».
 
-### Consommation de l'API
+### Budget du mois
 
-Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → « Consommation de l'API » montre l'estimation en dollars du mois en cours et du mois dernier (tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change). Le compteur n'est pas dans la sauvegarde. Un plafond du mois (2,50 $ par défaut, modifiable dans les mêmes réglages) alimente la barre de consommation ; à 80 %, un message doux s'affiche une seule fois par mois (`src/components/CapNotice.tsx`). Rien n'est jamais bloqué.
+Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois) à un compteur local ; Réglages → bloc « Budget du mois » montre, toujours visible, l'estimation en dollars du mois en cours sur le plafond (avec sa barre), puis le coût **par fonction** : Correction, Idées et coups de pouce, Discussion sur la correction, Bilan (et « Autres » s'il y a des appels d'un type inconnu), avec le nombre d'appels. La somme des lignes est toujours égale au total (`costByFunction` dans `src/usage.ts`). Tarif Sonnet 5.5 dans `src/usage.ts`, à ajuster si le modèle change. Le compteur n'est pas dans la sauvegarde. Le plafond du mois (2,50 $ par défaut, modifiable dans le même bloc) alimente la barre ; à 80 %, un message doux s'affiche une seule fois par mois (`src/components/CapNotice.tsx`). Rien n'est jamais bloqué.
+
+### Difficulté (N3 / Mixte / N2)
+
+Réglages → Écriture → Difficulté : un curseur à trois positions, Mixte par défaut. Il influence la grammaire et les mots du jour (`src/prompts/pick.ts`), la longueur et le niveau des phrases japonaises écrites par Claude (`levelLine` dans `src/api.ts`) et les points proposés par le bilan. `difficultyOf` (`src/types.ts`) lit aussi les anciennes sauvegardes qui n'ont que « Niveau visé ».
+
+### S'entraîner sur une faute
+
+Dans une correction, sous une faute dépliée, « S'entraîner » ouvre trois questions : particules (ta faute, puis des verbes à la même particule) ou paire transitif / intransitif (`src/faultPractice.ts`). Pas d'exercice lié, pas de bouton. Les réponses vont dans l'historique des exercices, pas dans les statistiques d'écriture.
+
+### Essai : sauvegarde automatique (S16.1)
+
+Réglages → Sauvegarde → « Essai : sauvegarde automatique » : liste ce que le téléphone permet (fichier, dossier, tâche de fond, stockage protégé) et teste en deux étapes si l'autorisation d'écrire dans un fichier est gardée après la fermeture de l'appli (`src/autoBackupSpike.ts`). Il n'écrit qu'un petit fichier d'essai.
 
 ### Copier pour Claude (bilan sans API)
 

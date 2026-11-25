@@ -1,6 +1,6 @@
 import { plainText } from './furigana'
 import type { QuizHistory, QuizQuestion } from './quiz'
-import type { Entry } from './types'
+import type { CorrectionItem, Entry } from './types'
 
 const BLANK = '＿＿＿'
 const DAY = 86_400_000
@@ -228,4 +228,54 @@ export function ownParticleCount(entries: Entry[]): number {
       }
     }
   return n
+}
+
+/**
+ * Questions liées à une faute de particule : la faute elle-même d'abord, puis des verbes
+ * qui demandent la même particule. Rend null si la correction ne change pas une particule.
+ */
+export function particleQuestionsFor(
+  e: CorrectionItem,
+  sourceText: string,
+  history: QuizHistory,
+  count = 3,
+  rand: () => number = Math.random,
+): QuizQuestion[] | null {
+  const original = e.original.trim()
+  const fixed = plainText(e.corrected).trim()
+  const swap = particleSwap(original, fixed)
+  if (!swap) return null
+  const key = `p|${original}→${fixed}`
+  const sentence = sourceText.split(/(?<=[。！？!?\n])/).find((s) => s.includes(original))?.trim()
+  const context = (sentence ?? original).replace(original, `${swap.prefix}${BLANK}${swap.suffix}`)
+  const own: QuizQuestion = {
+    item: {
+      key,
+      entryId: '',
+      kind: 'particule',
+      original: swap.wrong,
+      corrected: swap.right,
+      correctPlain: swap.right,
+      explanation: e.explanation,
+      context,
+    },
+    options: options(swap.right, [swap.wrong], rand),
+  }
+  const same = COLLOCATIONS.filter((c) => c.answer === swap.right && !history[`p|${c.before}${c.answer}${c.after}`]?.hidden)
+  const more = shuffle(same, rand)
+    .slice(0, Math.max(0, count - 1))
+    .map<QuizQuestion>((col) => ({
+      item: {
+        key: `p|${col.before}${col.answer}${col.after}`,
+        entryId: '',
+        kind: 'particule',
+        original: col.wrong[0],
+        corrected: col.answer,
+        correctPlain: col.answer,
+        explanation: col.note,
+        context: `${col.before}${BLANK}${col.after}`,
+      },
+      options: options(col.answer, col.wrong.slice(0, 3), rand),
+    }))
+  return [own, ...more]
 }

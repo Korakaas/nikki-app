@@ -1,10 +1,10 @@
 import { activeLibrary, patternKey } from './anki'
-import { arr, CorrectionFailure, obj, postApi, str } from './api'
+import { arr, CorrectionFailure, levelName, obj, postApi, str } from './api'
 import { addDays, countChars } from './format'
 import { plainText } from './furigana'
 import { GRAMMAR } from './prompts/data'
 import { goodPoints, timesUsed } from './stats'
-import type { AnkiLibrary, Entry, Settings, WeeklyReview } from './types'
+import { difficultyOf, levelOfDifficulty, type AnkiLibrary, type Difficulty, type Entry, type Settings, type WeeklyReview } from './types'
 
 const TOOL_NAME = 'submit_review'
 
@@ -150,10 +150,10 @@ function describePrevious(entries: Entry[]): string {
 export function focusCandidates(
   entries: Entry[],
   library: AnkiLibrary | null,
-  level: Settings['targetLevel'],
+  level: Difficulty,
 ): { pattern: string; fr: string }[] {
   const good = goodPoints(entries)
-  const wanted = level === 'N2' ? ['N3', 'N2'] : level === 'N3' ? ['N4', 'N3'] : ['N4']
+  const wanted = level === 'n2' ? ['N3', 'N2'] : level === 'mixed' ? ['N4', 'N3', 'N2'] : ['N4', 'N3']
   const pool = [
     ...activeLibrary(library).grammar,
     ...GRAMMAR.filter((g) => wanted.includes(g.level)),
@@ -198,7 +198,7 @@ export function normalizeReview(input: unknown, win: Window, settings: Settings)
     focus: {
       pattern,
       fr: str(focus.fr),
-      level: level === 'N4' || level === 'N3' || level === 'N2' ? level : settings.targetLevel,
+      level: level === 'N4' || level === 'N3' || level === 'N2' ? level : levelOfDifficulty(difficultyOf(settings)),
       why: str(focus.why),
       example: str(focus.example),
       exampleFr: str(focus.example_fr),
@@ -221,11 +221,11 @@ function reviewContent(
   }
   const previous = between(all, addDays(win.from, -21), addDays(win.from, -1))
   const taken = new Set(alreadyTargeted.map(patternKey))
-  const candidates = focusCandidates(all, library, settings.targetLevel).filter(
+  const candidates = focusCandidates(all, library, difficultyOf(settings)).filter(
     (c) => !taken.has(patternKey(c.pattern)),
   )
   const content = [
-    `Niveau visé : JLPT ${settings.targetLevel}.`,
+    `Niveau visé : JLPT ${levelName(difficultyOf(settings))}.`,
     `Période à relire : du ${win.from} au ${win.to} (${win.entries.length} entrée(s)).`,
     '',
     describeEntries(win.entries),

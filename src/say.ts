@@ -1,7 +1,7 @@
 import { callTool } from './aiTool'
 import { CorrectionFailure, arr, levelLine, obj, str } from './api'
 import { plainText } from './furigana'
-import type { Settings } from './types'
+import { difficultyOf, type Difficulty, type Settings } from './types'
 
 /** Une façon de dire une phrase française en japonais. */
 export interface Formulation {
@@ -48,7 +48,7 @@ const TOOL = {
   },
 }
 
-function system(level: string): string {
+function system(level: Difficulty): string {
   return `Tu aides un(e) francophone qui tient un journal en japonais.
 
 ${levelLine(level)}
@@ -61,7 +61,7 @@ Réponds uniquement en appelant l'outil ${TOOL_NAME}.`
 /** Demande à Claude comment dire une phrase française en japonais. */
 export async function requestSay(settings: Settings, french: string): Promise<Formulation[]> {
   const raw = obj(
-    await callTool(settings, TOOL, system(settings.targetLevel), french.trim().slice(0, MAX_SAY_CHARS), 600),
+    await callTool(settings, TOOL, system(difficultyOf(settings)), french.trim().slice(0, MAX_SAY_CHARS), 600),
   )
   const out: Formulation[] = []
   for (const item of arr(raw.phrases).slice(0, 3)) {

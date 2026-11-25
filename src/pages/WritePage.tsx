@@ -18,7 +18,7 @@ import { pickStarters } from '../prompts/starters'
 import { Jp, plainText } from '../furigana'
 import { goodPoints, streakInfo, timesUsed, wordHistory, writtenDays } from '../stats'
 import WelcomeBack from '../components/WelcomeBack'
-import type { Correction, DailyPrompt, Entry, EntryPhoto, EntrySticker, Settings } from '../types'
+import { difficultyOf, type Correction, type DailyPrompt, type Entry, type EntryPhoto, type EntrySticker, type Settings } from '../types'
 
 interface Props {
   /** Jour affiché (YYYY-MM-DD) : aujourd'hui ou une page passée. */
@@ -186,7 +186,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     // « Changer » : le sujet reste le même ; ce qui vient d'être proposé aujourd'hui ne revient pas aussitôt.
     const keep = part && prompt ? prompt : null
     const drawn = pickPrompt({
-      level: settings.targetLevel,
+      level: difficultyOf(settings),
       dateId: id,
       variant: next,
       recentPatterns: keep && part === 'grammar' ? [...recent, keep.grammar.pattern, ...(keep.prevGrammar ?? [])] : recent,

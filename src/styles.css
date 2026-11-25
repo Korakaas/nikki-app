@@ -3569,3 +3569,30 @@ button.fix-ask {
 .theme-block:not(:has(.theme-body)) {
   padding-bottom: 6px;
 }
+
+/* S5.3 : curseur de difficulté (N3 / mixte / N2) */
+.difficulty-range { width: 100%; min-height: 44px; accent-color: var(--w-ink); }
+.difficulty-stops { display: flex; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.difficulty-stops button {
+  flex: 1; min-height: 40px; border-radius: 12px;
+  border: 1px solid var(--rule); background: transparent; color: inherit;
+  font: inherit; font-size: 0.95rem;
+}
+.difficulty-stops button.on { background: var(--w-fill); color: var(--w-ink); border-color: var(--w-ink); font-weight: 600; }
+
+/* S8.3 : « S'entraîner » sous une faute */
+.fix-practice { margin: 10px 0 4px; }
+.fix-practice .quiz { margin: 0; }
+.fix-practice button.sketch { min-height: 44px; }
+
+/* S12.3 : budget visible par fonction */
+.budget-rows { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 10px; }
+.budget-row { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; row-gap: 2px; align-items: baseline; }
+.budget-name { font-size: 1rem; }
+.budget-cost { text-align: right; font-variant-numeric: tabular-nums; }
+.budget-calls { color: var(--pencil); font-size: 0.85rem; }
+.budget-share { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--rule-soft); overflow: hidden; }
+.budget-share > i { display: block; height: 100%; background: var(--w-ink); opacity: .75; }
+
+/* S16.1 : essai de sauvegarde automatique */
+.spike-list { margin: 4px 0 8px; padding-left: 1.1em; }

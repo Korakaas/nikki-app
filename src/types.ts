@@ -23,6 +23,11 @@ export function paletteOf(settings: { palette?: string }): Palette {
   return PALETTES.includes(settings.palette as Palette) ? (settings.palette as Palette) : 'matcha'
 }
 
+/** Les trois positions du curseur de difficulté (S5.3). */
+export type Difficulty = 'n3' | 'mixed' | 'n2'
+
+export const DIFFICULTIES: Difficulty[] = ['n3', 'mixed', 'n2']
+
 export interface Settings {
   /** Clé API Claude, stockée uniquement sur ce téléphone. */
   apiKey: string
@@ -30,8 +35,10 @@ export interface Settings {
   model: string
   /** Modèle plus léger (et bien moins cher) pour les petites tâches : le défi de traduction du thème. */
   lightModel: string
-  /** Niveau visé pour les prompts et les explications. */
+  /** Ancien réglage « Niveau visé » (avant S5.3). Gardé pour lire les anciennes sauvegardes : voir difficultyOf. */
   targetLevel: 'N4' | 'N3' | 'N2'
+  /** Curseur de difficulté (S5.3) : N3, mixte (par défaut) ou N2. Absent = déduit de l'ancien niveau visé. */
+  difficulty?: Difficulty
   furiganaFrom: FuriganaFrom
   /** Apparence : suit le téléphone, ou clair / sombre imposé. */
   theme: Theme
@@ -50,12 +57,30 @@ export const DEFAULT_SETTINGS: Settings = {
   model: 'claude-sonnet-5-5',
   lightModel: 'claude-haiku-5-5',
   targetLevel: 'N3',
+  difficulty: 'mixed',
   furiganaFrom: 'N2',
   theme: 'light',
   palette: 'matcha',
   monthlyCap: 2.5,
   correctionMode: 'full',
   threadLimit: 3,
+}
+
+/**
+ * Difficulté en vigueur. Une ancienne sauvegarde n'a que « Niveau visé » :
+ * N2 devient N2, N4 devient N3, et N3 (la valeur par défaut d'avant) devient mixte.
+ */
+export function difficultyOf(settings: { difficulty?: Difficulty; targetLevel?: string }): Difficulty {
+  const d = settings.difficulty
+  if (d === 'n3' || d === 'mixed' || d === 'n2') return d
+  if (settings.targetLevel === 'N2') return 'n2'
+  if (settings.targetLevel === 'N4') return 'n3'
+  return 'mixed'
+}
+
+/** Le niveau JLPT le plus proche d'une difficulté, pour les champs qui n'acceptent que N4, N3 ou N2. */
+export function levelOfDifficulty(d: Difficulty): 'N3' | 'N2' {
+  return d === 'n2' ? 'N2' : 'N3'
 }
 
 export const THREAD_LIMIT_MIN = 1

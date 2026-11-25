@@ -1,7 +1,7 @@
 import { callTool, type ChatMessage } from './aiTool'
 import { CorrectionFailure, arr, levelLine, obj, str } from './api'
 import { plainText } from './furigana'
-import type { Correction, Settings, ThreadTurn } from './types'
+import { difficultyOf, type Correction, type Difficulty, type Settings, type ThreadTurn } from './types'
 
 export const MAX_QUESTION_CHARS = 300
 
@@ -39,7 +39,7 @@ const TOOL = {
   },
 }
 
-function system(level: string): string {
+function system(level: Difficulty): string {
   return `Tu es un professeur de japonais bienveillant. Un(e) apprenant(e) francophone qui tient un journal en japonais te pose une question sur la correction de son entrée.
 
 ${levelLine(level)}
@@ -99,7 +99,7 @@ export async function requestAnswer(
     await callTool(
       settings,
       TOOL,
-      system(settings.targetLevel),
+      system(difficultyOf(settings)),
       buildMessages(correction, history, question.trim().slice(0, MAX_QUESTION_CHARS), about),
       900,
     ),

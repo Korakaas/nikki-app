@@ -1,7 +1,7 @@
 import { callTool } from './aiTool'
 import { CorrectionFailure, levelLine, obj, str } from './api'
 import { plainText } from './furigana'
-import type { Settings } from './types'
+import { difficultyOf, type Difficulty, type Settings } from './types'
 
 /** Une aide pour sortir du blocage : une question en français, puis un début de phrase en japonais. */
 export interface Unblock {
@@ -38,7 +38,7 @@ const TOOL = {
   },
 }
 
-function system(level: string): string {
+function system(level: Difficulty): string {
   return `Tu aides un(e) francophone qui tient un journal en japonais et qui bloque devant la page.
 
 ${levelLine(level)}
@@ -58,7 +58,7 @@ export async function requestUnblock(
     context.topic ? `Sujet du jour : ${context.topic}` : 'Pas de sujet imposé.',
     text ? `Déjà écrit (fin de l'entrée) :\n${text.slice(-300)}` : "Rien d'écrit pour l'instant.",
   ]
-  const raw = obj(await callTool(settings, TOOL, system(settings.targetLevel), parts.join('\n'), 250))
+  const raw = obj(await callTool(settings, TOOL, system(difficultyOf(settings)), parts.join('\n'), 250))
   const question = str(raw.question)
   const starter = plainText(str(raw.starter)).replace(/[。.]+$/, '')
   if (!question || !starter) throw new CorrectionFailure('format', 'La réponse est incomplète.')

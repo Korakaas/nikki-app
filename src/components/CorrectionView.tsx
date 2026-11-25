@@ -3,6 +3,8 @@ import { Jp, plainText } from '../furigana'
 import Block from './Block'
 import Chevron from './Chevron'
 import CorrectionThread from './CorrectionThread'
+import FaultPractice from './FaultPractice'
+import { faultLink } from '../faultPractice'
 import type { Correction, CorrectionItem, FuriganaFrom, Settings } from '../types'
 
 interface Props {
@@ -151,6 +153,11 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
                   </span>
                 </div>
               )}
+              {!hasDetails(e) && faultLink(e, correction.sourceText) && (
+                <div className="fix-details">
+                  <FaultPractice error={e} sourceText={correction.sourceText} furigana={furigana} />
+                </div>
+              )}
               {opened.has(i) && (
                 <div className="fix-details">
                   {e.explanation && (
@@ -162,6 +169,7 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
                   {e.otherUse && (
                     <FixPart label="Dans quel autre cas l’employer" text={e.otherUse} furigana={furigana} />
                   )}
+                  <FaultPractice error={e} sourceText={correction.sourceText} furigana={furigana} />
                   {canAsk && (
                     <button
                       type="button"

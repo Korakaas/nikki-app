@@ -1,6 +1,6 @@
 import { activeLibrary, patternKey } from '../anki'
 import { timesUsed } from '../stats'
-import type { AnkiLibrary, DailyPrompt, Settings, WeeklyReview } from '../types'
+import type { AnkiLibrary, DailyPrompt, Difficulty, WeeklyReview } from '../types'
 import { GRAMMAR, TOPICS, VOCAB } from './data'
 import { themeAffinity } from './themes'
 
@@ -35,7 +35,7 @@ function chooseWeighted<T>(rand: () => number, items: T[], weight: (item: T) => 
 }
 
 interface PickOptions {
-  level: Settings['targetLevel']
+  level: Difficulty
   dateId: string
   variant: number
   /** Points de grammaire déjà proposés récemment : on évite de les répéter. */
@@ -73,18 +73,22 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     )
   const own = anki.grammar.filter((g) => fresh(g.pattern))
 
-  // N4 : points N4 seulement.
-  // N3 : un point N4 sur quatre pour consolider ; avec un deck importé, la moitié des
-  // points viennent du deck, sinon la liste intégrée N3.
-  // N2 : un point N3 sur cinq pour consolider, puis des points N2 ; avec un deck importé,
-  // 40 % viennent du deck.
-  let kind: 'n4' | 'n3' | 'n2' | 'deck' = 'n4'
-  if (level === 'N3') {
-    const roll = rand()
+  // Curseur de difficulté (S5.3) :
+  // N3    : un point N4 sur quatre pour consolider ; avec un deck importé, la moitié des
+  //         points viennent du deck, sinon la liste intégrée N3.
+  // mixte : surtout du N3, un peu de N4 pour consolider et un peu de N2 pour s'ouvrir ;
+  //         avec un deck importé, 45 % viennent du deck.
+  // N2    : un point N3 sur cinq pour consolider, puis des points N2 ; avec un deck importé,
+  //         40 % viennent du deck.
+  let kind: 'n4' | 'n3' | 'n2' | 'deck' = 'n3'
+  const roll = rand()
+  if (level === 'n3') {
     if (anki.grammar.length > 0) kind = roll < 0.25 ? 'n4' : roll < 0.5 ? 'n3' : 'deck'
     else kind = roll < 1 / 3 ? 'n4' : 'n3'
-  } else if (level === 'N2') {
-    const roll = rand()
+  } else if (level === 'mixed') {
+    if (anki.grammar.length > 0) kind = roll < 0.1 ? 'n4' : roll < 0.35 ? 'n3' : roll < 0.55 ? 'n2' : 'deck'
+    else kind = roll < 0.1 ? 'n4' : roll < 0.65 ? 'n3' : 'n2'
+  } else {
     if (anki.grammar.length > 0) kind = roll < 0.2 ? 'n3' : roll < 0.6 ? 'n2' : 'deck'
     else kind = roll < 0.25 ? 'n3' : 'n2'
   }
@@ -152,8 +156,14 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
 
   // Mots : un mot du thème du sujet + deux mots de ton deck (s'il y en a), sinon trois mots du thème.
   const themeWords = VOCAB[topic.theme]
+  // Les mots intégrés sont N4 ou N3 (pas encore de N2) : N3 préfère les N4, mixte prend tout,
+  // N2 préfère les N3, les plus difficiles de la liste. Les mots de ton deck ne changent pas.
   const preferred =
-    level === 'N4' ? themeWords.filter((w) => w.level === 'N4') : themeWords
+    level === 'n3'
+      ? themeWords.filter((w) => w.level === 'N4')
+      : level === 'n2'
+        ? themeWords.filter((w) => w.level !== 'N4')
+        : themeWords
   const pool = preferred.length >= 3 ? preferred : themeWords
   // Pas de mot déjà proposé récemment (台風 trois fois en une semaine…), s'il en reste assez.
   const unseen = pool.filter((w) => !recentWords.includes(w.ja))

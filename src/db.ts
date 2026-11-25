@@ -299,3 +299,15 @@ export async function loadTwoMinutesDay(): Promise<string | null> {
 export async function saveTwoMinutesDay(day: string): Promise<void> {
   await run(SETTINGS, 'readwrite', (s) => s.put({ key: TWO_MIN_KEY, day }))
 }
+
+const SPIKE_HANDLE_KEY = 'spike-backup-handle'
+
+/** Essai S16.1 : garde le fichier d'essai choisi (jamais dans la sauvegarde). */
+export async function saveSpikeHandle(handle: unknown): Promise<void> {
+  await run(SETTINGS, 'readwrite', (s) => s.put({ key: SPIKE_HANDLE_KEY, handle }))
+}
+
+export async function loadSpikeHandle(): Promise<unknown | null> {
+  const row = await run<{ key: string; handle?: unknown } | undefined>(SETTINGS, 'readonly', (s) => s.get(SPIKE_HANDLE_KEY))
+  return row?.handle ?? null
+}

@@ -2,7 +2,7 @@ import { conjugate, type Verb } from './conj/engine'
 import { groupOf } from './conj/verbs'
 import { plainText } from './furigana'
 import type { QuizHistory, QuizQuestion } from './quiz'
-import type { Entry } from './types'
+import type { CorrectionItem, Entry } from './types'
 
 const BLANK = '＿＿＿'
 const DAY = 86_400_000
@@ -302,6 +302,32 @@ export interface TransitivityLink {
   sentence: string
 }
 
+/** Le lien d'une seule faute avec une paire transitif / intransitif, s'il y en a un. */
+export function transitivityLinkOf(e: CorrectionItem, sourceText: string): TransitivityLink | null {
+  const original = e.original.trim()
+  const corrected = plainText(e.corrected).trim()
+  if (!original || !corrected || original === corrected) return null
+  const before = findVerbs(original)
+  const after = findVerbs(corrected)
+  let found: TransitivityLink['kind'] | null = null
+  let pair: VerbPair | undefined
+  for (const a of after) {
+    if (before.some((b) => b.pair === a.pair && b.side !== a.side)) {
+      found = 'swap'
+      pair = a.pair
+      break
+    }
+  }
+  if (!found && (e.kind === 'particule' || e.kind === 'grammaire') && after.length > 0) {
+    found = 'mention'
+    pair = after[0].pair
+  }
+  if (!found || !pair) return null
+  const sentence =
+    sourceText.split(/(?<=[。！？!?\n])/).find((s) => s.includes(original))?.trim() ?? original
+  return { pair, kind: found, original, corrected, markup: e.corrected, explanation: e.explanation, sentence }
+}
+
 /** Fautes corrigées qui touchent un verbe transitif / intransitif. */
 export function transitivityLinks(entries: Entry[]): TransitivityLink[] {
   const out: TransitivityLink[] = []
@@ -310,34 +336,32 @@ export function transitivityLinks(entries: Entry[]): TransitivityLink[] {
     const c = entry.correction
     if (!c) continue
     for (const e of c.errors) {
-      const original = e.original.trim()
-      const corrected = plainText(e.corrected).trim()
-      if (!original || !corrected || original === corrected) continue
-      const key = `${original}→${corrected}`
+      const link = transitivityLinkOf(e, c.sourceText)
+      if (!link) continue
+      const key = `${link.original}→${link.corrected}`
       if (seen.has(key)) continue
-      const before = findVerbs(original)
-      const after = findVerbs(corrected)
-      let found: TransitivityLink['kind'] | null = null
-      let pair: VerbPair | undefined
-      for (const a of after) {
-        if (before.some((b) => b.pair === a.pair && b.side !== a.side)) {
-          found = 'swap'
-          pair = a.pair
-          break
-        }
-      }
-      if (!found && (e.kind === 'particule' || e.kind === 'grammaire') && after.length > 0) {
-        found = 'mention'
-        pair = after[0].pair
-      }
-      if (!found || !pair) continue
       seen.add(key)
-      const sentence =
-        c.sourceText.split(/(?<=[。！？!?\n])/).find((s) => s.includes(original))?.trim() ?? original
-      out.push({ pair, kind: found, original, corrected, markup: e.corrected, explanation: e.explanation, sentence })
+      out.push(link)
     }
   }
   return out
+}
+
+/** Trois questions sur la paire de verbes d'une faute : les deux phrases, puis « transitif ou non ? ». */
+export function pairQuestions(
+  pair: VerbPair,
+  history: QuizHistory,
+  count = 3,
+  rand: () => number = Math.random,
+  now = Date.now(),
+): QuizQuestion[] {
+  const all = transitivityQuestions(history, new Set(), [], rand, now).filter((q) => {
+    const verb = q.key.split('|')[1]
+    return verb === pair.intr || verb === pair.tr
+  })
+  const sentences = shuffle(all.filter((q) => q.key.endsWith('|i') || q.key.endsWith('|t')), rand)
+  const kinds = shuffle(all.filter((q) => q.key.endsWith('|c')), rand)
+  return [...sentences, ...kinds].slice(0, count).map((q) => q.question)
 }
 
 /** Poids ×4 pour une paire confondue (swap), ×2 pour une paire qui a donné lieu à une correction (mention). */

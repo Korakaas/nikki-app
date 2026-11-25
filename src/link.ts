@@ -1,6 +1,6 @@
 import { CorrectionFailure, levelLine, obj, postApi, str } from './api'
 import { plainText } from './furigana'
-import type { DailyPrompt, PromptLink, Settings } from './types'
+import { difficultyOf, type DailyPrompt, type Difficulty, type PromptLink, type Settings } from './types'
 
 const TOOL_NAME = 'submit_link'
 
@@ -30,7 +30,7 @@ const TOOL = {
   },
 }
 
-function system(level: string, themeOnly = false): string {
+function system(level: Difficulty, themeOnly = false): string {
   if (themeOnly) {
     return `Tu aides un(e) francophone qui tient un journal en japonais.
 
@@ -80,7 +80,7 @@ async function requestLinkWith(prompt: DailyPrompt, settings: Settings, model: s
     model,
     max_tokens: 300,
     system:
-      system(settings.targetLevel, prompt.themeOnly) +
+      system(difficultyOf(settings), prompt.themeOnly) +
       (retry ? `\n\nIMPORTANT : ta réponse précédente n'appelait pas l'outil. Appelle maintenant ${TOOL_NAME}, sans autre texte.` : ''),
     tools: [TOOL],
     tool_choice: { type: 'auto' },
