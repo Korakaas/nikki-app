@@ -1,5 +1,9 @@
 # Journal des changements
 
+## Lot 5 : stockage protégé (2026-11-25)
+
+- S16.4 « Stockage protégé du nettoyage automatique » (1 point) : à chaque ouverture, l'appli demande à Chrome de protéger ses données (entrées, photos, réglages) du nettoyage automatique quand le téléphone manque de place. Chrome répond seul, sans fenêtre ni notification ; il l'accorde surtout à une appli installée et ouverte souvent, donc « non » les premiers jours est normal. L'essai de Réglages → Sauvegarde affiche l'état (« Stockage protégé du nettoyage : oui / non »). Ça ne remplace pas la sauvegarde hebdomadaire : vider les données de l'appli ou la désinstaller efface toujours tout. Coût API : 0 €. Données : rien ne change.
+
 ## Lot 4 : difficulté, entraînement lié aux fautes, budget visible, essai de sauvegarde (2026-11-25)
 
 - S5.3 « Curseur de difficulté » (3 points) : Réglages → Écriture → Difficulté, trois positions N3 / Mixte / N2, **Mixte par défaut**. Il remplace l'ancien réglage « Niveau visé ». Il joue sur (1) la grammaire du jour : N3 = un point N4 sur quatre pour consolider, Mixte = surtout du N3 avec un peu de N4 et de N2, N2 = N3 et N2 ; (2) les mots du jour : N3 préfère les mots N4, N2 préfère les N3, Mixte prend tout (la liste intégrée n'a pas encore de mots N2 ; les mots de ton deck Anki ne changent pas) ; (3) la longueur des phrases japonaises que Claude écrit (courtes, moyennes, un peu plus longues) et les points proposés par le bilan. Anciennes sauvegardes : N2 devient N2, N4 devient N3, N3 (l'ancienne valeur par défaut) devient Mixte. Coût API : 0 € (le texte envoyé change un peu, pas le nombre d'appels).

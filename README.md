@@ -198,7 +198,7 @@ Dans une correction, sous une faute dépliée, « S'entraîner » ouvre trois qu
 
 ### Essai : sauvegarde automatique (S16.1)
 
-Réglages → Sauvegarde → « Essai : sauvegarde automatique » : liste ce que le téléphone permet (fichier, dossier, tâche de fond, stockage protégé) et teste en deux étapes si l'autorisation d'écrire dans un fichier est gardée après la fermeture de l'appli (`src/autoBackupSpike.ts`). Il n'écrit qu'un petit fichier d'essai.
+Réglages → Sauvegarde → « Essai : sauvegarde automatique » : liste ce que le téléphone permet (fichier, dossier, tâche de fond, stockage protégé) et teste en deux étapes si l'autorisation d'écrire dans un fichier est gardée après la fermeture de l'appli (`src/autoBackupSpike.ts`). Il n'écrit qu'un petit fichier d'essai. Il montre aussi si le stockage est protégé du nettoyage automatique : l'appli le demande toute seule à chaque ouverture (`src/storage.ts`, S16.4) ; Chrome l'accorde surtout à une appli installée et ouverte souvent.
 
 ### Copier pour Claude (bilan sans API)
 

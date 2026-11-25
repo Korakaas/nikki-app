@@ -27,7 +27,11 @@ export default function AutoBackupTest() {
           <li>Choisir un fichier où écrire : {yesNo(caps.savePicker)}</li>
           <li>Choisir un dossier : {yesNo(caps.dirPicker)}</li>
           <li>Tâche de fond planifiée : {yesNo(caps.periodicSync)}</li>
-          <li>Stockage protégé du nettoyage : {yesNo(caps.persisted)}</li>
+          <li>
+            Stockage protégé du nettoyage : {yesNo(caps.persisted)}
+            {caps.persisted === false && ' (Chrome l’accorde surtout à une appli installée et ouverte souvent : réessaie dans quelques jours)'}
+            {caps.persisted === null && ' (ce navigateur ne le dit pas)'}
+          </li>
         </ul>
       )}
       <div className="row">

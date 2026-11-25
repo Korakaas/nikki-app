@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { processPending } from './corrector'
 import { DATA_EVENT, loadSettings, saveSettings, todayId } from './db'
 import { runAchievementSync } from './achievementsRun'
+import { protectStorage } from './storage'
 import type { Achievement } from './achievements'
 import Celebration from './components/Celebration'
 import { DEFAULT_SETTINGS, paletteOf, type Settings } from './types'
@@ -112,6 +113,12 @@ export default function App() {
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
+
+  // Protège les données du nettoyage automatique (S16.4) : une demande silencieuse à chaque ouverture,
+  // Chrome ne l'accorde souvent qu'une fois l'appli installée et utilisée plusieurs fois.
+  useEffect(() => {
+    void protectStorage()
   }, [])
 
   useEffect(() => {
