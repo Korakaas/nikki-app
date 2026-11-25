@@ -3729,3 +3729,199 @@ button.starter.format-starter {
   margin: 8px 0 0;
   font-size: 0.9rem;
 }
+
+/* ---- Lot 6 : les trois étapes du jour (S1.3) */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+button.pillar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  min-height: 68px;
+  padding: 6px 4px;
+  border: 1.5px solid var(--rule);
+  border-radius: 6px 14px 8px 12px / 12px 6px 14px 8px;
+  background: color-mix(in srgb, var(--paper) 60%, transparent);
+  color: var(--ink);
+  font-family: var(--hand);
+  cursor: pointer;
+}
+button.pillar b {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+button.pillar small {
+  font-size: 0.95rem;
+  line-height: 1.2;
+  color: var(--pencil);
+}
+button.pillar.now {
+  border-color: var(--ink);
+  box-shadow: 0 1.5px 0 var(--ink);
+}
+button.pillar.ready {
+  border-color: var(--red);
+}
+button.pillar.soft,
+button.pillar:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+/* Le clavier est ouvert : la rangée s'efface pour laisser la place d'écrire. */
+:root[data-keyboard='1'] .pillars {
+  display: none;
+}
+.pillar-target {
+  scroll-margin-top: 8px;
+}
+button.nudge {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+
+/* ---- Lot 6 : relire au hasard ou par date (S13.1) */
+.hist-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.hist-actions button.sketch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  font-size: 1.05rem;
+}
+.hist-note {
+  margin: 0 0 10px;
+}
+.hist-datebox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 6px;
+}
+.hist-dateinput {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--rule);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--paper) 60%, transparent);
+  color: var(--ink);
+  font: inherit;
+}
+.hist-datebox button.sketch {
+  min-height: 48px;
+}
+.hist-nearest {
+  margin: 6px 0 10px;
+}
+.hist-nearest p {
+  margin: 0;
+}
+.hist-nearest button.sketch {
+  margin-top: 6px;
+  min-height: 48px;
+  width: 100%;
+}
+.hist-band {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+  color: var(--pencil);
+}
+.hist-band span {
+  flex: 1;
+}
+.hist-band button.sketch {
+  min-height: 44px;
+  padding: 4px 14px;
+}
+.entry {
+  scroll-margin-top: 8px;
+}
+.hist-read {
+  margin: 0 0 14px;
+  padding: 8px 12px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 6px 14px 8px 12px / 12px 6px 14px 8px;
+  list-style: none;
+}
+.hist-read-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hist-read-head .ep {
+  flex: 1;
+  font-weight: 600;
+}
+.hist-read-close {
+  margin-top: 8px;
+  min-height: 44px;
+}
+.hist-read-head .em {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* ---- Lot 6 : ordre de la correction (S1.2) */
+.order-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.order-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--rule);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.order-option.on {
+  border-color: var(--ink);
+}
+.order-option i {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+.order-option.on i {
+  background: radial-gradient(circle, var(--ink) 0 38%, transparent 42%);
+}
+.order-option .fr {
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+.order-option small {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--pencil);
+}

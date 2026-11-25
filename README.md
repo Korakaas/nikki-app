@@ -71,6 +71,10 @@ sous forme d'outil (`submit_correction`, voir `src/api.ts`). Les textes japonais
 réponse contiennent un balisage `{漢字|かんじ|N4}` que `src/furigana.tsx` transforme en
 furigana selon le réglage.
 
+### Ordre de la correction (S1.2)
+
+Réglages → Écriture → « Ordre de la correction » : Erreurs d'abord (comme avant, par défaut), Version plus naturelle d'abord, ou Grammaire d'abord. Ce que tu as réussi (l'encouragement) reste toujours tout en haut. Le réglage joue sur toutes les corrections affichées (Écrire et Historique), dès la prochaine ouverture. Champ facultatif `fixOrder` dans les réglages ; absent = erreurs d'abord (`src/types.ts`, `src/components/CorrectionView.tsx`).
+
 ## Idées du jour
 
 Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
@@ -246,6 +250,14 @@ Le défi est demandé à un modèle plus léger (Réglages → « Modèle léger
 ### Bilan du mois
 
 Dans Stats, sans appel à l'API : jours écrits, caractères par entrée, fautes pour 100 caractères et fautes par type, comparés au mois d'avant (flèche seulement au-delà de 5 %), mots du jour employés, points de grammaire réussis pour la première fois, « à revoir puis réussis » et « encore à revoir ». Les flèches permettent de remonter mois par mois.
+
+### Les trois étapes du jour (S1.3)
+
+Sous la semaine de l'écran Écrire, trois boutons : **Thème**, **Entrée**, **Correction**, chacun avec son état (« choisir » ou « du jour » ; le nombre de 文字 ; « après ton texte », « prête », « 2 erreurs »…). Un tap mène à l'étape : le thème se déplie (ou « Besoin d'une idée ? » clignote s'il n'y en a pas), le curseur entre dans le texte, la correction se déplie (ou « Corriger » clignote si elle n'est pas faite). Aucun bouton ne lance la correction. Avant d'avoir écrit, Correction est simplement grisée. La rangée disparaît quand le clavier est ouvert (`src/components/Pillars.tsx`).
+
+### Relire au hasard ou par date (S13.1)
+
+En haut de l'Historique : « Au hasard » montre une ancienne entrée (jamais celle d'aujourd'hui) juste sous les boutons, avec « Une autre » ; « Une date » ouvre le calendrier du téléphone. S'il n'y a pas d'entrée ce jour-là, l'appli propose la plus proche, sans message d'échec. La relecture ne modifie rien (`src/pages/HistoryPage.tsx`).
 
 ### Souvenir du jour
 

@@ -16,6 +16,8 @@ interface Props {
   onRemove: () => void
   /** « Juste le thème » : masque (ou remet) la grammaire et les mots du jour. */
   onToggleThemeOnly: () => void
+  /** Change quand les trois étapes demandent de déplier le thème (S1.3). */
+  openSignal?: number
   /** Texte en cours d'écriture : les mots du jour déjà employés sont cochés. */
   text?: string
   /** Défi de traduction : en cours de demande, raté, ou rien à signaler. */
@@ -39,6 +41,7 @@ export default function PromptNote({
   text = '',
   linkState = 'idle',
   onLink,
+  openSignal = 0,
 }: Props) {
   const { topic, grammar, words } = prompt
   const challenge = prompt.link?.challenge
@@ -60,6 +63,10 @@ export default function PromptNote({
       }
       return !v
     })
+  // Un tap sur « Thème » dans les trois étapes déplie le bloc (sans changer le choix gardé d'une fois sur l'autre).
+  useEffect(() => {
+    if (openSignal > 0) setOpen(true)
+  }, [openSignal])
   const [menu, setMenu] = useState(false)
   const [challengeOpen, setChallengeOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)

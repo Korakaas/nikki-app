@@ -9,7 +9,7 @@ import Chevron from '../components/Chevron'
 import SettingRow from '../components/SettingRow'
 import { VERSION_LABEL } from '../version'
 import { CORRECTIONS_PER_MONTH, correctionCosts } from '../usage'
-import { DIFFICULTIES, difficultyOf, paletteOf, THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type Difficulty, type FuriganaFrom, type Palette, type Settings, type Theme } from '../types'
+import { DIFFICULTIES, difficultyOf, FIX_ORDER_LABEL, fixOrderOf, paletteOf, THREAD_LIMIT_MAX, THREAD_LIMIT_MIN, threadLimitOf, type AnkiLibrary, type Difficulty, type FixOrder, type FuriganaFrom, type Palette, type Settings, type Theme } from '../types'
 
 interface Props {
   settings: Settings
@@ -174,6 +174,8 @@ export default function SettingsPage({ settings, onChange }: Props) {
   }
 
   const difficulty = difficultyOf(settings)
+  const FIX_ORDERS: FixOrder[] = ['errors', 'natural', 'grammar']
+  const fixOrderShort: Record<FixOrder, string> = { errors: 'Erreurs', natural: 'Naturelle', grammar: 'Grammaire' }
   const furiganaShort: Record<FuriganaFrom, string> = { all: 'Tous', N3: 'N3 et plus', N2: 'N2 et plus', N1: 'N1', none: 'Jamais' }
   const themeShort: Record<Theme, string> = { auto: 'Auto', light: 'Clair', dark: 'Sombre' }
   const paletteLabel = PALETTE_OPTIONS.find((o) => o.value === paletteOf(settings))?.label ?? ''
@@ -229,6 +231,27 @@ export default function SettingsPage({ settings, onChange }: Props) {
               ))}
             </select>
             <p className="hint">Les mots plus faciles que ce seuil s'affichent sans lecture.</p>
+          </SettingRow>
+          <SettingRow id="fixorder" label="Ordre de la correction" value={fixOrderShort[fixOrderOf(settings)]} open={isOpen('fixorder')} onToggle={() => toggleRow('fixorder')}>
+            <div role="radiogroup" aria-label="Ordre de la correction" className="order-choice">
+              {FIX_ORDERS.map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  role="radio"
+                  aria-checked={fixOrderOf(settings) === o}
+                  className={fixOrderOf(settings) === o ? 'order-option on' : 'order-option'}
+                  onClick={() => patch({ fixOrder: o })}
+                >
+                  <i aria-hidden="true" />
+                  <span className="fr">
+                    {FIX_ORDER_LABEL[o]}
+                    {o === 'errors' && <small>comme avant</small>}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="hint">Ce que tu as réussi reste toujours tout en haut. L'ordre change dès la prochaine correction que tu ouvres.</p>
           </SettingRow>
           <SettingRow id="theme" label="Apparence" value={themeShort[settings.theme]} open={isOpen('theme')} onToggle={() => toggleRow('theme')}>
             <select

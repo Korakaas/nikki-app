@@ -52,6 +52,22 @@ export interface Settings {
   correctionMode: 'full' | 'short'
   /** Nombre d'échanges au plus par correction (S10.2) : de 1 à 5. */
   threadLimit: number
+  /** Ordre des parties de la correction (S1.2) ; absent = erreurs d'abord. */
+  fixOrder?: FixOrder
+}
+
+export type FixOrder = 'errors' | 'natural' | 'grammar'
+
+export const FIX_ORDER_LABEL: Record<FixOrder, string> = {
+  errors: "Erreurs d'abord",
+  natural: "Version plus naturelle d'abord",
+  grammar: "Grammaire d'abord",
+}
+
+/** Ordre en vigueur : une ancienne sauvegarde (ou une valeur inconnue) garde l'ordre d'origine, erreurs d'abord. */
+export function fixOrderOf(settings: { fixOrder?: string } | undefined): FixOrder {
+  const o = settings?.fixOrder
+  return o === 'natural' || o === 'grammar' ? o : 'errors'
 }
 
 export const DEFAULT_SETTINGS: Settings = {

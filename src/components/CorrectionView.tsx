@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Jp, plainText } from '../furigana'
 import Block from './Block'
 import Chevron from './Chevron'
 import CorrectionThread from './CorrectionThread'
 import FaultPractice from './FaultPractice'
 import { faultLink } from '../faultPractice'
-import type { Correction, CorrectionItem, FuriganaFrom, Settings } from '../types'
+import { fixOrderOf, type Correction, type CorrectionItem, type FixOrder, type FuriganaFrom, type Settings } from '../types'
 
 interface Props {
   correction: Correction
@@ -18,6 +18,15 @@ interface Props {
   entryId?: string
   settings?: Settings
   onOpenSettings?: () => void
+  /** Change quand les trois étapes demandent de déplier la correction (S1.3). */
+  openSignal?: number
+}
+
+/** Ordre des trois parties selon le réglage « Ordre de la correction ». */
+const FIX_PARTS: Record<FixOrder, FixOrder[]> = {
+  errors: ['errors', 'natural', 'grammar'],
+  natural: ['natural', 'errors', 'grammar'],
+  grammar: ['grammar', 'errors', 'natural'],
 }
 
 /** Une faute a-t-elle des explications à déplier ? */
@@ -25,9 +34,12 @@ function hasDetails(e: CorrectionItem): boolean {
   return Boolean(e.explanation || e.context || e.otherUse)
 }
 
-export default function CorrectionView({ correction, furigana, stale, startOpen, entryId, settings, onOpenSettings }: Props) {
+export default function CorrectionView({ correction, furigana, stale, startOpen, entryId, settings, onOpenSettings, openSignal = 0 }: Props) {
   const { summary, praise, natural, errors, grammarGood, grammarReview } = correction
   const [open, setOpen] = useState(Boolean(startOpen))
+  useEffect(() => {
+    if (openSignal > 0) setOpen(true)
+  }, [openSignal])
   // Fautes dont les explications sont dépliées (repliées au départ).
   // Dépliées au départ (retouche de Kora) : on voit tout de suite le pourquoi de chaque faute.
   const [opened, setOpened] = useState<Set<number>>(
@@ -65,36 +77,10 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
     </span>
   ) : null
 
-  return (
-    <Block
-      role="fix"
-      ja="添"
-      title="Correction"
-      className="tensaku-block"
-      open={open}
-      onToggle={() => setOpen((v) => !v)}
-      summary={
-        <>
-          {praiseEl}
-          <span className="tensaku-overview fr">{overview}</span>
-        </>
-      }
-    >
-      <div className="tensaku-body" lang="ja">
-      {praiseEl}
-
-      {stale && (
-        <p className="stale" lang="fr">
-          Le texte a changé depuis cette correction.
-        </p>
-      )}
-
-      {summary && !praise && (
-        <p className="teacher-note">
-          <Jp text={summary} furigana={furigana} />
-        </p>
-      )}
-
+  // Les trois parties de la correction ; leur ordre se règle dans les réglages (S1.2). Ce qui est réussi reste toujours en haut.
+  const parts: Record<FixOrder, ReactNode> = {
+    errors: (
+      <>
       <h3 className="part part-row">
         <span>まちがい</span>
         <span className="fr">Erreurs</span>
@@ -189,6 +175,10 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
         </ul>
       )}
 
+      </>
+    ),
+    natural: (
+      <>
       <h3 className="part">
         <span>もっと自然に</span>
         <span className="fr">Version plus naturelle</span>
@@ -197,6 +187,10 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
         <Jp text={natural} furigana={furigana} />
       </p>
 
+      </>
+    ),
+    grammar: (
+      <>
       {(grammarGood.length > 0 || grammarReview.length > 0) && (
         <>
           <h3 className="part part-fold">
@@ -259,6 +253,44 @@ export default function CorrectionView({ correction, furigana, stale, startOpen,
           </ul>
         </>
       )}
+
+      </>
+    ),
+  }
+
+  return (
+    <Block
+      role="fix"
+      ja="添"
+      title="Correction"
+      className="tensaku-block"
+      open={open}
+      onToggle={() => setOpen((v) => !v)}
+      summary={
+        <>
+          {praiseEl}
+          <span className="tensaku-overview fr">{overview}</span>
+        </>
+      }
+    >
+      <div className="tensaku-body" lang="ja">
+      {praiseEl}
+
+      {stale && (
+        <p className="stale" lang="fr">
+          Le texte a changé depuis cette correction.
+        </p>
+      )}
+
+      {summary && !praise && (
+        <p className="teacher-note">
+          <Jp text={summary} furigana={furigana} />
+        </p>
+      )}
+
+      {FIX_PARTS[fixOrderOf(settings)].map((k) => (
+        <Fragment key={k}>{parts[k]}</Fragment>
+      ))}
 
       {entryId && settings && (
         <CorrectionThread
