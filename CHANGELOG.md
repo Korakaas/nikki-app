@@ -1,8 +1,12 @@
 # Journal des changements
 
+## Lot 6 : retrait de la rangée des trois étapes (2026-11-26)
+
+- S1.3 « Accès aux trois piliers » : la rangée Thème / Entrée / Correction sous la semaine de l'écran Écrire est retirée (trop haute, loin du pouce, redondante avec les blocs et le dock du bas). L'écran Écrire redevient comme avant le lot 6. Aucune donnée ni sauvegarde touchée.
+
 ## Lot 6 : confort à une main (2026-11-25)
 
-- S1.3 « Accès aux trois piliers » (3 points) : sous la semaine de l'écran Écrire, trois boutons (Thème, Entrée, Correction) montrent où tu en es et mènent à l'étape en un tap. Aucun ne lance la correction. La rangée s'efface quand le clavier est ouvert. Coût API : 0 €.
+- S1.3 : livrée en version 46, retirée en version 47 (voir au-dessus).
 - S13.1 « Relire par date ou au hasard » (3 points) : deux boutons en haut de l'Historique. « Au hasard » montre une ancienne entrée sous les boutons (avec « Une autre »), « Une date » ouvre le calendrier du téléphone et propose l'entrée la plus proche s'il n'y a rien ce jour-là. La relecture ne modifie rien. Coût API : 0 €.
 - S1.2 « Ordre des cartes après correction » (3 points) : Réglages → Écriture → « Ordre de la correction » (Erreurs d'abord par défaut, Version plus naturelle d'abord, Grammaire d'abord). L'encouragement reste en haut. Coût API : 0 €.
 - Données : champ facultatif `fixOrder` dans les réglages (absent = erreurs d'abord). Le format des sauvegardes ne change pas (version 2) ; les anciennes sauvegardes s'importent sans rien changer. La clé API n'y est toujours pas.

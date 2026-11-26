@@ -8,7 +8,6 @@ import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
 import Chevron from '../components/Chevron'
 import FormatBlock from '../components/FormatBlock'
-import Pillars from '../components/Pillars'
 import PromptNote from '../components/PromptNote'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
@@ -73,15 +72,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const [showHelp, setShowHelp] = useState(false)
   const [continueOpen, setContinueOpen] = useState(false)
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null)
-  // Les trois étapes (S1.3) : où aller, et quel bouton clignote un instant.
-  const themeRef = useRef<HTMLDivElement>(null)
-  const ideaRef = useRef<HTMLButtonElement>(null)
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const fixRef = useRef<HTMLDivElement>(null)
-  const correctRef = useRef<HTMLButtonElement>(null)
-  const [themeSignal, setThemeSignal] = useState(0)
-  const [fixSignal, setFixSignal] = useState(0)
-  const [nudge, setNudge] = useState<'idea' | 'correct' | null>(null)
 
   // La feuille grandit avec le texte : la page défile, pas le champ.
   useLayoutEffect(() => {
@@ -354,46 +344,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     setBusy(false)
   }
 
-  /** Fait défiler jusqu'à un élément, sans animation si l'appareil la déconseille. */
-  function scrollTo(el: HTMLElement | null) {
-    if (!el) return
-    const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' })
-  }
-
-  /** Fait clignoter un bouton une seconde, pour montrer où appuyer. */
-  function flash(which: 'idea' | 'correct') {
-    setNudge(which)
-    window.setTimeout(() => setNudge((n) => (n === which ? null : n)), 1400)
-  }
-
-  function goTheme() {
-    if (prompt) {
-      setThemeSignal((n) => n + 1)
-      window.setTimeout(() => scrollTo(themeRef.current), 60)
-    } else {
-      // Pas encore de thème : on montre « Besoin d'une idée ? » sans rien lancer.
-      scrollTo(ideaRef.current)
-      flash('idea')
-    }
-  }
-
-  function goEntry() {
-    scrollTo(sheetRef.current)
-    areaRef.current?.focus({ preventScroll: true })
-  }
-
-  function goFix() {
-    if (meta.correction) {
-      setFixSignal((n) => n + 1)
-      window.setTimeout(() => scrollTo(fixRef.current), 60)
-    } else {
-      // Pas encore corrigée : on montre le bouton « Corriger » sans le presser.
-      correctRef.current?.scrollIntoView({ block: 'nearest' })
-      flash('correct')
-    }
-  }
-
   // Balayage horizontal : vers la droite = jour précédent, vers la gauche = jour suivant.
   function onTouchStart(e: React.TouchEvent) {
     const t = e.touches[0]
@@ -477,25 +427,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           paused={streakInfo(days, today).paused}
           onSelect={onChangeDay}
         />
-        <Pillars
-          hasTheme={Boolean(prompt)}
-          isToday={isToday}
-          chars={countChars(text)}
-          fix={
-            meta.correction && hasText
-              ? { kind: 'done', errors: meta.correction.errors.length, stale }
-              : busy
-                ? { kind: 'busy' }
-                : meta.pending
-                  ? { kind: 'pending' }
-                  : hasText
-                    ? { kind: 'ready' }
-                    : { kind: 'empty' }
-          }
-          onTheme={goTheme}
-          onEntry={goEntry}
-          onFix={goFix}
-        />
         {!isToday && (
           <button type="button" className="link muted-link" onClick={() => onChangeDay(today)}>
             Revenir à aujourd'hui
@@ -511,9 +442,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       )}
 
       {prompt ? (
-        <div ref={themeRef} className="pillar-target">
         <PromptNote
-          openSignal={themeSignal}
           prompt={prompt}
           furigana={settings.furiganaFrom}
           text={text}
@@ -533,12 +462,10 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
             void savePrompt(null)
           }}
         />
-        </div>
       ) : (
         <button
           type="button"
-          ref={ideaRef}
-          className={`sketch idea-button${nudge === 'idea' ? ' nudge' : ''}`}
+          className="sketch idea-button"
           onClick={() => void suggest(0)}
         >
           Besoin d'une idée ?
@@ -547,7 +474,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
 
       <FormatBlock id={id} furigana={settings.furiganaFrom} text={text} onStarter={insertStarter} />
 
-      <div className="sheet-wrap" ref={sheetRef}>
+      <div className="sheet-wrap">
         <textarea
           ref={areaRef}
           className="sheet editor"
@@ -591,9 +518,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       )}
 
       {meta.correction && hasText && (
-        <div ref={fixRef} className="pillar-target">
         <CorrectionView
-          openSignal={fixSignal}
           correction={meta.correction}
           furigana={settings.furiganaFrom}
           stale={stale}
@@ -601,7 +526,6 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           settings={settings}
           onOpenSettings={onOpenSettings}
         />
-        </div>
       )}
 
       {/* « Pour continuer » (S18.14) : replié ; chaque ligne fonctionne comme l'ancienne carte. Le bloc se cache tout seul s'il est vide. */}
@@ -659,8 +583,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
           </button>
           <button
             type="button"
-            ref={correctRef}
-            className={`sketch primary${nudge === 'correct' ? ' nudge' : ''}`}
+            className="sketch primary"
             disabled={!hasText || busy}
             // Garde le clavier ouvert au toucher : sinon la page se réorganise et le tap est perdu.
             onMouseDown={(e) => e.preventDefault()}

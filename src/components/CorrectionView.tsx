@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, type ReactNode } from 'react'
+import { Fragment, useState, type ReactNode } from 'react'
 import { Jp, plainText } from '../furigana'
 import Block from './Block'
 import Chevron from './Chevron'
@@ -18,8 +18,6 @@ interface Props {
   entryId?: string
   settings?: Settings
   onOpenSettings?: () => void
-  /** Change quand les trois étapes demandent de déplier la correction (S1.3). */
-  openSignal?: number
 }
 
 /** Ordre des trois parties selon le réglage « Ordre de la correction ». */
@@ -34,12 +32,9 @@ function hasDetails(e: CorrectionItem): boolean {
   return Boolean(e.explanation || e.context || e.otherUse)
 }
 
-export default function CorrectionView({ correction, furigana, stale, startOpen, entryId, settings, onOpenSettings, openSignal = 0 }: Props) {
+export default function CorrectionView({ correction, furigana, stale, startOpen, entryId, settings, onOpenSettings }: Props) {
   const { summary, praise, natural, errors, grammarGood, grammarReview } = correction
   const [open, setOpen] = useState(Boolean(startOpen))
-  useEffect(() => {
-    if (openSignal > 0) setOpen(true)
-  }, [openSignal])
   // Fautes dont les explications sont dépliées (repliées au départ).
   // Dépliées au départ (retouche de Kora) : on voit tout de suite le pourquoi de chaque faute.
   const [opened, setOpened] = useState<Set<number>>(

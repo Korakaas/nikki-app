@@ -251,10 +251,6 @@ Le défi est demandé à un modèle plus léger (Réglages → « Modèle léger
 
 Dans Stats, sans appel à l'API : jours écrits, caractères par entrée, fautes pour 100 caractères et fautes par type, comparés au mois d'avant (flèche seulement au-delà de 5 %), mots du jour employés, points de grammaire réussis pour la première fois, « à revoir puis réussis » et « encore à revoir ». Les flèches permettent de remonter mois par mois.
 
-### Les trois étapes du jour (S1.3)
-
-Sous la semaine de l'écran Écrire, trois boutons : **Thème**, **Entrée**, **Correction**, chacun avec son état (« choisir » ou « du jour » ; le nombre de 文字 ; « après ton texte », « prête », « 2 erreurs »…). Un tap mène à l'étape : le thème se déplie (ou « Besoin d'une idée ? » clignote s'il n'y en a pas), le curseur entre dans le texte, la correction se déplie (ou « Corriger » clignote si elle n'est pas faite). Aucun bouton ne lance la correction. Avant d'avoir écrit, Correction est simplement grisée. La rangée disparaît quand le clavier est ouvert (`src/components/Pillars.tsx`).
-
 ### Relire au hasard ou par date (S13.1)
 
 En haut de l'Historique : « Au hasard » montre une ancienne entrée (jamais celle d'aujourd'hui) juste sous les boutons, avec « Une autre » ; « Une date » ouvre le calendrier du téléphone. S'il n'y a pas d'entrée ce jour-là, l'appli propose la plus proche, sans message d'échec. La relecture ne modifie rien (`src/pages/HistoryPage.tsx`).

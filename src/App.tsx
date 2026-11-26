@@ -188,13 +188,6 @@ export default function App() {
     void saveSettings(next)
   }
 
-  // Clavier ouvert pendant la frappe : certains éléments (la rangée des trois étapes) s'effacent par le style.
-  useEffect(() => {
-    const on = tab === 'write' && typing && keyboard
-    if (on) document.documentElement.dataset.keyboard = '1'
-    else delete document.documentElement.dataset.keyboard
-  }, [tab, typing, keyboard])
-
   if (!ready) return <div className="loading">…</div>
 
   return (
