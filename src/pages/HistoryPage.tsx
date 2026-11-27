@@ -11,7 +11,7 @@ import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { activeLibrary } from '../anki'
 import { deleteEntry, listEntries, loadAnki, todayId } from '../db'
 import { countChars, formatDateJa } from '../format'
-import { Jp } from '../furigana'
+import { Jp, plainText } from '../furigana'
 import { GRAMMAR } from '../prompts/data'
 import { goodPoints, streakInfo, timesUsed, writtenDays } from '../stats'
 import type { AnkiLibrary, Entry, Settings } from '../types'
@@ -179,8 +179,18 @@ export default function HistoryPage({ settings, onOpenDay }: Props) {
           )}
           {entry.prompt && (
             <p lang="ja" className="entry-topic">
-              お題：<Jp text={entry.prompt.topic.ja} furigana={settings.furiganaFrom} />
-              {!entry.prompt.themeOnly && <span className="fr"> ・ {entry.prompt.grammar.pattern}</span>}
+              {/* Jour de format : le « sujet » est le nom du format, déjà montré au-dessus. */}
+              {plainText(entry.prompt.topic.ja) !== formatById(entry.format).ja && (
+                <>
+                  お題：<Jp text={entry.prompt.topic.ja} furigana={settings.furiganaFrom} />
+                </>
+              )}
+              {!entry.prompt.themeOnly && (
+                <span className="fr">
+                  {plainText(entry.prompt.topic.ja) !== formatById(entry.format).ja ? ' ・ ' : ''}
+                  {entry.prompt.grammar.pattern}
+                </span>
+              )}
             </p>
           )}
           <div className="sheet-wrap">

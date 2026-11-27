@@ -1,7 +1,10 @@
 import { activeLibrary, patternKey } from '../anki'
 import { timesUsed } from '../stats'
 import type { AnkiLibrary, DailyPrompt, Difficulty, WeeklyReview } from '../types'
+import { formatById, type FormatId } from '../formats'
 import { GRAMMAR, TOPICS, VOCAB } from './data'
+import { FORMAT_GRAMMAR, FORMAT_THEMES } from './format-pools'
+import { situationWords, type Situation } from './situations'
 import { themeAffinity } from './themes'
 
 /** Générateur pseudo-aléatoire déterministe : même date + même variante = même idée. */
@@ -56,12 +59,20 @@ interface PickOptions {
   focus?: WeeklyReview['focus'] | null
   /** Pour chaque mot déjà proposé : combien de fois proposé, combien de fois employé (voir stats.wordHistory). */
   wordHistory?: Map<string, { proposed: number; used: number }>
+  /** Format du jour (S5.6b) : la grammaire et les mots vont avec lui. Le journal libre garde le tirage d'après le sujet. */
+  format?: FormatId
+  /** Texte du jour du format : ses trois mots sont les premiers mots proposés. */
+  situation?: Situation | null
 }
 
 export function pickPrompt(options: PickOptions): DailyPrompt {
   const { level, dateId, variant, recentPatterns = [], recentWords = [], currentTopic } =
     options
   const rand = mulberry32(hash(`${dateId}#${variant}`))
+  // Un format autre que le journal libre : la grammaire et les mots suivent le format (S5.6b).
+  const fmt: FormatId | null = options.format && options.format !== 'journal' ? options.format : null
+  const fmtKeys = new Set((fmt ? FORMAT_GRAMMAR[fmt] : []).map((p) => patternKey(p)))
+  const fitsFormat = (pattern: string) => !fmt || fmtKeys.has(patternKey(pattern))
 
   const anki = activeLibrary(options.library)
   const fresh = (pattern: string) => !recentPatterns.includes(pattern)
@@ -110,6 +121,15 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     deck: own.map((g) => asPrompt(g, true)),
   }
   let chosen = pools[kind]
+  if (fmt) {
+    // Seuls les points qui vont avec le format ; à défaut dans ce niveau, ceux des autres niveaux.
+    const listed = chosen.filter((g) => fitsFormat(g.pattern))
+    if (listed.length > 0) chosen = listed
+    else {
+      const wider = [...pools.deck, ...pools.n2, ...pools.n3, ...pools.n4].filter((g) => fitsFormat(g.pattern))
+      if (wider.length > 0) chosen = wider
+    }
+  }
   if (chosen.length === 0) chosen = [...pools.deck, ...pools.n2, ...pools.n3, ...pools.n4]
   if (chosen.length === 0) chosen = GRAMMAR.filter((g) => g.level === 'N4').map((g) => asPrompt(g, false))
   // Un point jamais bien employé a trois fois plus de chances d'être proposé.
@@ -118,7 +138,7 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     timesUsed(g.pattern, good) === 0 ? 3 : 1,
   )
   // Première idée du jour : le point à viser du bilan, si on en a un.
-  if (options.focus && variant === 0) {
+  if (options.focus && variant === 0 && fitsFormat(options.focus.pattern)) {
     const f = options.focus
     const key = patternKey(f.pattern)
     const fromDeck = anki.grammar.find((g) => patternKey(g.pattern) === key)
@@ -179,33 +199,68 @@ export function pickPrompt(options: PickOptions): DailyPrompt {
     fr,
   })
 
-  // Deux mots du deck : ceux qui ont un lien avec le sujet passent en premier, ainsi que
+  // Mots du deck : ceux qui ont un lien avec le sujet (ou avec le format) passent en premier, ainsi que
   // ceux qu'on a déjà reçus sans jamais les employer ; ceux déjà employés reviennent moins.
+  // Jour de format : un seul mot du deck, pour que les autres viennent du texte du jour.
+  const wantedFromDeck = fmt ? 1 : 2
   const ownWords = anki.words.filter((w) => !recentWords.includes(w.ja))
   const fromDeck: ReturnType<typeof toWord>[] = []
-  if (ownWords.length >= 2) {
+  if (ownWords.length >= wantedFromDeck) {
     const history = options.wordHistory
     const weightOfWord = (w: (typeof ownWords)[number]) => {
-      const link = [1, 4, 8][Math.min(2, themeAffinity(w, topic.theme, topic.ja))]
+      const affinity = fmt
+        ? Math.max(...FORMAT_THEMES[fmt].map((t) => themeAffinity(w, t, '')))
+        : themeAffinity(w, topic.theme, topic.ja)
+      const link = [1, 4, 8][Math.min(2, affinity)]
       const h = history?.get(w.ja)
       const use = !h ? 1.5 : h.used > 0 ? 0.5 / h.used : 2.5 + Math.min(1.5, 0.5 * (h.proposed - 1))
       return link * use
     }
     const left = [...ownWords]
-    while (fromDeck.length < 2) {
+    while (fromDeck.length < wantedFromDeck) {
       const w = chooseWeighted(rand, left, weightOfWord)
       left.splice(left.indexOf(w), 1)
       fromDeck.push(toWord(w))
     }
   }
+
+  // Jour de format : d'abord les mots du texte du jour, puis des mots des thèmes qui vont avec le format.
+  let base: { ja: string; reading: string; fr: string }[] = shuffled
+  if (fmt) {
+    const own = situationWords(options.situation ?? null).filter((w) => !recentWords.includes(w.ja))
+    const fromThemes = FORMAT_THEMES[fmt]
+      .flatMap((t) => VOCAB[t])
+      .filter((w) => !recentWords.includes(w.ja) && !own.some((o) => o.ja === w.ja))
+    const liked =
+      level === 'n3'
+        ? fromThemes.filter((w) => w.level === 'N4')
+        : level === 'n2'
+          ? fromThemes.filter((w) => w.level !== 'N4')
+          : fromThemes
+    const extra = [...(liked.length >= 3 ? liked : fromThemes)]
+    for (let i = extra.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1))
+      ;[extra[i], extra[j]] = [extra[j], extra[i]]
+    }
+    base = [...own, ...extra]
+  }
   const words = [
-    ...shuffled.slice(0, 3 - fromDeck.length).map(toWord),
+    ...base.slice(0, 3 - fromDeck.length).map(toWord),
     ...fromDeck,
   ]
 
+  // Jour de format : le « sujet » est le format lui-même (le texte du jour dit déjà de quoi parler).
+  const named = fmt ? formatById(fmt) : null
+  const outTopic = named
+    ? {
+        ja: named.ja,
+        fr: options.situation?.aide ? `${named.fr} : ${options.situation.aide}` : named.fr,
+      }
+    : { ja: topic.ja, fr: topic.fr }
+
   return {
     variant,
-    topic: { ja: topic.ja, fr: topic.fr },
+    topic: outTopic,
     grammar,
     words,
   }

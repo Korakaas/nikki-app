@@ -679,10 +679,6 @@ rt {
   font-size: 1.1rem;
 }
 
-.idea-button {
-  margin-top: 4px;
-}
-
 .entry-topic {
   margin: 0 0 6px 4px;
   font-size: 1.1rem;
@@ -3622,18 +3618,6 @@ button.fix-ask {
   white-space: pre-line;
   color: var(--ink);
 }
-.format-words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 14px;
-  margin: 0 0 6px;
-  padding: 0;
-  list-style: none;
-  font-size: 1.1rem;
-}
-.format-words small {
-  font-size: 0.9rem;
-}
 .format-todo {
   margin: 0 0 4px;
   font-size: 1.05rem;
@@ -3651,6 +3635,34 @@ button.fix-ask {
   flex-direction: column;
   gap: 8px;
   margin-top: 6px;
+}
+/* S5.6a : le coin « Pour t'aider » (grammaire + mots) dans le bloc du format */
+.format-block {
+  margin-bottom: 14px;
+}
+.format-aide-zone {
+  margin-top: 10px;
+  padding-top: 2px;
+  border-top: 1px dotted var(--rule);
+}
+.format-aide-zone > .trow-head {
+  margin-bottom: 0;
+}
+.aide-sum {
+  margin: 0 0 4px 2.8rem;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: var(--pencil);
+}
+.aide-sum [lang='ja'] {
+  color: var(--ink);
+  font-size: 1.15rem;
+}
+.format-subject .format-text {
+  font-size: 1.35rem;
+}
+.format-subject .format-todo {
+  margin: 0;
 }
 button.starter.format-starter {
   min-width: 0;

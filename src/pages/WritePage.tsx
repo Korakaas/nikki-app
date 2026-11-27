@@ -8,12 +8,12 @@ import Decor from '../components/Decor'
 import HelpSheet from '../components/HelpSheet'
 import Chevron from '../components/Chevron'
 import FormatBlock from '../components/FormatBlock'
-import PromptNote from '../components/PromptNote'
 import WeekStrip from '../components/WeekStrip'
 import { ENTRY_UPDATED, isRunning, runCorrection } from '../corrector'
 import { getEntry, listEntries, loadAnki, loadReviews, saveEntry, todayId } from '../db'
 import { addDays, countChars, formatDateJa } from '../format'
 import { formatOfDay } from '../formats'
+import { situationOfDay } from '../prompts/situations'
 import { requestLink } from '../link'
 import { pickPrompt } from '../prompts/pick'
 import { pickStarters } from '../prompts/starters'
@@ -57,12 +57,14 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
   const [missingKey, setMissingKey] = useState(false)
   const [prompt, setPrompt] = useState<DailyPrompt | null>(null)
   const [days, setDays] = useState<Set<string>>(() => new Set())
-  // Changements de sujet automatiques faute de lien possible (1 au plus par jour, pour borner le coût).
-  const bridgeRetries = useRef(0)
   const [photos, setPhotos] = useState<EntryPhoto[]>([])
   const [stickers, setStickers] = useState<EntrySticker[]>([])
   const [linkState, setLinkState] = useState<'idle' | 'loading' | 'error'>('idle')
   const entryRef = useRef<Entry | undefined>(undefined)
+  // Grammaire et mots du jour : tirés en mémoire dès l'ouverture, enregistrés avec la première ligne écrite.
+  const promptRef = useRef<DailyPrompt | null>(null)
+  const dayRef = useRef(id)
+  dayRef.current = id
   const timer = useRef<number | undefined>(undefined)
   const textRef = useRef(text)
   textRef.current = text
@@ -90,12 +92,24 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       entryRef.current = entry
       setText(entry?.text ?? '')
       setMeta(metaOf(entry))
+      promptRef.current = entry?.prompt ?? null
       setPrompt(entry?.prompt ?? null)
       setPhotos(entry?.photos ?? [])
       setStickers(entry?.stickers ?? [])
       setLinkState('idle')
       setShowStarters(false)
       setLoaded(true)
+      // S5.6a : la grammaire et les mots du jour se tirent seuls, sans rien créer tant qu'on n'a rien écrit.
+      // Une ancienne page déjà écrite (sans ces aides) reste telle quelle ; celle d'aujourd'hui en reçoit.
+      const written = Boolean(entry?.text.trim())
+      if (!entry?.prompt && (id === todayId() || !written)) {
+        void draw(0).then((idea) => {
+          if (dayRef.current !== id || promptRef.current) return
+          promptRef.current = idea
+          setPrompt(idea)
+          if (entryRef.current) void savePrompt(idea)
+        })
+      }
     })
   }, [id])
 
@@ -129,6 +143,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       updatedAt: now,
       format: previous?.format ?? formatOfDay(id),
     }
+    if (!entry.prompt && promptRef.current) entry.prompt = promptRef.current
     await saveEntry(entry)
     entryRef.current = entry
     setState('saved')
@@ -169,8 +184,12 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     })
   }
 
-  /** Propose une idée (ou une autre) et la range dans l'entrée du jour. */
-  async function suggest(next: number, part?: 'grammar' | 'words') {
+  /**
+   * Tire la grammaire et les mots du jour (S5.6a, S5.6b) : ils vont avec le format du jour.
+   * `part` : ne change que la grammaire ou que les mots, le reste du jour est gardé.
+   */
+  async function draw(next: number, part?: 'grammar' | 'words'): Promise<DailyPrompt> {
+    const current = promptRef.current
     const all = await listEntries()
     const recentEntries = all.slice(0, 14)
     const proposed = recentEntries.filter((e) => !e.prompt?.themeOnly)
@@ -186,16 +205,19 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
     const since = review ? goodPoints(all.filter((e) => e.id >= review.to)) : []
     const focus =
       review && fresh && timesUsed(review.focus.pattern, since) < 1 ? review.focus : null
-    // « Changer » : le sujet reste le même ; ce qui vient d'être proposé aujourd'hui ne revient pas aussitôt.
-    const keep = part && prompt ? prompt : null
+    // « Changer » : ce qui vient d'être proposé aujourd'hui ne revient pas aussitôt.
+    const keep = part && current ? current : null
+    const wantsGrammar = !part || part === 'grammar'
+    const wantsWords = !part || part === 'words'
     const drawn = pickPrompt({
       level: difficultyOf(settings),
       dateId: id,
       variant: next,
-      recentPatterns: keep && part === 'grammar' ? [...recent, keep.grammar.pattern, ...(keep.prevGrammar ?? [])] : recent,
+      recentPatterns:
+        current && wantsGrammar ? [...recent, current.grammar.pattern, ...(current.prevGrammar ?? [])] : recent,
       recentWords:
-        keep && part === 'words' ? [...recentWords, ...keep.words.map((w) => w.ja), ...(keep.prevWords ?? [])] : recentWords,
-      currentTopic: prompt?.topic.ja,
+        current && wantsWords ? [...recentWords, ...current.words.map((w) => w.ja), ...(current.prevWords ?? [])] : recentWords,
+      currentTopic: current?.topic.ja,
       fixedTopic: keep?.topic.ja,
       recentTopics: recentEntries
         .map((e) => e.prompt?.topic.ja)
@@ -204,6 +226,8 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       good: goodPoints(all),
       focus,
       wordHistory: wordHistory(all),
+      format: formatOfDay(id),
+      situation: situationOfDay(id),
     })
     let idea = drawn
     if (keep) {
@@ -213,35 +237,43 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         part === 'grammar'
           ? { ...rest, variant: next, grammar: drawn.grammar, prevGrammar: [...(keep.prevGrammar ?? []), keep.grammar.pattern].slice(-10) }
           : { ...rest, variant: next, words: drawn.words, prevWords: [...(keep.prevWords ?? []), ...keep.words.map((w) => w.ja)].slice(-12) }
+    } else if (current) {
+      idea = {
+        ...drawn,
+        prevGrammar: [...(current.prevGrammar ?? []), current.grammar.pattern].slice(-10),
+        prevWords: [...(current.prevWords ?? []), ...current.words.map((w) => w.ja)].slice(-12),
+      }
     }
-    if (prompt?.themeOnly) idea = { ...idea, themeOnly: true }
+    if (current?.themeOnly) idea = { ...idea, themeOnly: true }
+    return idea
+  }
+
+  /** Une demande de Kora (« Changer… », « Tout changer ») : on tire, on affiche, on range dans l'entrée du jour. */
+  async function suggest(next: number, part?: 'grammar' | 'words') {
+    const idea = await draw(next, part)
+    if (dayRef.current !== id) return
+    promptRef.current = idea
     setPrompt(idea)
     setLinkState('idle')
     await savePrompt(idea)
-    void fetchLink(idea, !part)
   }
 
-  /** Un défi de traduction qui relie le sujet, la grammaire et les mots (facultatif, en arrière-plan). */
-  async function fetchLink(idea: DailyPrompt, mayChangeTopic = false) {
+  /** Un défi de traduction qui relie la grammaire et les mots (sur demande seulement : jamais d'appel tout seul). */
+  async function fetchLink(idea: DailyPrompt) {
     if (!settings.apiKey || !navigator.onLine) return
     const same = (p?: DailyPrompt | null) =>
       !!p && p.variant === idea.variant && p.topic.ja === idea.topic.ja
     setLinkState('loading')
     try {
       const link = await requestLink(idea, settings)
-      if (entryRef.current?.id !== id || !same(entryRef.current?.prompt)) return
-      // Pas de lien naturel : on change de sujet plutôt que de forcer (une seule fois par idée de départ).
-      if (link.fits === false && mayChangeTopic && bridgeRetries.current < 1 && !idea.themeOnly) {
-        bridgeRetries.current += 1
-        void suggest(idea.variant + 1)
-        return
-      }
+      if (dayRef.current !== id || !same(promptRef.current)) return
       const withLink = { ...idea, link }
+      promptRef.current = withLink
       setPrompt((p) => (same(p) ? withLink : p))
       setLinkState('idle')
       await savePrompt(withLink)
     } catch {
-      if (same(entryRef.current?.prompt)) setLinkState('error')
+      if (same(promptRef.current)) setLinkState('error')
     }
   }
 
@@ -259,6 +291,7 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
       prompt: idea,
       createdAt: previous?.createdAt ?? now,
       updatedAt: now,
+      format: previous?.format ?? formatOfDay(id),
     }
     if (!idea) delete entry.prompt
     await saveEntry(entry)
@@ -441,38 +474,26 @@ export default function WritePage({ id, onChangeDay, settings, onOpenSettings }:
         />
       )}
 
-      {prompt ? (
-        <PromptNote
-          prompt={prompt}
-          furigana={settings.furiganaFrom}
-          text={text}
-          linkState={linkState}
-          onLink={settings.apiKey ? () => void fetchLink(prompt) : undefined}
-          onAnother={() => void suggest(prompt.variant + 1)}
-          onChangeGrammar={() => void suggest(prompt.variant + 1, 'grammar')}
-          onChangeWords={() => void suggest(prompt.variant + 1, 'words')}
-          onToggleThemeOnly={() => {
-            const next: DailyPrompt = { ...prompt, themeOnly: !prompt.themeOnly }
-            if (!next.themeOnly) delete next.themeOnly
-            setPrompt(next)
-            void savePrompt(next)
-          }}
-          onRemove={() => {
-            setPrompt(null)
-            void savePrompt(null)
-          }}
-        />
-      ) : (
-        <button
-          type="button"
-          className="sketch idea-button"
-          onClick={() => void suggest(0)}
-        >
-          Besoin d'une idée ?
-        </button>
-      )}
-
-      <FormatBlock id={id} furigana={settings.furiganaFrom} text={text} onStarter={insertStarter} />
+      <FormatBlock
+        id={id}
+        furigana={settings.furiganaFrom}
+        text={text}
+        prompt={prompt}
+        linkState={linkState}
+        onLink={prompt && settings.apiKey ? () => void fetchLink(prompt) : undefined}
+        onAnother={() => void suggest((prompt?.variant ?? 0) + 1)}
+        onChangeGrammar={() => void suggest((prompt?.variant ?? 0) + 1, 'grammar')}
+        onChangeWords={() => void suggest((prompt?.variant ?? 0) + 1, 'words')}
+        onToggleThemeOnly={() => {
+          if (!prompt) return
+          const next: DailyPrompt = { ...prompt, themeOnly: !prompt.themeOnly }
+          if (!next.themeOnly) delete next.themeOnly
+          promptRef.current = next
+          setPrompt(next)
+          void savePrompt(next)
+        }}
+        onStarter={insertStarter}
+      />
 
       <div className="sheet-wrap">
         <textarea

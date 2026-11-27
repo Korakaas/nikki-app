@@ -1,5 +1,11 @@
 # Journal des changements
 
+## Lot 7 : un seul bloc « Format du jour » (2026-11-27)
+
+- S5.6a « Un seul bloc Format du jour, sans bouton Besoin d'une idée ? » (3 points) : le bouton et le bloc « Thème du jour » disparaissent. Tout est dans « Format du jour » : consigne, mise en situation, amorces, puis un coin « Pour t'aider » (replié, avec une ligne « point de grammaire · 3 mots ») qui contient la grammaire, les mots et, sur demande, le défi de traduction. Le tirage se fait tout seul à l'ouverture de l'écran Écrire, reste le même toute la journée, et n'est enregistré qu'avec la première ligne écrite (aucune entrée vide créée). Menu « ⋯ » : Changer la grammaire, Changer les mots, Sans grammaire ni mots (ou Remettre…), Tout changer ; « Retirer le sujet » disparaît. Un jour de journal libre, le sujet est montré en grand. **Le défi de traduction n'est plus demandé tout seul** (plus d'appel API automatique) : il faut toucher « Voir un défi de traduction ». Coût API : 0 € de plus, et moins d'appels qu'avant.
+- S5.6b « Grammaire et mots logiques selon le format du jour » (5 points) : chaque format a ses points de grammaire (`src/prompts/format-pools.ts`) et ses mots : les trois mots écrits à la main pour chacun des 30 textes de décembre (un mot est remplacé par un mot du deck Anki quand il y en a un), complétés par des thèmes de vocabulaire qui vont avec le format. Le journal libre garde le tirage d'après le sujet. Les futures banques mensuelles ont aussi trois mots par texte. Coût API : 0 €. Test automatique : sur 60 jours, trois niveaux de difficulté, la grammaire vient toujours de la liste du format et les mots du texte du jour sont là.
+- Données : le jour de format garde dans l'entrée un « sujet » égal au nom du format (手紙, 感想…) ; l'Historique n'affiche plus « お題 » dans ce cas, seulement la grammaire. Anciennes entrées (avec ou sans thème) et sauvegardes inchangées ; le format des sauvegardes ne change pas (version 2).
+
 ## Lot 6 : retrait de la rangée des trois étapes (2026-11-26)
 
 - S1.3 « Accès aux trois piliers » : la rangée Thème / Entrée / Correction sous la semaine de l'écran Écrire est retirée (trop haute, loin du pouce, redondante avec les blocs et le dock du bas). L'écran Écrire redevient comme avant le lot 6. Aucune donnée ni sauvegarde touchée.

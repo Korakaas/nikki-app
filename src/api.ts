@@ -290,16 +290,23 @@ function formatLine(format?: FormatId | null): string[] {
   return [`Format d'écriture du jour : ${hint}. C'est seulement un contexte ; ne juge pas le respect du format.`]
 }
 
+/** Jour de format : le « sujet » du tirage est le nom du format, déjà dit par la ligne du format. */
+function topicLine(prompt: DailyPrompt, format?: FormatId | null): string[] {
+  const named = formatById(format).ja
+  if (format && format !== 'journal' && plainText(prompt.topic.ja) === named) return []
+  return [`Sujet proposé : ${plainText(prompt.topic.ja)}`]
+}
+
 function userMessage(text: string, prompt?: DailyPrompt | null, format?: FormatId | null): string {
   const fmt = formatLine(format)
   if (!prompt) return [...fmt, ...(fmt.length ? [''] : []), `Voici mon entrée de journal :\n\n${text}`].join('\n')
   if (prompt.themeOnly) {
     // « Juste le thème » : pas de grammaire ni de mots à viser ce jour-là.
-    return [`Sujet proposé : ${plainText(prompt.topic.ja)}`, ...fmt, '', `Voici mon entrée de journal :\n\n${text}`].join('\n')
+    return [...topicLine(prompt, format), ...fmt, '', `Voici mon entrée de journal :\n\n${text}`].join('\n')
   }
   const words = prompt.words.map((w) => (w.reading ? `${w.ja}（${w.reading}）` : w.ja)).join('、')
   return [
-    `Sujet proposé : ${plainText(prompt.topic.ja)}`,
+    ...topicLine(prompt, format),
     `Point de grammaire visé : ${prompt.grammar.pattern} (${prompt.grammar.fr})`,
     `Mots proposés : ${words}`,
     ...fmt,

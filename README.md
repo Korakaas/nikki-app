@@ -34,9 +34,9 @@ Barre du bas : Écrire, Historique, Stats, Exercices, Réglages.
   pour savoir si le téléphone a bien reçu la dernière mise à jour. Calculé à la construction (`vite.config.ts`, `src/version.ts`) ;
   le déploiement GitHub récupère tout l'historique (`fetch-depth: 0`) pour que le compte soit juste.
 
-### Thème du jour plié
+### Un seul bloc « Format du jour » (S5.6a)
 
-Le bloc « Thème du jour » est plié complètement par défaut : seulement sa ligne de titre (pastille 題, chevron et menu « ⋯ »). Un tap le déplie (sujet, grammaire, mots, défi de traduction) ; le choix plié ou déplié est gardé d'une fois sur l'autre (`nikki-theme-open`).
+Il n'y a plus de bouton « Besoin d'une idée ? » ni de bloc « Thème du jour » séparé : tout ce qui aide à écrire est dans le bloc « Format du jour » (pastille 形, chevron et menu « ⋯ »). Dedans : le format (nom, consigne), la mise en situation et les amorces, puis un coin « Pour t'aider » (pastille 助, replié par défaut avec une ligne « point de grammaire · 3 mots ») qui contient le point de grammaire (文法), les trois mots (単語) et, sur demande, le défi de traduction (訳). Le choix plié ou déplié du bloc (`nikki-format-open`) et du coin « Pour t'aider » (`nikki-aide-open`) est gardé d'une fois sur l'autre. Un jour de journal libre, le sujet du jour est montré en grand à la place de la mise en situation.
 
 ### Tampons de professeur
 
@@ -77,13 +77,14 @@ Réglages → Écriture → « Ordre de la correction » : Erreurs d'abord (comm
 
 ## Idées du jour
 
-Sur l'écran Écrire, « Besoin d'une idée ? » propose un sujet, un point de grammaire
-N4, N3 ou N2 (selon Réglages → Difficulté) à placer (avec exemple) et trois mots de vocabulaire. Le bloc « Thème du jour » est plié par défaut : trois lignes (Sujet, Grammaire, Mots). Déplié, chaque partie a sa pastille (題, 文法, 単語, 訳) ; le « Défi de traduction » est une ligne qui se déplie. Aucun bouton n'est visible : le menu discret « ⋯ »
-(en haut à droite du bloc) propose « Changer la grammaire » et « Changer les mots » (ne changent que cette partie, le sujet reste, et ne reprennent pas
-ce qui vient d'être proposé aujourd'hui), « Juste le thème », « Tout changer » (une idée entière nouvelle) et « Retirer le sujet ». Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
+À l'ouverture de l'écran Écrire, l'appli tire toute seule un point de grammaire N4, N3 ou N2 (selon Réglages → Difficulté) à placer (avec exemple) et trois mots de vocabulaire. Ils vont avec le format du jour (voir « Grammaire et mots selon le format ») et restent les mêmes toute la journée, même si tu rouvres l'appli. Rien n'est créé tant que tu n'as rien écrit : le tirage est gardé dans l'entrée avec ta première ligne. Le menu discret « ⋯ » (en haut à droite du bloc) propose « Changer la grammaire » et « Changer les mots » (ne changent que cette partie, dans la logique du format, et ne reprennent pas ce qui vient d'être proposé), « Sans grammaire ni mots » (ou « Remettre grammaire et mots ») et « Tout changer » (une autre grammaire et d'autres mots). Le contenu est dans `src/prompts/data.ts` et `src/prompts/more.ts` (une centaine de points N4, N3 et N2)
 (à compléter librement, le balisage `{漢字|かんじ}` est le même que pour la correction) ;
 `src/prompts/pick.ts` choisit en évitant les points déjà vus dans les 14 dernières entrées.
 Le point visé est transmis à la correction, qui dit s'il a été bien employé.
+
+### Grammaire et mots selon le format (S5.6b)
+
+Chaque jour, quel que soit le format, le point de grammaire et les trois mots sont logiques pour lui : une lettre reçoit des formules polies, des demandes, des projets ; un avis, de quoi donner son opinion, comparer, recommander ; un dialogue, de la langue parlée ; une description, des formes pour décrire ; une opinion, de quoi argumenter et nuancer ; le journal libre garde le tirage d'après le sujet du jour. Les listes de points par format sont dans `src/prompts/format-pools.ts`. Les mots viennent d'abord du texte du jour (trois mots écrits à la main pour chaque texte de la banque, `words` dans `src/prompts/situations.ts`), complétés par un mot de ton deck Anki quand il y en a un (le premier tirage garde donc deux mots du texte et un mot du deck), puis par des thèmes de vocabulaire qui vont avec le format. Le point visé du bilan et les points jamais bien employés passent en priorité quand ils vont avec le format. Aucun appel à l'API : 0 €.
 
 ### Écrire à une main
 
@@ -93,8 +94,8 @@ au-dessus du clavier ; dès que le clavier se ferme (même avec le geste « reto
 Tout ce qui se touche sur cet écran (pastilles de la semaine, carte « Idée du jour », « 思い出 », « Photos et autocollants »,
 menu « ⋯ ») fait au moins 44 px.
 
-### Juste le thème
-Dans le menu « ⋯ » du « Thème du jour », « Juste le thème » masque la grammaire et les mots pour la journée ; « Remettre mots et grammaire » (même menu) les ramène. Ce jour-là, les mots n'entrent pas dans les statistiques, la correction ne reçoit que le sujet et le défi de traduction est libre.
+### Sans grammaire ni mots
+Dans le menu « ⋯ » du « Format du jour », « Sans grammaire ni mots » masque le coin « Pour t'aider » pour la journée ; « Remettre grammaire et mots » (même menu) le ramène. Ce jour-là, les mots n'entrent pas dans les statistiques et la correction ne reçoit que le format.
 
 ### Retour arrière
 Le geste « retour » d'Android revient à l'écran précédent (onglet ou entrée ouverte depuis l'Historique) au lieu de quitter l'appli.
@@ -112,7 +113,7 @@ Les appels utilisent le modèle léger d'abord, puis le modèle principal s'il �
 ### Lien entre sujet, mots et grammaire
 
 - Les mots de ton deck sont choisis en priorité s'ils ont un rapport avec le sujet du jour (mots-clés français et kanji par thème, `src/prompts/themes.ts`).
-- Dès qu'une idée est tirée, Claude écrit en arrière-plan un défi de traduction qui relie le sujet, le point de grammaire et des mots du jour (`src/link.ts`, outil `submit_link`). Il s'affiche dans la carte, section « Défi de traduction », et se garde avec l'entrée ; un bouton permet de le redemander s'il a échoué ou si tu étais hors ligne. Il n'y a plus de phrase d'exemple « Tout ensemble » (retirée au Sprint 5, les anciennes ne sont plus affichées).
+- Le défi de traduction n'est plus demandé tout seul : il faut toucher « Voir un défi de traduction » dans « Pour t'aider » (seulement avec une clé API). Claude écrit alors un défi qui relie la grammaire et les mots du jour (`src/link.ts`, outil `submit_link`) ; il se garde avec l'entrée, et le même bouton permet de le redemander s'il a échoué ou si tu étais hors ligne. Il n'y a plus de phrase d'exemple « Tout ensemble » (retirée au Sprint 5, les anciennes ne sont plus affichées).
 - Les mots du jour sont cochés pendant que tu écris (`src/words.ts`, la forme conjuguée compte). Les statistiques gardent combien de fois chaque mot a été proposé et employé ; ceux jamais employés reviennent plus souvent, ceux déjà employés moins.
 
 ### Une question sur la correction
@@ -194,11 +195,11 @@ Chaque appel ajoute ses jetons (envoyés / reçus, par type d'appel et par mois)
 
 ### Format du jour (S5.4a, S5.4b)
 
-Sous le thème du jour, le bloc « Format du jour » donne un format d'écriture (journal libre, lettre, avis, dialogue, description, opinion). Aucun choix à faire : le format ne dépend que de la date (le même toute la journée, jamais deux jours de suite le même, les six à tour de rôle). Il affiche une consigne, une mise en situation de la banque de textes (une lettre à laquelle répondre, une scène à décrire, une question sur ta vie…), une aide en français et deux amorces (insérées seulement si la page est vide). Tout est écrit dans l'appli, rien n'est envoyé à l'API. L'entrée garde son format ; la correction le reçoit comme simple contexte, et l'Historique montre une étiquette. Écrire autre chose reste toujours possible.
+Le bloc « Format du jour » donne un format d'écriture (journal libre, lettre, avis, dialogue, description, opinion). Aucun choix à faire : le format ne dépend que de la date (le même toute la journée, jamais deux jours de suite le même, les six à tour de rôle). Il affiche une consigne, une mise en situation de la banque de textes (une lettre à laquelle répondre, une scène à décrire, une question sur ta vie…), une aide en français, deux amorces (insérées seulement si la page est vide) et le coin « Pour t'aider » (grammaire et mots du jour, voir plus haut). Tout est écrit dans l'appli, rien n'est envoyé à l'API. L'entrée garde son format ; la correction le reçoit comme simple contexte, et l'Historique montre une étiquette. Écrire autre chose reste toujours possible.
 
 ### Banque de textes
 
-Les textes du format du jour sont dans `src/prompts/situations.ts` (une banque par mois : 6 textes par format, hors journal libre). Chaque mois : demander une nouvelle banque à Claude, qui l'ajoute à la liste `BANKS` (les anciens textes restent, dans l'ordre) et livre une nouvelle version. Une banque finie recommence au premier texte. Copie lisible dans les documents du projet Claude (`banque-textes/AAAA-MM.md`).
+Les textes du format du jour sont dans `src/prompts/situations.ts` (une banque par mois : 6 textes par format, hors journal libre). Chaque texte a ses trois mots (`words`, avec furigana et sens), qui deviennent les mots du jour : une nouvelle banque doit donc les contenir aussi. Chaque mois : demander une nouvelle banque à Claude, qui l'ajoute à la liste `BANKS` (les anciens textes restent, dans l'ordre) et livre une nouvelle version. Une banque finie recommence au premier texte. Copie lisible dans les documents du projet Claude (`banque-textes/AAAA-MM.md`).
 
 ### Point du jour (phrases à trous)
 
@@ -235,13 +236,13 @@ historiques que les exercices habituels (`src/components/MixedSeries.tsx`, tirag
 L'encart (pointillés verts, 二分) est le premier bloc de l'écran Exercices, sous le titre. Il affiche une petite coche ✓
 (« Fait aujourd'hui ») dès qu'une série a été terminée aujourd'hui ; on peut en refaire une. Quitter une série en cours ne donne pas la coche.
 Le jour de la dernière série terminée est gardé sur le téléphone (réglage `twoMinutes`, hors sauvegarde).
-L'ancienne carte « Aujourd'hui » de l'écran Écrire a été retirée (S18.8) : le thème du jour reste dans « Idée du jour » / « Besoin d'une idée ? ».
+L'ancienne carte « Aujourd'hui » de l'écran Écrire a été retirée (S18.8) : le thème du jour est maintenant dans le bloc « Format du jour ».
 
 ### Défi de traduction
 
 Une phrase en français à traduire en japonais pour commencer l'entrée (champ `challenge` de l'idée), demandée à Claude par `src/link.ts` dans une seule requête avec :
-- **le pont** (`bridge`) : une courte phrase (70 caractères au plus, deux lignes au plus à l'écran) qui montre comment placer le point de grammaire et un mot dans le thème ; affiché au-dessus du défi, dans la carte ouverte. Jamais demandé avec « Juste le thème » ;
-- **`fits`** : faux quand le lien serait forcé. L'appli change alors de sujet (une seule fois par jour, et seulement pour une nouvelle idée ou « Tout changer », pas pour « Changer » les mots ou la grammaire) plutôt que de forcer. Si le second sujet n'a pas de lien non plus, le défi s'affiche sans pont.
+- **le pont** (`bridge`) : une courte phrase (70 caractères au plus, deux lignes au plus à l'écran) qui montre comment placer le point de grammaire et un mot dans le thème ; affiché au-dessus du défi, dans la carte ouverte. Absent quand le coin « Pour t'aider » est masqué ;
+- **`fits`** : faux quand le lien serait forcé ; le défi s'affiche alors sans pont (l'appli ne change plus de sujet toute seule : le défi est maintenant demandé à la main, au coup par coup).
 
 ### Modèle léger
 
